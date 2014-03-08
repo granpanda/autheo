@@ -1,7 +1,10 @@
 package gp.e3.autheo;
 
+import gp.e3.autheo.authentication.domain.business.TokenBusiness;
 import gp.e3.autheo.authentication.domain.business.UserBusiness;
+import gp.e3.autheo.authentication.infrastructure.RedisConfig;
 import gp.e3.autheo.authentication.persistence.daos.IUserDAO;
+import gp.e3.autheo.authentication.persistence.daos.TokenDAO;
 import gp.e3.autheo.authentication.service.resources.UserResource;
 
 import org.skife.jdbi.v2.DBI;
@@ -32,20 +35,27 @@ public class Autheo extends Service<AutheoConfig> {
 	@Override
 	public void run(AutheoConfig autheoConfig, Environment environment) throws Exception {
 		
-		final DBIFactory dbiFactory = new DBIFactory();
-		final DBI jdbi = dbiFactory.build(environment, 
-				autheoConfig.getAuthenticationConfig().getAuthenticationDatabase(), "mysql");
-		
 		// Add user resource to the environment.
-		UserResource userResource = getUserResource(jdbi);
+		UserResource userResource = getUserResource(autheoConfig, environment);
 		environment.addResource(userResource);
 	}
 
-	private UserResource getUserResource(final DBI jdbi) {
+	private UserResource getUserResource(AutheoConfig autheoConfig, Environment environment) 
+			throws ClassNotFoundException {
 		
+		// MySQL
+		final DBIFactory dbiFactory = new DBIFactory();
+		final DBI jdbi = dbiFactory.build(environment, 
+				autheoConfig.getAuthenticationConfig().getAuthenticationDatabase(), "mysql");
 		final IUserDAO userDAO = jdbi.onDemand(IUserDAO.class);
 		UserBusiness userBusiness = new UserBusiness(userDAO);
-		UserResource userResource = new UserResource(userBusiness);
+		
+		// Redis
+		RedisConfig redisConfig = autheoConfig.getRedisConfig();
+		final TokenDAO tokenDao = new TokenDAO(redisConfig.getHost(), redisConfig.getPort());
+		TokenBusiness tokenBusiness = new TokenBusiness(tokenDao);
+		
+		UserResource userResource = new UserResource(userBusiness, tokenBusiness);
 		
 		return userResource;
 	}

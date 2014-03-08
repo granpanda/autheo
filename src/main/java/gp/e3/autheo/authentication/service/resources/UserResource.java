@@ -1,11 +1,15 @@
 package gp.e3.autheo.authentication.service.resources;
 
+import gp.e3.autheo.authentication.domain.business.TokenBusiness;
 import gp.e3.autheo.authentication.domain.business.UserBusiness;
+import gp.e3.autheo.authentication.domain.entities.Token;
 import gp.e3.autheo.authentication.domain.entities.User;
+import gp.e3.autheo.authentication.domain.exceptions.TokenGenerationException;
 import gp.e3.autheo.authentication.persistence.exceptions.DuplicateIdException;
 
 import java.util.List;
 
+import javax.security.sasl.AuthenticationException;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.DELETE;
 import javax.ws.rs.GET;
@@ -23,10 +27,12 @@ import javax.ws.rs.core.Response;
 public class UserResource {
 	
 	private final UserBusiness userBusiness;
+	private final TokenBusiness tokenBusiness;
 
-	public UserResource(UserBusiness userBusiness) {
+	public UserResource(UserBusiness userBusiness, TokenBusiness tokenBusiness) {
 		
 		this.userBusiness = userBusiness;
+		this.tokenBusiness = tokenBusiness;
 	}
 	
 	@POST
@@ -42,6 +48,33 @@ public class UserResource {
 		} catch (DuplicateIdException e) {
 			
 			response = Response.status(500).entity(e.getMessage()).build();
+		}
+		
+		return response;
+	}
+	
+	@POST
+	@Path("/token")
+	public Response authenticateUser(User user) {
+		
+		Response response = null;
+		
+		try {
+			
+			if (userBusiness.authenticateUser(user.getUsername(), user.getPassword())) {
+				
+				Token token = tokenBusiness.generateToken(user);
+				response = Response.status(201).entity(token.getTokenValue()).build();
+				
+			} else {
+				
+				String errorMessage = "The user credentials are not valid.";
+				response = Response.status(401).entity(errorMessage).build();
+			}
+			
+		} catch (AuthenticationException | TokenGenerationException e) {
+			
+			response = Response.status(401).entity(e.getMessage()).build();
 		}
 		
 		return response;

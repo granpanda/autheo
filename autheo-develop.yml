@@ -46,3 +46,8 @@ authenticationConfig:
 
     # the maximum lifetime of an idle connection
     closeConnectionIfIdleFor: 1 minute
+
+redisConfig:
+
+  host: localhost
+  port: 6379

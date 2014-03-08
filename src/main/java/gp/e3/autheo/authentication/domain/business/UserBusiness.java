@@ -4,7 +4,11 @@ import gp.e3.autheo.authentication.domain.entities.User;
 import gp.e3.autheo.authentication.persistence.daos.IUserDAO;
 import gp.e3.autheo.authentication.persistence.exceptions.DuplicateIdException;
 
+import java.security.NoSuchAlgorithmException;
+import java.security.spec.InvalidKeySpecException;
 import java.util.List;
+
+import javax.security.sasl.AuthenticationException;
 
 public class UserBusiness {
 	
@@ -20,7 +24,11 @@ public class UserBusiness {
 		
 		try {
 			
-			userDao.createUser(newUser.getName(), newUser.getUsername(), newUser.getPassword());
+			String originalPassword = newUser.getPassword();
+			String passwordHash = PasswordHandler.getPasswordHash(originalPassword);
+			String passwordSalt = PasswordHandler.getSaltFromHashedAndSaltedPassword(passwordHash);
+			
+			userDao.createUser(newUser.getName(), newUser.getUsername(), passwordHash, passwordSalt);
 			
 		} catch (Exception e) {
 			
@@ -29,6 +37,33 @@ public class UserBusiness {
 		}
 		
 		return newUser;
+	}
+	
+	public boolean authenticateUser(String username, String password) throws AuthenticationException {
+		
+		boolean isAuthenticated = false;
+		String errorMessage = "The user credentials are not valid.";
+		
+		String passwordHashFromDb = userDao.getPasswordHashByUsername(username);
+		
+		if (passwordHashFromDb != null) {
+			
+			try {
+				
+				isAuthenticated = PasswordHandler.validatePassword(password, passwordHashFromDb);
+				
+			} catch (NoSuchAlgorithmException e) {
+				throw new AuthenticationException(errorMessage);
+			} catch (InvalidKeySpecException e) {
+				throw new AuthenticationException(errorMessage);
+			}
+			
+		} else {
+			
+			throw new AuthenticationException(errorMessage);
+		}
+		
+		return isAuthenticated;
 	}
 	
 	public User getUserByUsername(String username) {
