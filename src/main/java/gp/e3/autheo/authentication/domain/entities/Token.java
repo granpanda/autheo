@@ -1,6 +1,6 @@
 package gp.e3.autheo.authentication.domain.entities;
 
-public class Token {
+public class Token implements Comparable<Token> {
 	
 	private final String username;
 	private final String tokenValue;
@@ -17,5 +17,16 @@ public class Token {
 
 	public String getTokenValue() {
 		return tokenValue;
+	}
+
+	@Override
+	public int compareTo(Token token) {
+		
+		int answer = 0;
+		
+		answer += this.username.compareTo(token.getUsername());
+		answer += this.tokenValue.compareTo(token.getTokenValue());
+		
+		return answer;
 	}
 }

@@ -13,11 +13,21 @@ public class TokenBusiness {
 		this.tokenDao = tokenDao;
 	}
 
-	public Token generateToken(User user) throws TokenGenerationException {
+	public Token generateToken(User user) throws TokenGenerationException, IllegalArgumentException {
 		
-		String tokenValue = TokenFactory.getToken(user);
-		Token token = new Token(user.getUsername(), tokenValue);
-		tokenDao.addToken(token);
+		Token token = null;
+		
+		if ((user != null) && (!user.getUsername().isEmpty())) {
+		
+			String tokenValue = TokenFactory.getToken(user);
+			token = new Token(user.getUsername(), tokenValue);
+			tokenDao.addToken(token);
+			
+		} else {
+			
+			String errorMessage = "The user given as argument is invalid.";
+			throw new IllegalArgumentException(errorMessage);
+		}
 		
 		return token;
 	}

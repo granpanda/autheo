@@ -30,14 +30,6 @@ public class UserBusinessTest {
 
 	private IUserDAO userDaoMock;
 
-	@BeforeClass
-	public static void setUpClass() {
-	}
-
-	@AfterClass
-	public static void tearDownClass() {
-	}
-
 	@Before
 	public void setUp() {
 
