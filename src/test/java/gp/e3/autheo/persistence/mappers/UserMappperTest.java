@@ -1,5 +1,7 @@
 package gp.e3.autheo.persistence.mappers;
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.fail;
 import gp.e3.autheo.authentication.domain.entities.User;
 import gp.e3.autheo.authentication.persistence.daos.IUserDAO;
 import gp.e3.autheo.authentication.persistence.mappers.UserMapper;
@@ -15,8 +17,6 @@ import org.junit.runners.JUnit4;
 import org.mockito.Mockito;
 import org.skife.jdbi.v2.StatementContext;
 
-import static org.junit.Assert.*;
-
 @RunWith(JUnit4.class)
 public class UserMappperTest {
 
@@ -25,7 +25,7 @@ public class UserMappperTest {
 	}
 
 	@After
-	public void tearDown() {	
+	public void tearDown() {
 	}
 
 	@Test
@@ -44,7 +44,7 @@ public class UserMappperTest {
 			ResultSet resultSetMock = Mockito.mock(ResultSet.class);
 			Mockito.when(resultSetMock.getString(IUserDAO.NAME_FIELD)).thenReturn(name);
 			Mockito.when(resultSetMock.getString(IUserDAO.USERNAME_FIELD)).thenReturn(username);
-			Mockito.when(resultSetMock.getString(IUserDAO.PASSWORD_HASH_FIELD)).thenReturn(password);
+			Mockito.when(resultSetMock.getString(IUserDAO.PASSWORD_FIELD)).thenReturn(password);
 
 			StatementContext statementContextMock = Mockito.mock(StatementContext.class);
 

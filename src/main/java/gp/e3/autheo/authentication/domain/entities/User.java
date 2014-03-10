@@ -3,7 +3,7 @@ package gp.e3.autheo.authentication.domain.entities;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
-public class User {
+public class User implements Comparable<User> {
 	
 	private final String name;
 	private final String username;
@@ -28,5 +28,20 @@ public class User {
 
 	public String getPassword() {
 		return password;
+	}
+
+	@Override
+	public int compareTo(User user) {
+		
+		int answer = 0;
+		
+		if (user instanceof User) {
+			
+			answer += this.name.compareTo(user.getName());
+			answer += this.username.compareTo(user.getUsername());
+			answer += this.password.compareTo(user.getPassword());
+		}
+		
+		return answer;
 	}
 }

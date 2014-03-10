@@ -44,7 +44,7 @@ public class UserBusiness {
 		boolean isAuthenticated = false;
 		String errorMessage = "The user credentials are not valid.";
 		
-		String passwordHashFromDb = userDao.getPasswordHashByUsername(username);
+		String passwordHashFromDb = userDao.getPasswordByUsername(username);
 		
 		if (passwordHashFromDb != null) {
 			
