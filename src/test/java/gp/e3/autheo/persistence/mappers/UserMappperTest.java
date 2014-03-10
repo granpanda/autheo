@@ -1,0 +1,62 @@
+package gp.e3.autheo.persistence.mappers;
+
+import gp.e3.autheo.authentication.domain.entities.User;
+import gp.e3.autheo.authentication.persistence.daos.IUserDAO;
+import gp.e3.autheo.authentication.persistence.mappers.UserMapper;
+
+import java.sql.ResultSet;
+import java.sql.SQLException;
+
+import org.junit.After;
+import org.junit.Before;
+import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.junit.runners.JUnit4;
+import org.mockito.Mockito;
+import org.skife.jdbi.v2.StatementContext;
+
+import static org.junit.Assert.*;
+
+@RunWith(JUnit4.class)
+public class UserMappperTest {
+
+	@Before
+	public void setUp() {
+	}
+
+	@After
+	public void tearDown() {	
+	}
+
+	@Test
+	public void testMapMethod() {
+
+		UserMapper userMapper = new UserMapper();
+
+		String name = "name";
+		String username = "username";
+		String password = "password";
+
+		int intValue = 0;
+
+		try {
+
+			ResultSet resultSetMock = Mockito.mock(ResultSet.class);
+			Mockito.when(resultSetMock.getString(IUserDAO.NAME_FIELD)).thenReturn(name);
+			Mockito.when(resultSetMock.getString(IUserDAO.USERNAME_FIELD)).thenReturn(username);
+			Mockito.when(resultSetMock.getString(IUserDAO.PASSWORD_HASH_FIELD)).thenReturn(password);
+
+			StatementContext statementContextMock = Mockito.mock(StatementContext.class);
+
+			User user = userMapper.map(intValue, resultSetMock, statementContextMock);
+			
+			assertEquals(name, user.getName());
+			assertEquals(username, user.getUsername());
+			assertEquals(password, user.getPassword());
+
+		} catch (SQLException e) {
+			
+			fail(e.getMessage());
+		}
+	}
+}
