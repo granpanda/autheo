@@ -12,12 +12,9 @@ import java.sql.SQLException;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.junit.runners.JUnit4;
 import org.mockito.Mockito;
 import org.skife.jdbi.v2.StatementContext;
 
-@RunWith(JUnit4.class)
 public class UserMappperTest {
 
 	@Before

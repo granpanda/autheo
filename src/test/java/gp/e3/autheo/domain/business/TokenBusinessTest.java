@@ -110,7 +110,14 @@ public class TokenBusinessTest {
 		
 		String invalidUsername = null;
 		
-		String userTokenValue = tokenBusiness.getTokenValue(invalidUsername);
-		assertEquals(tokenValue, userTokenValue);
+		try {
+			
+			tokenBusiness.getTokenValue(invalidUsername);
+			fail("The method should throw an exception because the username parameter was null.");
+			
+		} catch (Exception e) {
+			
+			assertNotNull(e);
+		}
 	}
 }

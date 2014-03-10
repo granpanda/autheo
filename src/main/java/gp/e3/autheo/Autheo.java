@@ -9,6 +9,8 @@ import gp.e3.autheo.authentication.service.resources.UserResource;
 
 import org.skife.jdbi.v2.DBI;
 
+import redis.clients.jedis.Jedis;
+
 import com.yammer.dropwizard.Service;
 import com.yammer.dropwizard.config.Bootstrap;
 import com.yammer.dropwizard.config.Environment;
@@ -52,7 +54,8 @@ public class Autheo extends Service<AutheoConfig> {
 		
 		// Redis
 		RedisConfig redisConfig = autheoConfig.getRedisConfig();
-		final TokenDAO tokenDao = new TokenDAO(redisConfig.getHost(), redisConfig.getPort());
+		Jedis jedis = new Jedis(redisConfig.getHost(), redisConfig.getPort()); // Init Jedis from RedisConfig.
+		final TokenDAO tokenDao = new TokenDAO(jedis);
 		TokenBusiness tokenBusiness = new TokenBusiness(tokenDao);
 		
 		UserResource userResource = new UserResource(userBusiness, tokenBusiness);

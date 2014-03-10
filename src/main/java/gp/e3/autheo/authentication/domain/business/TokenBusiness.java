@@ -32,8 +32,16 @@ public class TokenBusiness {
 		return token;
 	}
 	
-	public String getTokenValue(String username) {
+	public String getTokenValue(String username) throws IllegalArgumentException {
 		
-		return tokenDao.getToken(username);
+		if ((username != null) && (!username.isEmpty())) {
+			
+			return tokenDao.getToken(username);
+			
+		} else {
+			
+			String errorMessage = "The parameter is null or empty.";
+			throw new IllegalArgumentException(errorMessage);
+		}
 	}
 }

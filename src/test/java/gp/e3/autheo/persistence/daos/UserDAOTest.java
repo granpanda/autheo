@@ -14,12 +14,9 @@ import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.junit.runners.JUnit4;
 import org.skife.jdbi.v2.DBI;
 import org.skife.jdbi.v2.Handle;
 
-@RunWith(JUnit4.class)
 public class UserDAOTest {
 
 	public static final String H2_IN_MEMORY_DB = "jdbc:h2:mem:test";

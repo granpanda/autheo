@@ -20,9 +20,7 @@ import java.util.List;
 import javax.security.sasl.AuthenticationException;
 
 import org.junit.After;
-import org.junit.AfterClass;
 import org.junit.Before;
-import org.junit.BeforeClass;
 import org.junit.Test;
 import org.mockito.Mockito;
 
