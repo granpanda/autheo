@@ -1,12 +1,13 @@
 package gp.e3.autheo.persistence.daos;
 
-import static org.junit.Assert.*;
-
-import java.util.ArrayList;
-import java.util.List;
-
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.fail;
 import gp.e3.autheo.authentication.domain.entities.User;
 import gp.e3.autheo.authentication.persistence.daos.IUserDAO;
+import gp.e3.autheo.util.UserFactoryForTests;
+
+import java.util.List;
 
 import org.junit.After;
 import org.junit.AfterClass;
@@ -57,40 +58,10 @@ public class UserDAOTest {
 		handle.execute("DROP TABLE users");
 	}
 
-	private User getDefaultTestUser() {
-
-		String name = "name";
-		String username = "username";
-		String password = "password";
-
-		return new User(name, username, password);
-	}
-
-	private User getDefaultTestUser(int userNumber) {
-
-		String name = "name" + userNumber;
-		String username = "username" + userNumber;
-		String password = "password" + userNumber;
-
-		return new User(name, username, password);
-	}
-
-	private List<User> getUserList(int listSize) {
-
-		List<User> userList = new ArrayList<User>();
-
-		for (int i = 0; i < listSize; i++) {
-
-			userList.add(getDefaultTestUser(i));
-		}
-
-		return userList;
-	}
-
 	@Test
 	public void testCountUsersTable_OK() {
 
-		User user = getDefaultTestUser();
+		User user = UserFactoryForTests.getDefaultTestUser();
 		String salt = "salt";
 
 		try {
@@ -115,7 +86,7 @@ public class UserDAOTest {
 	@Test
 	public void testCountUsersTable_NOK() {
 
-		User user = getDefaultTestUser();
+		User user = UserFactoryForTests.getDefaultTestUser();
 
 		try {
 
@@ -137,7 +108,7 @@ public class UserDAOTest {
 	@Test
 	public void testCreateUser_OK() {
 
-		User user = getDefaultTestUser();
+		User user = UserFactoryForTests.getDefaultTestUser();
 		String salt = "salt";
 
 		try {
@@ -176,7 +147,7 @@ public class UserDAOTest {
 	@Test
 	public void testGetUserByUsername_OK() {
 
-		User user = getDefaultTestUser();
+		User user = UserFactoryForTests.getDefaultTestUser();
 		String salt = "salt";
 
 		try {
@@ -195,7 +166,7 @@ public class UserDAOTest {
 	@Test
 	public void testGetUserByUsername_NOK() {
 
-		User user = getDefaultTestUser();
+		User user = UserFactoryForTests.getDefaultTestUser();
 		String salt = "salt";
 
 		try {
@@ -217,7 +188,7 @@ public class UserDAOTest {
 	public void testGetAllUsers_OK() {
 
 		int listSize = 5;
-		List<User> userList = getUserList(listSize);
+		List<User> userList = UserFactoryForTests.getUserList(listSize);
 		String salt = "123";
 
 		try {
@@ -242,7 +213,7 @@ public class UserDAOTest {
 	public void testGetAllUsers_NOK() {
 
 		int listSize = 0;
-		List<User> userList = getUserList(listSize);
+		List<User> userList = UserFactoryForTests.getUserList(listSize);
 		String salt = "123";
 
 		try {
@@ -266,7 +237,7 @@ public class UserDAOTest {
 	@Test
 	public void testGetPasswordByUsername_OK() {
 		
-		User user = getDefaultTestUser();
+		User user = UserFactoryForTests.getDefaultTestUser();
 		String salt = "salt";
 
 		try {
@@ -287,7 +258,7 @@ public class UserDAOTest {
 	@Test
 	public void testGetPasswordByUsername_NOK() {
 		
-		User user = getDefaultTestUser();
+		User user = UserFactoryForTests.getDefaultTestUser();
 
 		try {
 
@@ -305,7 +276,7 @@ public class UserDAOTest {
 	@Test
 	public void testUpdateUser_OK() {
 		
-		User defaultUser = getDefaultTestUser();
+		User defaultUser = UserFactoryForTests.getDefaultTestUser();
 		String salt = "salt";
 
 		try {
@@ -314,9 +285,12 @@ public class UserDAOTest {
 			userDAO.createUser(defaultUser.getName(), defaultUser.getUsername(), defaultUser.getPassword(), salt);
 			assertEquals(1, userDAO.countUsersTable());
 
-			User updatedUser = getDefaultTestUser(1);
+			User updatedUser = UserFactoryForTests.getDefaultTestUser(1);
 			
-			userDAO.updateUser(defaultUser.getUsername(), updatedUser.getName(), updatedUser.getPassword());
+			int numberOfRowsModified = userDAO.updateUser(defaultUser.getUsername(), updatedUser.getName(), 
+					updatedUser.getPassword());
+			
+			assertEquals(1, numberOfRowsModified);
 			assertEquals(1, userDAO.countUsersTable());
 			
 			User retrievedUser = userDAO.getUserByUsername(defaultUser.getUsername());
@@ -335,7 +309,7 @@ public class UserDAOTest {
 	@Test
 	public void testUpdateUser_NOK() {
 		
-		User defaultUser = getDefaultTestUser();
+		User defaultUser = UserFactoryForTests.getDefaultTestUser();
 		String salt = "salt";
 
 		try {
@@ -344,11 +318,14 @@ public class UserDAOTest {
 			userDAO.createUser(defaultUser.getName(), defaultUser.getUsername(), defaultUser.getPassword(), salt);
 			assertEquals(1, userDAO.countUsersTable());
 
-			User updatedUser = getDefaultTestUser(1);
+			User updatedUser = UserFactoryForTests.getDefaultTestUser(1);
 			
 			String unknownUsername = "unknownUsername";
 			
-			userDAO.updateUser(unknownUsername, updatedUser.getName(), updatedUser.getPassword());
+			int numberOfRowsModified = userDAO.updateUser(unknownUsername, updatedUser.getName(), 
+					updatedUser.getPassword());
+			
+			assertEquals(0, numberOfRowsModified);
 			assertEquals(1, userDAO.countUsersTable());
 			
 			User unknownUser = userDAO.getUserByUsername(unknownUsername);
@@ -369,7 +346,7 @@ public class UserDAOTest {
 	@Test
 	public void testDeleteUser_OK() {
 		
-		User defaultUser = getDefaultTestUser();
+		User defaultUser = UserFactoryForTests.getDefaultTestUser();
 		String salt = "salt";
 
 		try {
@@ -378,7 +355,9 @@ public class UserDAOTest {
 			userDAO.createUser(defaultUser.getName(), defaultUser.getUsername(), defaultUser.getPassword(), salt);
 			assertEquals(1, userDAO.countUsersTable());
 			
-			userDAO.deleteUser(defaultUser.getUsername());
+			int numberOfRowsModified = userDAO.deleteUser(defaultUser.getUsername());
+			
+			assertEquals(1, numberOfRowsModified);
 			assertEquals(0, userDAO.countUsersTable());
 
 		} catch (Exception e) {
@@ -390,12 +369,14 @@ public class UserDAOTest {
 	@Test
 	public void testDeleteUser_NOK() {
 		
-		User defaultUser = getDefaultTestUser();
+		User defaultUser = UserFactoryForTests.getDefaultTestUser();
 
 		try {
 
 			assertEquals(0, userDAO.countUsersTable());
-			userDAO.deleteUser(defaultUser.getUsername());
+			int numberOfRowsModified = userDAO.deleteUser(defaultUser.getUsername());
+			
+			assertEquals(0, numberOfRowsModified);
 			assertEquals(0, userDAO.countUsersTable());
 
 		} catch (Exception e) {
