@@ -1,5 +1,7 @@
 package gp.e3.autheo.authentication.domain.entities;
 
+import gp.e3.autheo.authentication.infrastructure.validators.StringValidator;
+
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
@@ -28,6 +30,13 @@ public class User implements Comparable<User> {
 
 	public String getPassword() {
 		return password;
+	}
+	
+	public static boolean isAValidUser(User user) {
+		
+		return (user != null) && (StringValidator.isValidString(user.getName())) && 
+				(StringValidator.isValidString(user.getUsername())) && 
+				(StringValidator.isValidString(user.getPassword()));
 	}
 
 	@Override

@@ -47,23 +47,33 @@ public class TokenFactory {
 	 * @return A new authentication token. 
 	 * @throws TokenGenerationException, exception thrown when there is an error generating the authentication token.
 	 */
-	public static final String getToken(User user) throws TokenGenerationException {
+	public static final String getToken(User user) throws TokenGenerationException, IllegalArgumentException {
 		
-		long currentMillis = DateTime.now().getMillis();
-		String baseForToken = currentMillis + user.getUsername() + user.getPassword();
+		String errorMessage = "";
 		
-		String generatedToken = "";
-		
-		try {
+		if (User.isAValidUser(user)) {
 			
-			generatedToken = getHashFromString(baseForToken).substring(0, TOKEN_CHARACTER_LIMIT);
+			long currentMillis = DateTime.now().getMillis();
+			String baseForToken = currentMillis + user.getUsername() + user.getPassword();
 			
-		} catch (NoSuchAlgorithmException | InvalidKeySpecException e) {
+			String generatedToken = "";
 			
-			String errorMessage = "There was an error generating the authentication token.";
-			throw new TokenGenerationException(errorMessage);
+			try {
+				
+				generatedToken = getHashFromString(baseForToken).substring(0, TOKEN_CHARACTER_LIMIT);
+				
+			} catch (NoSuchAlgorithmException | InvalidKeySpecException e) {
+				
+				errorMessage = "There was an error generating the authentication token.";
+				throw new TokenGenerationException(errorMessage);
+			}
+			
+			return generatedToken;
+			
+		} else {
+			
+			errorMessage = "The user given as argument is not valid.";
+			throw new IllegalArgumentException(errorMessage);
 		}
-		
-		return generatedToken;
 	}
 }

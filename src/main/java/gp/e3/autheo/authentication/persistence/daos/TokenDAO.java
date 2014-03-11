@@ -13,15 +13,9 @@ public class TokenDAO {
 		this.redisClient = jedis;
 	}
 	
-	private boolean isAValidToken(Token token) {
-		
-		return (token != null) && (StringValidator.isValidString(token.getUsername())) 
-				&& (StringValidator.isValidString(token.getTokenValue()));
-	}
-	
 	public String addToken(Token token) throws IllegalArgumentException {
 		
-		if (isAValidToken(token)) {
+		if (Token.isAValidToken(token)) {
 			
 			return redisClient.set(token.getUsername(), token.getTokenValue());
 			
