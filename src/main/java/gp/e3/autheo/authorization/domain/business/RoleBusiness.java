@@ -1,18 +1,25 @@
 package gp.e3.autheo.authorization.domain.business;
 
+import gp.e3.autheo.authentication.infrastructure.validators.StringValidator;
 import gp.e3.autheo.authentication.persistence.exceptions.DuplicateIdException;
 import gp.e3.autheo.authorization.domain.entities.Permission;
 import gp.e3.autheo.authorization.domain.entities.Role;
+import gp.e3.autheo.authorization.infrastructure.dtos.PermissionTuple;
 import gp.e3.autheo.authorization.persistence.daos.IRoleDAO;
 
+import java.util.ArrayList;
 import java.util.List;
 
-public class RoleBusiness {
+import redis.clients.jedis.Jedis;
 
+public class RoleBusiness {
+	
 	private final IRoleDAO roleDao;
 	private final PermissionBusiness permissionBusiness;
+	
+	private final Jedis redisClient;
 
-	public RoleBusiness(IRoleDAO roleDao, PermissionBusiness permissionBusiness) {
+	public RoleBusiness(IRoleDAO roleDao, PermissionBusiness permissionBusiness, Jedis jedis) {
 
 		this.roleDao = roleDao;
 		this.permissionBusiness = permissionBusiness;
@@ -20,6 +27,8 @@ public class RoleBusiness {
 		this.roleDao.createRolesTable();
 		this.roleDao.createRolesAndPermissionsTable();
 		this.roleDao.createRolesAndUsersTable();
+		
+		redisClient = jedis;
 	}
 
 	public Role createRole(Role role) throws DuplicateIdException {
@@ -81,5 +90,51 @@ public class RoleBusiness {
 	public List<Permission> getAllPermissionsOfAGivenRole(String roleName) {
 		
 		return permissionBusiness.getAllPermissionsOfAGivenRole(roleName);
+	}
+	
+	public boolean rolePermissionsAreInRedis(String roleName) {
+		
+		String getResult = redisClient.get(roleName);
+		
+		System.out.println("areRolePermissionsInRedis()");
+		System.out.println(getResult);
+		
+		return StringValidator.isValidString(getResult);
+	}
+	
+	public boolean addRolePermissionsToRedis(String roleName) {
+		
+		List<Permission> rolePermissions = permissionBusiness.getAllPermissionsOfAGivenRole(roleName);
+		
+		String permssionsString = "";
+		
+		for (Permission permission : rolePermissions) {
+			
+			permssionsString += permission.toString() + Permission.PERMISSION_SPLIT;
+		}
+		
+		String setResult = redisClient.set(roleName, permssionsString);
+		
+		System.out.println("addRolePermissionsToRedis");
+		System.out.println(setResult);
+		
+		return true;
+	}
+	
+	public List<PermissionTuple> getRolePermissionsFromRedis(String roleName) {
+		
+		String rolePermissionsString = redisClient.get(roleName);
+		String[] permissionsArray = rolePermissionsString.split(Permission.PERMISSION_SPLIT);
+		
+		List<PermissionTuple> rolePermissions = new ArrayList<PermissionTuple>();
+		
+		for (int i = 0; i < permissionsArray.length; i++) {
+			
+			String permissionString = permissionsArray[i];
+			String[] permissionAttributes = permissionString.split(Permission.ATTRIBUTE_SPLIT);
+			rolePermissions.add(new PermissionTuple(permissionAttributes[2], permissionAttributes[3]));
+		}
+		
+		return rolePermissions;
 	}
 }

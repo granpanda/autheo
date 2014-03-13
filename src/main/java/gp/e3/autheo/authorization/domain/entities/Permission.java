@@ -6,6 +6,9 @@ import gp.e3.autheo.authorization.infrastructure.validators.HttpVerbValidator;
 
 public class Permission {
 	
+	public static final String ATTRIBUTE_SPLIT = ":";
+	public static final String PERMISSION_SPLIT = ";";
+	
 	private int id;
 	private final String name;
 	private final String httpVerb;
@@ -48,5 +51,11 @@ public class Permission {
 		return (StringValidator.isValidString(permission.getName())) &&
 				(HttpVerbValidator.isValidHttpVerb(permission.getHttpVerb())) && 
 				(E3UrlValidator.isValidUrl(permission.getUrl()));
+	}
+	
+	@Override
+	public String toString() {
+		
+		return id + ATTRIBUTE_SPLIT + name + ATTRIBUTE_SPLIT + httpVerb + ATTRIBUTE_SPLIT + url;
 	}
 }

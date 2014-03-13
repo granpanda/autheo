@@ -30,7 +30,7 @@ public interface IPermissionDAO {
 	//------------------------------------------------------------------------------------------------------
 
 	public static final String CREATE_PERMISSIONS_TABLE_IF_NOT_EXISTS = 
-			"CREATE TABLE IF NOT EXISTS permissions (id INT NOT NULL AUTO_INCREMENT, name VARCHAR(32), http_verb VARCHAR(32), url VARCHAR(256), PRIMARY KEY (id));";
+			"CREATE TABLE IF NOT EXISTS permissions (id INT NOT NULL AUTO_INCREMENT, name VARCHAR(32), http_verb VARCHAR(32), url VARCHAR(256), PRIMARY KEY (http_verb, url));";
 
 	public static final String CREATE_PERMISSION = 
 			"INSERT INTO permissions (name, http_verb, url) VALUES (:name, :http_verb, :url)";

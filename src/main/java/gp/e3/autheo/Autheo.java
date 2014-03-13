@@ -54,7 +54,7 @@ public class Autheo extends Service<AutheoConfig> {
 		environment.addResource(permissionResource);
 
 		// Add Role resource to the environment.
-		RoleResource roleResource = getRoleResource(jdbi);
+		RoleResource roleResource = getRoleResource(jdbi, jedis);
 		environment.addResource(roleResource);
 
 		// Add user resource to the environment.
@@ -88,13 +88,13 @@ public class Autheo extends Service<AutheoConfig> {
 		return permissionResource;
 	}
 
-	private RoleResource getRoleResource(final DBI jdbi) {
+	private RoleResource getRoleResource(final DBI jdbi, final Jedis jedis) {
 
 		final IPermissionDAO permissionDao = jdbi.onDemand(IPermissionDAO.class);
 		final PermissionBusiness permissionBusiness = new PermissionBusiness(permissionDao);
 		
 		final IRoleDAO roleDao = jdbi.onDemand(IRoleDAO.class);
-		final RoleBusiness roleBusiness = new RoleBusiness(roleDao, permissionBusiness);
+		final RoleBusiness roleBusiness = new RoleBusiness(roleDao, permissionBusiness, jedis);
 		
 		RoleResource roleResource = new RoleResource(roleBusiness);
 		
