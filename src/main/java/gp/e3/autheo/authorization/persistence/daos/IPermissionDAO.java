@@ -1,6 +1,7 @@
 package gp.e3.autheo.authorization.persistence.daos;
 
 import gp.e3.autheo.authorization.domain.entities.Permission;
+import gp.e3.autheo.authorization.persistence.mappers.PermissionMapper;
 
 import java.util.List;
 
@@ -8,6 +9,7 @@ import org.skife.jdbi.v2.sqlobject.Bind;
 import org.skife.jdbi.v2.sqlobject.SqlBatch;
 import org.skife.jdbi.v2.sqlobject.SqlQuery;
 import org.skife.jdbi.v2.sqlobject.SqlUpdate;
+import org.skife.jdbi.v2.sqlobject.customizers.Mapper;
 
 public interface IPermissionDAO {
 
@@ -29,9 +31,6 @@ public interface IPermissionDAO {
 
 	public static final String CREATE_PERMISSIONS_TABLE_IF_NOT_EXISTS = 
 			"CREATE TABLE IF NOT EXISTS permissions (id INT NOT NULL AUTO_INCREMENT, name VARCHAR(32), http_verb VARCHAR(32), url VARCHAR(256), PRIMARY KEY (id));";
-	
-	public static final String CREATE_ROLES_AND_PERMISSIONS_TABLE_IF_NOT_EXISTS = 
-			"CREATE TABLE IF NOT EXISTS roles_permissions (role_name VARCHAR(32), permission_id INT, PRIMARY KEY (role_name, permission_id));";
 
 	public static final String CREATE_PERMISSION = 
 			"INSERT INTO permissions (name, http_verb, url) VALUES (:name, :http_verb, :url)";
@@ -63,13 +62,10 @@ public interface IPermissionDAO {
 
 	@SqlUpdate(CREATE_PERMISSIONS_TABLE_IF_NOT_EXISTS)
 	public void createPermissionsTable();
-	
-	@SqlUpdate(CREATE_ROLES_AND_PERMISSIONS_TABLE_IF_NOT_EXISTS)
-	public void createRolesAndPermissionsTable();
 
 	@SqlUpdate(CREATE_PERMISSION)
 	public void createPermission(@Bind(NAME_FIELD) String name, @Bind(HTTP_VERB_FIELD) String httpVerb, 
-			@Bind(URL_FIELD) String url);
+			@Bind(URL_FIELD) String url) throws Exception;
 
 	@SqlBatch(ASSOCIATE_ALL_PERMISSIONS_TO_ROLE)
 	public int associateAllPermissionsToRole(@Bind(ROLE_NAME_FIELD) String roleName, 
@@ -82,15 +78,19 @@ public interface IPermissionDAO {
 	public int disassociatePermissionFromAllRoles(@Bind(PERMISSION_ID_FIELD) String permissionId);
 
 	@SqlQuery(GET_PERMISSION_BY_ID)
+	@Mapper(PermissionMapper.class)
 	public Permission getPermissionById(@Bind(ID_FIELD) String permissionId);
 
 	@SqlQuery(GET_PERMISSION_BY_HTTP_VERB_AND_URL)
+	@Mapper(PermissionMapper.class)
 	public Permission getPermissionByHttpVerbAndUrl(@Bind(HTTP_VERB_FIELD) String httpVerb, @Bind(URL_FIELD) String url);
 
 	@SqlQuery(GET_ALL_PERMISSIONS)
+	@Mapper(PermissionMapper.class)
 	public List<Permission> getAllPermissions();
 
 	@SqlQuery(GET_ALL_PERMISSIONS_OF_A_GIVEN_ROLE)
+	@Mapper(PermissionMapper.class)
 	public List<Permission> getAllPermissionsOfAGivenRole(@Bind(ROLE_NAME_FIELD) String roleName);
 
 	@SqlUpdate(DELETE_PERMISSION)

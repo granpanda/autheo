@@ -16,6 +16,10 @@ public class RoleBusiness {
 
 		this.roleDao = roleDao;
 		this.permissionBusiness = permissionBusiness;
+		
+		this.roleDao.createRolesTable();
+		this.roleDao.createRolesAndPermissionsTable();
+		this.roleDao.createRolesAndUsersTable();
 	}
 
 	public Role createRole(Role role) throws DuplicateIdException {
@@ -42,8 +46,9 @@ public class RoleBusiness {
 	}
 
 	public Role getRoleByName(String roleName) {
-
-		return roleDao.getRoleByName(roleName);
+		
+		List<Permission> rolePermissions = permissionBusiness.getAllPermissionsOfAGivenRole(roleName);
+		return new Role(roleName, rolePermissions);
 	}
 
 	public List<String> getAllRolesNames() {

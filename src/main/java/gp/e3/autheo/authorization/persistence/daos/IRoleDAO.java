@@ -1,7 +1,5 @@
 package gp.e3.autheo.authorization.persistence.daos;
 
-import gp.e3.autheo.authorization.domain.entities.Role;
-
 import java.util.List;
 
 import org.skife.jdbi.v2.sqlobject.Bind;
@@ -26,12 +24,13 @@ public interface IRoleDAO {
 	public static final String CREATE_ROLES_TABLE_IF_NOT_EXISTS = 
 			"CREATE TABLE IF NOT EXISTS roles (name VARCHAR(32) PRIMARY KEY);";
 	
+	public static final String CREATE_ROLES_AND_PERMISSIONS_TABLE_IF_NOT_EXISTS = 
+			"CREATE TABLE IF NOT EXISTS roles_permissions (role_name VARCHAR(32), permission_id INT, PRIMARY KEY (role_name, permission_id));";
+	
 	public static final String CREATE_ROLES_AND_USERS_TABLE_IF_NOT_EXISTS = 
 			"CREATE TABLE IF NOT EXISTS roles_users (username VARCHAR(32) PRIMARY KEY, role_name VARCHAR(32));";
 	
 	public static final String CREATE_ROLE = "INSERT INTO roles (name) VALUES (:name);";
-	
-	public static final String GET_ROLE_BY_NAME = "SELECT * FROM roles WHERE name = :name;";
 	
 	public static final String GET_ALL_ROLES_NAMES = "SELECT name FROM roles;";
 	
@@ -49,14 +48,16 @@ public interface IRoleDAO {
 	//------------------------------------------------------------------------------------------------------
 
 	@SqlUpdate(CREATE_ROLES_TABLE_IF_NOT_EXISTS)
-	
 	public void createRolesTable();
+	
+	@SqlUpdate(CREATE_ROLES_AND_PERMISSIONS_TABLE_IF_NOT_EXISTS)
+	public void createRolesAndPermissionsTable();
+	
+	@SqlUpdate(CREATE_ROLES_AND_USERS_TABLE_IF_NOT_EXISTS)
+	public void createRolesAndUsersTable();
 
 	@SqlUpdate(CREATE_ROLE)
 	public void createRole(@Bind(NAME_FIELD) String roleName);
-
-	@SqlQuery(GET_ROLE_BY_NAME)
-	public Role getRoleByName(@Bind(NAME_FIELD) String roleName);
 
 	@SqlQuery(GET_ALL_ROLES_NAMES)
 	public List<String> getAllRolesNames();
