@@ -49,6 +49,7 @@ public class Autheo extends Service<AutheoConfig> {
 		final DBIFactory dbiFactory = new DBIFactory();
 		final DBI jdbi = dbiFactory.build(environment, 
 				autheoConfig.getAuthenticationConfig().getAuthenticationDatabase(), "mysql");
+		
 		final IUserDAO userDAO = jdbi.onDemand(IUserDAO.class);
 		UserBusiness userBusiness = new UserBusiness(userDAO);
 		

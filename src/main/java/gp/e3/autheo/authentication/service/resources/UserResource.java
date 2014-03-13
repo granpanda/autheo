@@ -7,6 +7,7 @@ import gp.e3.autheo.authentication.domain.entities.User;
 import gp.e3.autheo.authentication.domain.exceptions.TokenGenerationException;
 import gp.e3.autheo.authentication.infrastructure.validators.StringValidator;
 import gp.e3.autheo.authentication.persistence.exceptions.DuplicateIdException;
+import gp.e3.autheo.authentication.service.resources.commons.HttpCommonResponses;
 
 import java.util.List;
 
@@ -36,12 +37,6 @@ public class UserResource {
 		this.tokenBusiness = tokenBusiness;
 	}
 
-	private Response getInvalidSyntaxResponse() {
-
-		String errorMessage = "The request cannot be fulfilled due to bad syntax.";
-		return Response.status(400).entity(errorMessage).build();
-	}
-
 	@POST
 	public Response createUser(User newUser) {
 
@@ -61,7 +56,7 @@ public class UserResource {
 
 		} else {
 
-			response = getInvalidSyntaxResponse();
+			response = HttpCommonResponses.getInvalidSyntaxResponse();
 		}
 
 		return response;
@@ -96,7 +91,7 @@ public class UserResource {
 
 		} else {
 
-			response = getInvalidSyntaxResponse();
+			response = HttpCommonResponses.getInvalidSyntaxResponse();
 		}
 
 		return response;
@@ -115,7 +110,7 @@ public class UserResource {
 
 		} else {
 
-			response = getInvalidSyntaxResponse();
+			response = HttpCommonResponses.getInvalidSyntaxResponse();
 		}
 
 		return response;
@@ -144,7 +139,7 @@ public class UserResource {
 
 		} else {
 			
-			response = getInvalidSyntaxResponse();
+			response = HttpCommonResponses.getInvalidSyntaxResponse();
 		}
 		
 		return response;
@@ -163,7 +158,7 @@ public class UserResource {
 			
 		} else {
 			
-			response = getInvalidSyntaxResponse();
+			response = HttpCommonResponses.getInvalidSyntaxResponse();
 		}
 		
 		return response;
