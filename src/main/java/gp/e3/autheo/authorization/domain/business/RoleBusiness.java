@@ -20,19 +20,21 @@ public class RoleBusiness {
 
 	public Role createRole(Role role) throws DuplicateIdException {
 
+		String roleName = role.getName();
+		
 		try {
-
-			roleDao.createRole(role);
+			
+			roleDao.createRole(roleName);
 			List<Permission> rolePermissions = role.getPermissions();
 
 			if (rolePermissions.size() > 0) {
 
-				permissionBusiness.overwritePermissionsToRole(role.getName(), rolePermissions);
+				permissionBusiness.overwritePermissionsToRole(roleName, rolePermissions);
 			}
 
 		} catch (Exception e) {
 
-			String errorMessage = "The role with name: " + role.getName() + " is already registered.";
+			String errorMessage = "The role with name: " + roleName + " is already registered.";
 			throw new DuplicateIdException(errorMessage);
 		}
 		
@@ -57,6 +59,7 @@ public class RoleBusiness {
 	public void deleteRole(String roleName) {
 
 		permissionBusiness.disassociateAllPermissionsFromRole(roleName);
+		roleDao.removeAllUsersFromRole(roleName);
 		roleDao.deleteRole(roleName);
 	}
 
@@ -67,7 +70,7 @@ public class RoleBusiness {
 
 	public void removeUserFromRole(String username, String roleName) {
 
-		roleDao.removeUserFromRole(username, roleName);
+		roleDao.removeUserFromRole(username);
 	}
 	
 	public List<Permission> getAllPermissionsOfAGivenRole(String roleName) {
