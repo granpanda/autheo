@@ -18,7 +18,7 @@ import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
-@Path("/roles")
+@Path("/permissions")
 @Consumes(MediaType.APPLICATION_JSON)
 @Produces(MediaType.APPLICATION_JSON)
 public class PermissionResource {
@@ -31,7 +31,6 @@ public class PermissionResource {
 	}
 	
 	@POST
-	@Path("/permissions")
 	public Response createPermission(Permission permission) {
 		
 		Response response = null;
