@@ -16,8 +16,9 @@ public interface IUserDAO {
 	public static final String USERNAME_FIELD = "username";
 	public static final String PASSWORD_FIELD = "password";
 	public static final String SALT_FIELD = "salt";
+	public static final String USER_ORGANIZATION_NAME_FIELD = "user_organization_name";
 	
-	public static final String CREATE_USERS_TABLE_IF_NOT_EXISTS = "CREATE TABLE IF NOT EXISTS users (name varchar(32) primary key, username varchar(32), password varchar(256), salt varchar(256));";
+	public static final String CREATE_USERS_TABLE_IF_NOT_EXISTS = "CREATE TABLE IF NOT EXISTS users (name varchar(32) primary key, username varchar(32), password varchar(256), salt varchar(256), user_organization_name varchar(32));";
 	public static final String COUNT_USERS_TABLE = "SELECT COUNT(*) FROM users;";
 	
 	public static final String INSERT_USER = "INSERT INTO users (name, username, password, salt) VALUES (:name, :username:, :password, :salt);";
