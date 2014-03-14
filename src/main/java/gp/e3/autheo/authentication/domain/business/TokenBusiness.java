@@ -3,6 +3,7 @@ package gp.e3.autheo.authentication.domain.business;
 import gp.e3.autheo.authentication.domain.entities.Token;
 import gp.e3.autheo.authentication.domain.entities.User;
 import gp.e3.autheo.authentication.domain.exceptions.TokenGenerationException;
+import gp.e3.autheo.authentication.infrastructure.validators.StringValidator;
 import gp.e3.autheo.authentication.persistence.daos.TokenDAO;
 
 public class TokenBusiness {
@@ -32,11 +33,11 @@ public class TokenBusiness {
 		return token;
 	}
 	
-	public Token getToken(String username) throws IllegalArgumentException {
+	public Token getToken(String tokenValue) throws IllegalArgumentException {
 		
-		if ((username != null) && (!username.isEmpty())) {
+		if (StringValidator.isValidString(tokenValue)) {
 			
-			return tokenDao.getToken(username);
+			return tokenDao.getToken(tokenValue);
 			
 		} else {
 			

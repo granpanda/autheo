@@ -88,10 +88,10 @@ public class TokenBusinessTest {
 			String tokenValue = TokenFactory.getToken(user);
 			Token testToken = new Token(tokenValue, user.getUsername(), user.getOrganizationId(), user.getRoleId());
 			
-			Mockito.when(tokenDaoMock.getToken(user.getUsername())).thenReturn(testToken);
+			Mockito.when(tokenDaoMock.getToken(tokenValue)).thenReturn(testToken);
 			TokenBusiness tokenBusiness = new TokenBusiness(tokenDaoMock);
 			
-			Token retrievedToken = tokenBusiness.getToken(user.getUsername());
+			Token retrievedToken = tokenBusiness.getToken(testToken.getTokenValue());
 			assertEquals(0, testToken.compareTo(retrievedToken));
 
 		} catch (TokenGenerationException e) {
@@ -111,11 +111,11 @@ public class TokenBusinessTest {
 		Mockito.when(tokenDaoMock.getToken(Mockito.anyString())).thenReturn(testToken);
 		TokenBusiness tokenBusiness = new TokenBusiness(tokenDaoMock);
 		
-		String invalidUsername = null;
+		String invalidTokenValue = null;
 		
 		try {
 			
-			tokenBusiness.getToken(invalidUsername);
+			tokenBusiness.getToken(invalidTokenValue);
 			fail("The method should throw an exception because the username parameter was null.");
 			
 		} catch (Exception e) {

@@ -17,7 +17,7 @@ public class TokenDAO {
 		
 		if (Token.isAValidToken(token)) {
 			
-			return redisClient.set(token.getUsername(), token.toString());
+			return redisClient.set(token.getTokenValue(), token.toString());
 			
 		} else {
 			
@@ -26,11 +26,11 @@ public class TokenDAO {
 		}
 	}
 	
-	public Token getToken(String username) throws IllegalArgumentException {
+	public Token getToken(String tokenValue) throws IllegalArgumentException {
 		
-		if (StringValidator.isValidString(username)) {
+		if (StringValidator.isValidString(tokenValue)) {
 			
-			String tokenToString = redisClient.get(username);
+			String tokenToString = redisClient.get(tokenValue);
 			return Token.buildTokenFromTokenToString(tokenToString);
 			
 		} else {

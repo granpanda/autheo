@@ -7,9 +7,11 @@ import gp.e3.autheo.authentication.service.resources.commons.HttpCommonResponses
 import gp.e3.autheo.authorization.domain.business.RoleBusiness;
 import gp.e3.autheo.authorization.domain.entities.Permission;
 import gp.e3.autheo.authorization.domain.entities.Role;
+import gp.e3.autheo.authorization.domain.entities.Ticket;
 
 import java.util.List;
 
+import javax.servlet.http.HttpServletRequest;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.DELETE;
 import javax.ws.rs.GET;
@@ -18,13 +20,23 @@ import javax.ws.rs.PUT;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
+import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
+
+import com.sun.jersey.api.core.ExtendedUriInfo;
+import com.sun.jersey.api.uri.UriTemplate;
 
 @Path("/roles")
 @Consumes(MediaType.APPLICATION_JSON)
 @Produces(MediaType.APPLICATION_JSON)
 public class RoleResource {
+	
+	@Context 
+	private HttpServletRequest httpServletRequest;
+	
+//	@Context
+//	private ExtendedUriInfo extendedUriInfo;
 	
 	private final RoleBusiness roleBusiness;
 	
@@ -58,6 +70,17 @@ public class RoleResource {
 		return response;
 	}
 	
+	private Ticket getRequestTicket(HttpServletRequest httpServletRequest) {
+		
+		String TOKEN_HEADER = "";
+		String tokenValue = httpServletRequest.getHeader(TOKEN_HEADER);
+		
+		String httpVerb = httpServletRequest.getMethod();
+		String requestedUrl = httpServletRequest.getRequestURI();
+		
+		return new Ticket(tokenValue, httpVerb, requestedUrl);
+	}
+	
 	@GET
 	@Path("/{ roleName }")
 	public Response getRoleByName(@PathParam("roleName") String roleName) {
@@ -79,6 +102,10 @@ public class RoleResource {
 	
 	@GET
 	public Response getAllRolesNames() {
+		
+		System.out.println("************************************ 1");
+		System.out.println(httpServletRequest.getMethod());
+		System.out.println(httpServletRequest.getPathInfo());
 		
 		List<String> rolesNames = roleBusiness.getAllRolesNames();
 		return Response.status(200).entity(rolesNames).build();

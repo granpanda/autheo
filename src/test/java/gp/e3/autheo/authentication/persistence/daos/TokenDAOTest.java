@@ -54,7 +54,7 @@ public class TokenDAOTest {
 			Token token = new Token(tokenValue, user.getUsername(), user.getOrganizationId(), user.getRoleId());
 			String returnValue = "OK";
 			
-			Mockito.when(redisClientMock.set(token.getUsername(), token.toString())).thenReturn(returnValue);
+			Mockito.when(redisClientMock.set(token.getTokenValue(), token.toString())).thenReturn(returnValue);
 			
 			TokenDAO tokenDao = new TokenDAO(redisClientMock);
 			String addTokenAnswer = tokenDao.addToken(token);
@@ -97,10 +97,10 @@ public class TokenDAOTest {
 			String tokenValue = TokenFactory.getToken(user);
 			Token token = new Token(tokenValue, user.getUsername(), user.getOrganizationId(), user.getRoleId());
 			
-			Mockito.when(redisClientMock.get(token.getUsername())).thenReturn(token.toString());
+			Mockito.when(redisClientMock.get(token.getTokenValue())).thenReturn(token.toString());
 			
 			TokenDAO tokenDao = new TokenDAO(redisClientMock);
-			Token retrievedToken = tokenDao.getToken(user.getUsername());
+			Token retrievedToken = tokenDao.getToken(tokenValue);
 			
 			assertEquals(0, token.compareTo(retrievedToken));
 			
@@ -119,7 +119,7 @@ public class TokenDAOTest {
 			String tokenValue = TokenFactory.getToken(user);
 			Token token = new Token(tokenValue, user.getUsername(), user.getOrganizationId(), user.getRoleId());
 			
-			Mockito.when(redisClientMock.get(token.getUsername())).thenReturn(token.toString());
+			Mockito.when(redisClientMock.get(token.getTokenValue())).thenReturn(token.toString());
 			
 			String invalidUsername = "";
 			TokenDAO tokenDao = new TokenDAO(redisClientMock);

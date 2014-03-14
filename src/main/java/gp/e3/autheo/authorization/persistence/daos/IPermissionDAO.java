@@ -19,7 +19,7 @@ public interface IPermissionDAO {
 
 	public static final String ROLE_NAME_FIELD = "role_name";
 	public static final String PERMISSION_ID_FIELD = "permission_id";
-	
+
 	public static final String ID_FIELD = "id";
 	public static final String NAME_FIELD = "name";
 	public static final String HTTP_VERB_FIELD = "http_verb";
@@ -30,30 +30,33 @@ public interface IPermissionDAO {
 	//------------------------------------------------------------------------------------------------------
 
 	public static final String CREATE_PERMISSIONS_TABLE_IF_NOT_EXISTS = 
-			"CREATE TABLE IF NOT EXISTS permissions (id INT NOT NULL AUTO_INCREMENT, name VARCHAR(32), http_verb VARCHAR(32), url VARCHAR(256), PRIMARY KEY (http_verb, url));";
+			"CREATE TABLE IF NOT EXISTS permissions (id INT AUTO_INCREMENT, name VARCHAR(32), http_verb VARCHAR(32), url VARCHAR(256), PRIMARY KEY (id));";
+
+	public static final String CREATE_PERMISSIONS_UNIQUE_INDEX = 
+			"ALTER TABLE permissions ADD UNIQUE INDEX(http_verb, url);";
 
 	public static final String CREATE_PERMISSION = 
 			"INSERT INTO permissions (name, http_verb, url) VALUES (:name, :http_verb, :url)";
-	
+
 	public static final String ASSOCIATE_ALL_PERMISSIONS_TO_ROLE = 
 			"INSERT INTO roles_permissions (role_name, permission_id) VALUES (:role_name, :permission_id);";
-	
+
 	public static final String DISASSOCIATE_ALL_PERMISSIONS_FROM_ROLE = 
 			"DELETE FROM roles_permissions WHERE role_name = :role_name;";
-	
+
 	public static final String DISASSOCIATE_PERMISSION_FROM_ALL_ROLES = 
 			"DELETE FROM roles_permissions WHERE permission_id = :permission_id;";
-	
+
 	public static final String GET_PERMISSION_BY_ID = "SELECT * FROM permissions WHERE id = :id;";
-	
+
 	public static final String GET_PERMISSION_BY_HTTP_VERB_AND_URL = 
 			"SELECT * FROM permissions WHERE http_verb = :http_verb AND url = :url;";
-	
+
 	public static final String GET_ALL_PERMISSIONS = "SELECT * FROM permissions;";
-	
+
 	public static final String GET_ALL_PERMISSIONS_OF_A_GIVEN_ROLE = 
-			"SELECT * FROM permissions LEFT JOIN roles_permissions WHERE permissions.id = roles_permissions.permission_id AND role_name = :role_name";
-	
+			"SELECT * FROM permissions LEFT JOIN roles_permissions ON permissions.id = roles_permissions.permission_id AND role_name = :role_name";
+
 	public static final String DELETE_PERMISSION = "DELETE FROM permissions WHERE id = :id";
 
 	//------------------------------------------------------------------------------------------------------
@@ -62,6 +65,9 @@ public interface IPermissionDAO {
 
 	@SqlUpdate(CREATE_PERMISSIONS_TABLE_IF_NOT_EXISTS)
 	public void createPermissionsTable();
+	
+	@SqlUpdate(CREATE_PERMISSIONS_UNIQUE_INDEX)
+	public void createPermissionsUniqueIndex();
 
 	@SqlUpdate(CREATE_PERMISSION)
 	public void createPermission(@Bind(NAME_FIELD) String name, @Bind(HTTP_VERB_FIELD) String httpVerb, 
@@ -73,7 +79,7 @@ public interface IPermissionDAO {
 
 	@SqlUpdate(DISASSOCIATE_ALL_PERMISSIONS_FROM_ROLE)
 	public int disassociateAllPermissionsFromRole(@Bind(ROLE_NAME_FIELD) String roleName);
-	
+
 	@SqlUpdate(DISASSOCIATE_PERMISSION_FROM_ALL_ROLES)
 	public int disassociatePermissionFromAllRoles(@Bind(PERMISSION_ID_FIELD) String permissionId);
 

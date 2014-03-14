@@ -1,6 +1,7 @@
 package gp.e3.autheo.authorization.domain.business;
 
 import gp.e3.autheo.authentication.domain.business.TokenBusiness;
+import gp.e3.autheo.authentication.domain.entities.Token;
 import gp.e3.autheo.authentication.infrastructure.validators.StringValidator;
 import gp.e3.autheo.authorization.domain.entities.Ticket;
 import gp.e3.autheo.authorization.infrastructure.dtos.PermissionTuple;
@@ -20,8 +21,15 @@ public class TicketBusiness {
 
 	public boolean tokenWasIssuedByUs(Ticket ticket) {
 		
-		String tokenValue = tokenBusiness.getTokenValue(ticket.getUsername());
-		return StringValidator.isValidString(tokenValue);
+		boolean answer = false;
+		
+		if (ticket != null && StringValidator.isValidString(ticket.getTokenValue())) {
+			
+			Token retrievedToken = tokenBusiness.getToken(ticket.getTokenValue());
+			answer = retrievedToken.getTokenValue().equals(ticket.getTokenValue());
+		}
+		
+		return answer;
 	}
 	
 	private boolean permissionBelongsToUserRole(PermissionTuple requestedPermission, 
@@ -42,7 +50,8 @@ public class TicketBusiness {
 		
 		boolean isAuthorized = false;
 		
-		String roleName = ticket.getUserRoleName();
+		Token retrievedToken = tokenBusiness.getToken(ticket.getTokenValue());
+		String roleName = retrievedToken.getUserRole();
 		
 		if (roleBusiness.rolePermissionsAreInRedis(roleName)) {
 			
