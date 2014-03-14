@@ -11,18 +11,18 @@ public class User implements Comparable<User> {
 	private final String username;
 	private final String password;
 	
-	private final String userOrganizationName;
+	private final String organizationId;
 	
 	@JsonCreator
 	public User(@JsonProperty("name") String name, @JsonProperty("username") String username,
 				@JsonProperty("password") String password, 
-				@JsonProperty("userOrganizationId") String userOrganizationName) {
+				@JsonProperty("organizationName") String organizationId) {
 	
 		this.name = name;
 		this.username = username;
 		this.password = password;
 		
-		this.userOrganizationName = userOrganizationName;
+		this.organizationId = organizationId;
 	}
 
 	public String getName() {
@@ -37,9 +37,9 @@ public class User implements Comparable<User> {
 		return password;
 	}
 	
-	public String getUserOrganizationName() {
+	public String getOrganizationId() {
 
-		String answer = userOrganizationName;
+		String answer = organizationId;
 		
 		// If the user does not belong to a organization then return its username.
 		if (!StringValidator.isValidString(answer)) {
@@ -55,7 +55,7 @@ public class User implements Comparable<User> {
 		return (user != null) && (StringValidator.isValidString(user.getName())) && 
 				(StringValidator.isValidString(user.getUsername())) && 
 				(StringValidator.isValidString(user.getPassword())) &&
-				(StringValidator.isValidString(user.getUserOrganizationName()));
+				(StringValidator.isValidString(user.getOrganizationId()));
 	}
 
 	@Override
@@ -68,7 +68,7 @@ public class User implements Comparable<User> {
 			answer += this.name.compareTo(user.getName());
 			answer += this.username.compareTo(user.getUsername());
 			answer += this.password.compareTo(user.getPassword());
-			answer += this.userOrganizationName.compareTo(user.getUserOrganizationName());
+			answer += this.organizationId.compareTo(user.getOrganizationId());
 		}
 		
 		return answer;

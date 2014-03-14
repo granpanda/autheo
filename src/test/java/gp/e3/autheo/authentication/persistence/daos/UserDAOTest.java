@@ -64,7 +64,7 @@ public class UserDAOTest {
 		try {
 
 			assertEquals(0, userDAO.countUsersTable());
-			userDAO.createUser(user.getName(), user.getUsername(), user.getPassword(), salt, user.getOrganizationName());
+			userDAO.createUser(user.getName(), user.getUsername(), user.getPassword(), salt, user.getOrganizationId());
 
 			int numberOfUsersIntoDb = userDAO.getAllUsers().size();
 
@@ -111,7 +111,7 @@ public class UserDAOTest {
 		try {
 
 			assertEquals(0, userDAO.countUsersTable());
-			userDAO.createUser(user.getName(), user.getUsername(), user.getPassword(), salt, user.getOrganizationName());
+			userDAO.createUser(user.getName(), user.getUsername(), user.getPassword(), salt, user.getOrganizationId());
 			assertEquals(1, userDAO.countUsersTable());
 
 			User retrievedUser = userDAO.getUserByUsername(user.getUsername());
@@ -133,7 +133,7 @@ public class UserDAOTest {
 		try {
 
 			assertEquals(0, userDAO.countUsersTable());
-			userDAO.createUser(user.getName(), user.getUsername(), user.getPassword(), salt, user.getOrganizationName());
+			userDAO.createUser(user.getName(), user.getUsername(), user.getPassword(), salt, user.getOrganizationId());
 			fail("Should throw an exception in the line above.");
 
 		} catch (Exception e) {
@@ -150,7 +150,7 @@ public class UserDAOTest {
 
 		try {
 
-			userDAO.createUser(user.getName(), user.getUsername(), user.getPassword(), salt, user.getOrganizationName());
+			userDAO.createUser(user.getName(), user.getUsername(), user.getPassword(), salt, user.getOrganizationId());
 
 			User retrievedUser = userDAO.getUserByUsername(user.getUsername());
 			assertEquals(0, user.compareTo(retrievedUser));
@@ -169,7 +169,7 @@ public class UserDAOTest {
 
 		try {
 
-			userDAO.createUser(user.getName(), user.getUsername(), user.getPassword(), salt, user.getOrganizationName());
+			userDAO.createUser(user.getName(), user.getUsername(), user.getPassword(), salt, user.getOrganizationId());
 
 			String unknownUsername = "unknownUsername";
 
@@ -193,7 +193,7 @@ public class UserDAOTest {
 
 			for (User user : userList) {
 
-				userDAO.createUser(user.getName(), user.getUsername(), user.getPassword(), salt, user.getOrganizationName());
+				userDAO.createUser(user.getName(), user.getUsername(), user.getPassword(), salt, user.getOrganizationId());
 			}
 
 		} catch (Exception e) {
@@ -218,7 +218,7 @@ public class UserDAOTest {
 
 			for (User user : userList) {
 
-				userDAO.createUser(user.getName(), user.getUsername(), user.getPassword(), salt, user.getOrganizationName());
+				userDAO.createUser(user.getName(), user.getUsername(), user.getPassword(), salt, user.getOrganizationId());
 			}
 
 		} catch (Exception e) {
@@ -241,7 +241,7 @@ public class UserDAOTest {
 		try {
 
 			assertEquals(0, userDAO.countUsersTable());
-			userDAO.createUser(user.getName(), user.getUsername(), user.getPassword(), salt, user.getOrganizationName());
+			userDAO.createUser(user.getName(), user.getUsername(), user.getPassword(), salt, user.getOrganizationId());
 			assertEquals(1, userDAO.countUsersTable());
 
 			String password = userDAO.getPasswordByUsername(user.getUsername());
@@ -281,7 +281,7 @@ public class UserDAOTest {
 
 			assertEquals(0, userDAO.countUsersTable());
 			userDAO.createUser(defaultUser.getName(), defaultUser.getUsername(), defaultUser.getPassword(), salt, 
-					defaultUser.getOrganizationName());
+					defaultUser.getOrganizationId());
 			
 			assertEquals(1, userDAO.countUsersTable());
 
@@ -316,7 +316,7 @@ public class UserDAOTest {
 
 			assertEquals(0, userDAO.countUsersTable());
 			userDAO.createUser(defaultUser.getName(), defaultUser.getUsername(), defaultUser.getPassword(), salt,
-					defaultUser.getOrganizationName());
+					defaultUser.getOrganizationId());
 			
 			assertEquals(1, userDAO.countUsersTable());
 
@@ -355,7 +355,7 @@ public class UserDAOTest {
 
 			assertEquals(0, userDAO.countUsersTable());
 			userDAO.createUser(defaultUser.getName(), defaultUser.getUsername(), defaultUser.getPassword(), salt,
-					defaultUser.getOrganizationName());
+					defaultUser.getOrganizationId());
 			
 			assertEquals(1, userDAO.countUsersTable());
 			

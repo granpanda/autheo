@@ -16,12 +16,12 @@ public interface IUserDAO {
 	public static final String USERNAME_FIELD = "username";
 	public static final String PASSWORD_FIELD = "password";
 	public static final String SALT_FIELD = "salt";
-	public static final String USER_ORGANIZATION_NAME_FIELD = "user_organization_name";
+	public static final String ORGANIZATION_ID_FIELD = "organization_id";
 	
-	public static final String CREATE_USERS_TABLE_IF_NOT_EXISTS = "CREATE TABLE IF NOT EXISTS users (name varchar(32) primary key, username varchar(32), password varchar(256), salt varchar(256), user_organization_name varchar(32));";
+	public static final String CREATE_USERS_TABLE_IF_NOT_EXISTS = "CREATE TABLE IF NOT EXISTS users (name varchar(32) primary key, username varchar(32), password varchar(256), salt varchar(256), organization_id varchar(32));";
 	public static final String COUNT_USERS_TABLE = "SELECT COUNT(*) FROM users;";
 	
-	public static final String INSERT_USER = "INSERT INTO users (name, username, password, salt) VALUES (:name, :username:, :password, :salt);";
+	public static final String INSERT_USER = "INSERT INTO users (name, username, password, salt, organization_id) VALUES (:name, :username:, :password, :salt, :organization_id);";
 	public static final String GET_USER_BY_USERNAME = "SELECT * FROM users WHERE username = :username;";
 	public static final String GET_PASSWORD_BY_USERNAME = "SELECT password FROM users WHERE username = :username;";
 	public static final String GET_ALL_USERS = "SELECT * FROM users;";
@@ -37,7 +37,8 @@ public interface IUserDAO {
 	
 	@SqlUpdate(INSERT_USER)
 	public void createUser(@Bind(NAME_FIELD) String name, @Bind(USERNAME_FIELD) String username, 
-						   @Bind(PASSWORD_FIELD) String password, @Bind(SALT_FIELD) String salt) throws Exception;
+						   @Bind(PASSWORD_FIELD) String password, @Bind(SALT_FIELD) String salt,
+						   @Bind(ORGANIZATION_ID_FIELD) String userOrganizationName) throws Exception;
 	
 	@SqlQuery(GET_USER_BY_USERNAME)
 	@Mapper(UserMapper.class)
