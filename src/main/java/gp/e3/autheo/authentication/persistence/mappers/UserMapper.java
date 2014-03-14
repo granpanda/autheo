@@ -16,7 +16,8 @@ public class UserMapper implements ResultSetMapper<User> {
 		
 		User user = new User(resultSet.getString(IUserDAO.NAME_FIELD), resultSet.getString(IUserDAO.USERNAME_FIELD), 
 							 resultSet.getString(IUserDAO.PASSWORD_FIELD), 
-							 resultSet.getString(IUserDAO.ORGANIZATION_ID_FIELD));
+							 resultSet.getString(IUserDAO.ORGANIZATION_ID_FIELD),
+							 resultSet.getString(IUserDAO.ROLE_ID_FIELD));
 		
 		return user;
 	}

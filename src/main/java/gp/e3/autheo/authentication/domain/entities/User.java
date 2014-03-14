@@ -12,17 +12,20 @@ public class User implements Comparable<User> {
 	private final String password;
 	
 	private final String organizationId;
+	private final String roleId;
 	
 	@JsonCreator
 	public User(@JsonProperty("name") String name, @JsonProperty("username") String username,
 				@JsonProperty("password") String password, 
-				@JsonProperty("organizationName") String organizationId) {
+				@JsonProperty("organizationId") String organizationId,
+				@JsonProperty("roleId") String roleId) {
 	
 		this.name = name;
 		this.username = username;
 		this.password = password;
 		
 		this.organizationId = organizationId;
+		this.roleId= roleId;
 	}
 
 	public String getName() {
@@ -50,12 +53,18 @@ public class User implements Comparable<User> {
 		return answer;
 	}
 
+	public String getRoleId() {
+		return roleId;
+	}
+
 	public static boolean isAValidUser(User user) {
 		
-		return (user != null) && (StringValidator.isValidString(user.getName())) && 
+		return (user != null) && 
+				(StringValidator.isValidString(user.getName())) &&
 				(StringValidator.isValidString(user.getUsername())) && 
 				(StringValidator.isValidString(user.getPassword())) &&
-				(StringValidator.isValidString(user.getOrganizationId()));
+				(StringValidator.isValidString(user.getOrganizationId()) &&
+				(StringValidator.isValidString(user.getRoleId())));
 	}
 
 	@Override
@@ -69,6 +78,7 @@ public class User implements Comparable<User> {
 			answer += this.username.compareTo(user.getUsername());
 			answer += this.password.compareTo(user.getPassword());
 			answer += this.organizationId.compareTo(user.getOrganizationId());
+			answer += this.roleId.compareTo(user.roleId);
 		}
 		
 		return answer;

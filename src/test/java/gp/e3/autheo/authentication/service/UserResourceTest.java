@@ -113,7 +113,7 @@ public class UserResourceTest extends ResourceTest {
 			User user = UserFactoryForTests.getDefaultTestUser();
 
 			String tokenValue = "Hello!123";
-			Token testingToken = new Token(user.getUsername(), tokenValue);
+			Token testingToken = new Token(tokenValue, user.getUsername(), user.getOrganizationId(), user.getRoleId());
 
 			Mockito.when(userBusinessMock.authenticateUser(Mockito.anyString(), Mockito.anyString())).thenReturn(true);
 			Mockito.when(tokenBusinessMock.generateToken((User) Mockito.any())).thenReturn(testingToken);
@@ -146,7 +146,7 @@ public class UserResourceTest extends ResourceTest {
 			User user = UserFactoryForTests.getDefaultTestUser();
 
 			String tokenValue = "Hello!123";
-			Token testingToken = new Token(user.getUsername(), tokenValue);
+			Token testingToken = new Token(tokenValue, user.getUsername(), user.getOrganizationId(), user.getRoleId());
 
 			// The user is not authenticated.
 			Mockito.when(userBusinessMock.authenticateUser(Mockito.anyString(), Mockito.anyString())).thenReturn(false);
@@ -174,7 +174,7 @@ public class UserResourceTest extends ResourceTest {
 			User user = UserFactoryForTests.getDefaultTestUser();
 
 			String tokenValue = "Hello!123";
-			Token testingToken = new Token(user.getUsername(), tokenValue);
+			Token testingToken = new Token(tokenValue, user.getUsername(), user.getOrganizationId(), user.getRoleId());
 
 			// The user is not authenticated.
 			Mockito.when(userBusinessMock.authenticateUser(Mockito.anyString(), Mockito.anyString())).thenReturn(false);

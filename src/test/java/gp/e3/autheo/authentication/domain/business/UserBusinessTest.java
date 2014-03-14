@@ -51,7 +51,7 @@ public class UserBusinessTest {
 
 			Mockito.doNothing().doThrow(new DuplicateIdException(errorMessage)).when(userDaoMock)
 			.createUser(Mockito.anyString(), Mockito.anyString(), Mockito.anyString(), Mockito.anyString(),
-					Mockito.anyString());
+					Mockito.anyString(), Mockito.anyString());
 
 			UserBusiness userBusiness = new UserBusiness(userDaoMock);
 			User createdUser = userBusiness.createUser(user);
@@ -75,7 +75,7 @@ public class UserBusinessTest {
 
 			Mockito.doNothing().doThrow(new DuplicateIdException(errorMessage)).when(userDaoMock)
 			.createUser(Mockito.anyString(), Mockito.anyString(), Mockito.anyString(), Mockito.anyString(), 
-					Mockito.anyString());
+					Mockito.anyString(), Mockito.anyString());
 
 			UserBusiness userBusiness = new UserBusiness(userDaoMock);
 			userBusiness.createUser(user);

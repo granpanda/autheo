@@ -38,7 +38,7 @@ public class TokenBusinessTest {
 			User user = UserFactoryForTests.getDefaultTestUser();
 
 			String tokenValue = TokenFactory.getToken(user);
-			Token testToken = new Token(user.getUsername(), tokenValue);
+			Token testToken = new Token(tokenValue, user.getUsername(), user.getOrganizationId(), user.getRoleId());
 
 			String returnValue = "OK";
 			Mockito.when(tokenDaoMock.addToken(testToken)).thenReturn(returnValue);
@@ -86,13 +86,13 @@ public class TokenBusinessTest {
 
 			User user = UserFactoryForTests.getDefaultTestUser();
 			String tokenValue = TokenFactory.getToken(user);
-			Token testToken = new Token(user.getUsername(), tokenValue);
+			Token testToken = new Token(tokenValue, user.getUsername(), user.getOrganizationId(), user.getRoleId());
 			
-			Mockito.when(tokenDaoMock.getToken(user.getUsername())).thenReturn(tokenValue);
+			Mockito.when(tokenDaoMock.getToken(user.getUsername())).thenReturn(testToken);
 			TokenBusiness tokenBusiness = new TokenBusiness(tokenDaoMock);
 			
-			String userTokenValue = tokenBusiness.getTokenValue(user.getUsername());
-			assertEquals(testToken.getTokenValue(), userTokenValue);
+			Token retrievedToken = tokenBusiness.getToken(user.getUsername());
+			assertEquals(0, testToken.compareTo(retrievedToken));
 
 		} catch (TokenGenerationException e) {
 
@@ -102,17 +102,20 @@ public class TokenBusinessTest {
 	
 	@Test
 	public void testGetTokenValue_NOK() {
+		
+		User user = UserFactoryForTests.getDefaultTestUser();
 
 		String tokenValue = "NULL";
+		Token testToken = new Token(tokenValue, user.getUsername(), user.getOrganizationId(), user.getRoleId());
 		
-		Mockito.when(tokenDaoMock.getToken(Mockito.anyString())).thenReturn(tokenValue);
+		Mockito.when(tokenDaoMock.getToken(Mockito.anyString())).thenReturn(testToken);
 		TokenBusiness tokenBusiness = new TokenBusiness(tokenDaoMock);
 		
 		String invalidUsername = null;
 		
 		try {
 			
-			tokenBusiness.getTokenValue(invalidUsername);
+			tokenBusiness.getToken(invalidUsername);
 			fail("The method should throw an exception because the username parameter was null.");
 			
 		} catch (Exception e) {

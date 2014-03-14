@@ -20,7 +20,7 @@ public class TokenBusiness {
 		if ((user != null) && (!user.getUsername().isEmpty())) {
 		
 			String tokenValue = TokenFactory.getToken(user);
-			token = new Token(user.getUsername(), tokenValue);
+			token = new Token(tokenValue, user.getUsername(), user.getOrganizationId(), user.getRoleId());
 			tokenDao.addToken(token);
 			
 		} else {
@@ -32,7 +32,7 @@ public class TokenBusiness {
 		return token;
 	}
 	
-	public String getTokenValue(String username) throws IllegalArgumentException {
+	public Token getToken(String username) throws IllegalArgumentException {
 		
 		if ((username != null) && (!username.isEmpty())) {
 			
