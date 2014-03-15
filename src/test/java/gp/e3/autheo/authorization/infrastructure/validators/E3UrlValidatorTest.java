@@ -1,13 +1,24 @@
 package gp.e3.autheo.authorization.infrastructure.validators;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
 
+import org.junit.After;
+import org.junit.Before;
 import org.junit.Test;
 
 public class E3UrlValidatorTest {
 
+	@Before
+	public void setUp() {
+	}
+
+	@After
+	public void tearDown() {
+	}
+	
 	@Test
-	public void tesUrlsMatch_OK() {
+	public void testUrlsMatch_OK() {
 		
 		String urlTemplate = "/api/users/*";
 		String requestedUrl = "/api/users/julian";
@@ -28,7 +39,7 @@ public class E3UrlValidatorTest {
 	}
 	
 	@Test
-	public void tesUrlsMatch_NOK() {
+	public void testUrlsMatch_NOK() {
 		
 		String urlTemplate = "/api/users/*";
 		String requestedUrl = "";

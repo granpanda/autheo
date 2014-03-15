@@ -40,22 +40,6 @@ public class UserResourceTest extends ResourceTest {
 		addResource(userResource);
 	}
 
-	//	@Before
-	//	public void setUp() {
-	//		
-	//		userBusinessMock = Mockito.mock(UserBusiness.class);
-	//		tokenBusinessMock = Mockito.mock(TokenBusiness.class);
-	//		userResource = new UserResource(userBusinessMock, tokenBusinessMock);
-	//	}
-	//
-	//	@After
-	//	public void tearDown() {
-	//		
-	//		userBusinessMock = null;
-	//		tokenBusinessMock = null;
-	//		userResource = null;
-	//	}
-
 	@Test
 	public void testCreateUser_OK() {
 
