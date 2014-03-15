@@ -24,9 +24,6 @@ import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
-import com.sun.jersey.api.core.ExtendedUriInfo;
-import com.sun.jersey.api.uri.UriTemplate;
-
 @Path("/roles")
 @Consumes(MediaType.APPLICATION_JSON)
 @Produces(MediaType.APPLICATION_JSON)
@@ -104,8 +101,7 @@ public class RoleResource {
 	public Response getAllRolesNames() {
 		
 		System.out.println("************************************ 1");
-		System.out.println(httpServletRequest.getMethod());
-		System.out.println(httpServletRequest.getPathInfo());
+		System.out.println(getRequestTicket(httpServletRequest));
 		
 		List<String> rolesNames = roleBusiness.getAllRolesNames();
 		return Response.status(200).entity(rolesNames).build();
