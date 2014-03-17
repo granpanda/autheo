@@ -1,12 +1,11 @@
 package gp.e3.autheo.authorization.service;
 
-import java.util.List;
-
-import gp.e3.autheo.authentication.infrastructure.validators.StringValidator;
 import gp.e3.autheo.authentication.persistence.exceptions.DuplicateIdException;
 import gp.e3.autheo.authentication.service.resources.commons.HttpCommonResponses;
 import gp.e3.autheo.authorization.domain.business.PermissionBusiness;
 import gp.e3.autheo.authorization.domain.entities.Permission;
+
+import java.util.List;
 
 import javax.ws.rs.Consumes;
 import javax.ws.rs.DELETE;
@@ -61,12 +60,14 @@ public class PermissionResource {
 		
 		Response response = null;
 		
-		if (StringValidator.isValidString(permissionId)) {
+		try {
 			
-			Permission retrievedPermission = permissionBusiness.getPermissionById(permissionId);
+			long permissionIdLong = Long.parseLong(permissionId);
+			
+			Permission retrievedPermission = permissionBusiness.getPermissionById(permissionIdLong);
 			response = Response.status(200).entity(retrievedPermission).build();
 			
-		} else {
+		} catch (Exception e) {
 			
 			response = HttpCommonResponses.getInvalidSyntaxResponse();
 		}
@@ -87,15 +88,17 @@ public class PermissionResource {
 		
 		Response response = null;
 		
-		if (StringValidator.isValidString(permissionId)) {
+		try {
+			
+			long permissionIdLong = Long.parseLong(permissionId);
 			
 			/*
 			 * Disassociate the permission from all roles and delete it from the system.
 			 */
-			permissionBusiness.deletePermission(permissionId);
+			permissionBusiness.deletePermission(permissionIdLong);
 			response = Response.status(200).build();
 			
-		} else {
+		} catch (Exception e) {
 			
 			response = HttpCommonResponses.getInvalidSyntaxResponse();
 		}

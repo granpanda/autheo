@@ -4,7 +4,7 @@ import gp.e3.autheo.authentication.infrastructure.validators.StringValidator;
 import gp.e3.autheo.authorization.infrastructure.validators.E3UrlValidator;
 import gp.e3.autheo.authorization.infrastructure.validators.HttpVerbValidator;
 
-public class Permission {
+public class Permission implements Comparable<Permission> {
 	
 	public static final String ATTRIBUTE_SPLIT = ":";
 	public static final String PERMISSION_SPLIT = ";";
@@ -57,5 +57,17 @@ public class Permission {
 	public String toString() {
 		
 		return id + ATTRIBUTE_SPLIT + name + ATTRIBUTE_SPLIT + httpVerb + ATTRIBUTE_SPLIT + url;
+	}
+
+	@Override
+	public int compareTo(Permission permission) {
+		
+		int answer = 0;
+		
+		answer += this.name.compareTo(permission.getName());
+		answer += this.httpVerb.compareTo(permission.getHttpVerb());
+		answer += this.url.compareTo(permission.getUrl());
+		
+		return answer;
 	}
 }

@@ -6,6 +6,7 @@ import gp.e3.autheo.authorization.persistence.mappers.PermissionMapper;
 import java.util.List;
 
 import org.skife.jdbi.v2.sqlobject.Bind;
+import org.skife.jdbi.v2.sqlobject.GetGeneratedKeys;
 import org.skife.jdbi.v2.sqlobject.SqlBatch;
 import org.skife.jdbi.v2.sqlobject.SqlQuery;
 import org.skife.jdbi.v2.sqlobject.SqlUpdate;
@@ -34,6 +35,10 @@ public interface IPermissionDAO {
 
 	public static final String CREATE_PERMISSIONS_UNIQUE_INDEX = 
 			"ALTER TABLE permissions ADD UNIQUE INDEX(http_verb, url);";
+	
+	public static final String COUNT_PERMISSIONS_TABLE = "SELECT COUNT(*) FROM permissions;";
+	
+	public static final String COUNT_ROLE_PERMISSIONS_TABLE = "SELECT COUNT(*) FROM roles_permissions;";
 
 	public static final String CREATE_PERMISSION = 
 			"INSERT INTO permissions (name, http_verb, url) VALUES (:name, :http_verb, :url)";
@@ -68,24 +73,31 @@ public interface IPermissionDAO {
 	
 	@SqlUpdate(CREATE_PERMISSIONS_UNIQUE_INDEX)
 	public void createPermissionsUniqueIndex();
+	
+	@SqlQuery(COUNT_PERMISSIONS_TABLE)
+	public int countPermissionsTable();
+	
+	@SqlQuery(COUNT_ROLE_PERMISSIONS_TABLE)
+	public int countRolePermissionsTable();
 
 	@SqlUpdate(CREATE_PERMISSION)
-	public void createPermission(@Bind(NAME_FIELD) String name, @Bind(HTTP_VERB_FIELD) String httpVerb, 
+	@GetGeneratedKeys
+	public int createPermission(@Bind(NAME_FIELD) String name, @Bind(HTTP_VERB_FIELD) String httpVerb, 
 			@Bind(URL_FIELD) String url) throws Exception;
 
 	@SqlBatch(ASSOCIATE_ALL_PERMISSIONS_TO_ROLE)
-	public int associateAllPermissionsToRole(@Bind(ROLE_NAME_FIELD) String roleName, 
+	public void associateAllPermissionsToRole(@Bind(ROLE_NAME_FIELD) String roleName, 
 			@Bind(PERMISSION_ID_FIELD) List<Integer> permissions);
 
 	@SqlUpdate(DISASSOCIATE_ALL_PERMISSIONS_FROM_ROLE)
 	public int disassociateAllPermissionsFromRole(@Bind(ROLE_NAME_FIELD) String roleName);
 
 	@SqlUpdate(DISASSOCIATE_PERMISSION_FROM_ALL_ROLES)
-	public int disassociatePermissionFromAllRoles(@Bind(PERMISSION_ID_FIELD) String permissionId);
+	public int disassociatePermissionFromAllRoles(@Bind(PERMISSION_ID_FIELD) int permissionId);
 
 	@SqlQuery(GET_PERMISSION_BY_ID)
 	@Mapper(PermissionMapper.class)
-	public Permission getPermissionById(@Bind(ID_FIELD) String permissionId);
+	public Permission getPermissionById(@Bind(ID_FIELD) int permissionId);
 
 	@SqlQuery(GET_PERMISSION_BY_HTTP_VERB_AND_URL)
 	@Mapper(PermissionMapper.class)
@@ -100,5 +112,5 @@ public interface IPermissionDAO {
 	public List<Permission> getAllPermissionsOfAGivenRole(@Bind(ROLE_NAME_FIELD) String roleName);
 
 	@SqlUpdate(DELETE_PERMISSION)
-	public int deletePermission(@Bind(ID_FIELD) String permissionId);
+	public int deletePermission(@Bind(ID_FIELD) int permissionId);
 }
