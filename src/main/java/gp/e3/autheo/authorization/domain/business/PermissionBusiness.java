@@ -1,11 +1,11 @@
 package gp.e3.autheo.authorization.domain.business;
 
-import java.util.ArrayList;
-import java.util.List;
-
 import gp.e3.autheo.authentication.persistence.exceptions.DuplicateIdException;
 import gp.e3.autheo.authorization.domain.entities.Permission;
 import gp.e3.autheo.authorization.persistence.daos.IPermissionDAO;
+
+import java.util.ArrayList;
+import java.util.List;
 
 public class PermissionBusiness {
 
@@ -35,7 +35,7 @@ public class PermissionBusiness {
 	}
 
 	public void overwritePermissionsToRole(String roleName, List<Permission> permissions) {
-
+		
 		List<Integer> permissionsIds = new ArrayList<Integer>();
 
 		for (Permission permission : permissions) {
