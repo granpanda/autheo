@@ -2,14 +2,12 @@ package gp.e3.autheo.authorization.infrastructure.validators;
 
 import gp.e3.autheo.authentication.infrastructure.validators.StringValidator;
 
-import org.apache.commons.validator.routines.UrlValidator;
-
 public class E3UrlValidator {
 
-	public static boolean isValidUrl(String url) {
-
-		return StringValidator.isValidString(url) && UrlValidator.getInstance().isValid(url);
-	}
+//	public static boolean isValidUrl(String url) {
+//
+//		return StringValidator.isValidString(url) && UrlValidator.getInstance().isValid(url);
+//	}
 
 	private static boolean matchUrlPart(String anyCharacter, String templateString, String requestString) {
 
@@ -84,19 +82,28 @@ public class E3UrlValidator {
 			String[] templateArray = urlTemplate.split(splitCharacter);
 			String[] requestedArray = requestedUrl.split(splitCharacter);
 
-			boolean partiallyMatch = true;
+			int templateArrayLength = templateArray.length;
+			
+			if (templateArrayLength == requestedArray.length && templateArrayLength > 0) {
+				
+				if (templateArrayLength == 1) {
+					
+					match = templateArray[0].equalsIgnoreCase(requestedArray[0]);
+					
+				} else if (templateArrayLength > 1) {
+					
+					boolean partiallyMatch = true;
+					
+					for (int i = 0; i < templateArrayLength && partiallyMatch; i++) {
 
-			if (templateArray.length == requestedArray.length) {
+						String templateString = templateArray[i];
+						String requestString = requestedArray[i];
 
-				for (int i = 0; i < templateArray.length && partiallyMatch; i++) {
+						partiallyMatch = matchUrlPart(anyCharacter, templateString, requestString);
+					}
 
-					String templateString = templateArray[i];
-					String requestString = requestedArray[i];
-
-					partiallyMatch = matchUrlPart(anyCharacter, templateString, requestString);
+					match = partiallyMatch;
 				}
-
-				match = partiallyMatch;
 			}
 		}
 

@@ -61,8 +61,10 @@ public class TicketBusiness {
 			
 		} else {
 			
-			roleBusiness.addRolePermissionsToRedis(roleName);
-			isAuthorized = userIsAuthorized(ticket); // Recursion.
+			if (roleBusiness.addRolePermissionsToRedis(roleName)) {
+				
+				isAuthorized = userIsAuthorized(ticket); // Recursion.
+			}
 		}
 		
 		return isAuthorized;

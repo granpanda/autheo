@@ -27,8 +27,7 @@ public class PermissionTuple {
 		boolean httpVerbsAreTheSame = HttpVerbValidator.isValidHttpVerb(httpVerb) && 
 									  httpVerb.equalsIgnoreCase(tuplePermission.getHttpVerb());
 		
-		boolean urlsMatch = E3UrlValidator.isValidUrl(url) && 
-							E3UrlValidator.urlsMatch(url, tuplePermission.getUrl());
+		boolean urlsMatch = E3UrlValidator.urlsMatch(url, tuplePermission.getUrl());
 		
 		return httpVerbsAreTheSame && urlsMatch;
 	}

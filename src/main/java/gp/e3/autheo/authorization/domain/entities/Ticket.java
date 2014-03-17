@@ -1,7 +1,6 @@
 package gp.e3.autheo.authorization.domain.entities;
 
 import gp.e3.autheo.authentication.infrastructure.validators.StringValidator;
-import gp.e3.autheo.authorization.infrastructure.validators.E3UrlValidator;
 import gp.e3.autheo.authorization.infrastructure.validators.HttpVerbValidator;
 
 public class Ticket {
@@ -33,6 +32,6 @@ public class Ticket {
 		
 		return (StringValidator.isValidString(ticket.getTokenValue())) &&
 				(HttpVerbValidator.isValidHttpVerb(ticket.getHttpVerb())) &&
-				(E3UrlValidator.isValidUrl(ticket.getRequestedUrl()));
+				(StringValidator.isValidString(ticket.getRequestedUrl()));
 	}
 }
