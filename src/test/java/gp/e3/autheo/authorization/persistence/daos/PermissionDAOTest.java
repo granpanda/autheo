@@ -42,6 +42,7 @@ public class PermissionDAOTest {
 	public static void tearDownClass() {
 
 		handle.close();
+		dbi.close(roleDAO);
 		dbi.close(permissionDAO);
 
 		roleDAO = null;

@@ -30,6 +30,12 @@ public interface IRoleDAO {
 	public static final String CREATE_ROLES_AND_USERS_TABLE_IF_NOT_EXISTS = 
 			"CREATE TABLE IF NOT EXISTS roles_users (username VARCHAR(32) PRIMARY KEY, role_name VARCHAR(32));";
 	
+	public static final String COUNT_ROLES_TABLE = "SELECT COUNT(*) FROM roles;";
+	
+	public static final String COUNT_ROLE_PERMISSIONS_TABLE = "SELECT COUNT(*) FROM roles_permissions;";
+	
+	public static final String COUNT_ROLE_USERS_TABLE = "SELECT COUNT(*) FROM roles_users;";
+	
 	public static final String CREATE_ROLE = "INSERT INTO roles (name) VALUES (:name);";
 	
 	public static final String GET_ALL_ROLES_NAMES = "SELECT name FROM roles;";
@@ -55,9 +61,18 @@ public interface IRoleDAO {
 	
 	@SqlUpdate(CREATE_ROLES_AND_USERS_TABLE_IF_NOT_EXISTS)
 	public void createRolesAndUsersTable();
+	
+	@SqlQuery(COUNT_ROLES_TABLE)
+	public int countRolesTable();
+	
+	@SqlQuery(COUNT_ROLE_PERMISSIONS_TABLE)
+	public int countRolePermissionsTable();
+	
+	@SqlQuery(COUNT_ROLE_USERS_TABLE)
+	public int countRoleUsersTable();
 
 	@SqlUpdate(CREATE_ROLE)
-	public void createRole(@Bind(NAME_FIELD) String roleName);
+	public void createRole(@Bind(NAME_FIELD) String roleName) throws Exception;
 
 	@SqlQuery(GET_ALL_ROLES_NAMES)
 	public List<String> getAllRolesNames();
