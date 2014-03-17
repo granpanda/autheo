@@ -33,6 +33,7 @@ public class PermissionBusinessTest {
 	@After
 	public void tearDown() {
 
+		permissionDaoMock = null;
 		permissionBusiness = null;
 	}
 
