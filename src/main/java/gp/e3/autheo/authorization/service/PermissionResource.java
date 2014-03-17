@@ -62,9 +62,9 @@ public class PermissionResource {
 		
 		try {
 			
-			long permissionIdLong = Long.parseLong(permissionId);
+			int permissionIdInt = Integer.parseInt(permissionId);
 			
-			Permission retrievedPermission = permissionBusiness.getPermissionById(permissionIdLong);
+			Permission retrievedPermission = permissionBusiness.getPermissionById(permissionIdInt);
 			response = Response.status(200).entity(retrievedPermission).build();
 			
 		} catch (Exception e) {
@@ -90,12 +90,12 @@ public class PermissionResource {
 		
 		try {
 			
-			long permissionIdLong = Long.parseLong(permissionId);
+			int permissionIdInt = Integer.parseInt(permissionId);
 			
 			/*
 			 * Disassociate the permission from all roles and delete it from the system.
 			 */
-			permissionBusiness.deletePermission(permissionIdLong);
+			permissionBusiness.deletePermission(permissionIdInt);
 			response = Response.status(200).build();
 			
 		} catch (Exception e) {

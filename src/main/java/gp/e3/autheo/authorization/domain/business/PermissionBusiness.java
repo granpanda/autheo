@@ -36,7 +36,7 @@ public class PermissionBusiness {
 
 	public void overwritePermissionsToRole(String roleName, List<Permission> permissions) {
 
-		List<Long> permissionsIds = new ArrayList<Long>();
+		List<Integer> permissionsIds = new ArrayList<Integer>();
 
 		for (Permission permission : permissions) {
 
@@ -47,7 +47,7 @@ public class PermissionBusiness {
 		permissionDao.associateAllPermissionsToRole(roleName, permissionsIds);
 	}
 
-	public void disassociatePermissionFromAllRoles(long permissionId) {
+	public void disassociatePermissionFromAllRoles(int permissionId) {
 
 		permissionDao.disassociatePermissionFromAllRoles(permissionId);
 	}
@@ -57,7 +57,7 @@ public class PermissionBusiness {
 		permissionDao.disassociateAllPermissionsFromRole(roleName);
 	}
 
-	public Permission getPermissionById(long permissionId) {
+	public Permission getPermissionById(int permissionId) {
 
 		return permissionDao.getPermissionById(permissionId);
 	}
@@ -77,7 +77,7 @@ public class PermissionBusiness {
 		return permissionDao.getAllPermissionsOfAGivenRole(roleName);
 	}
 
-	public int deletePermission(long permissionId) {
+	public int deletePermission(int permissionId) {
 
 		permissionDao.disassociatePermissionFromAllRoles(permissionId);
 		return permissionDao.deletePermission(permissionId);
