@@ -1,4 +1,4 @@
-package gp.e3.autheo.persistence.daos;
+package gp.e3.autheo.authentication.persistence.daos;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
@@ -51,10 +51,10 @@ public class TokenDAOTest {
 			User user = UserFactoryForTests.getDefaultTestUser();
 			
 			String tokenValue = TokenFactory.getToken(user);
-			Token token = new Token(user.getUsername(), tokenValue);
+			Token token = new Token(tokenValue, user.getUsername(), user.getOrganizationId(), user.getRoleId());
 			String returnValue = "OK";
 			
-			Mockito.when(redisClientMock.set(token.getUsername(), token.getTokenValue())).thenReturn(returnValue);
+			Mockito.when(redisClientMock.set(token.getTokenValue(), token.toString())).thenReturn(returnValue);
 			
 			TokenDAO tokenDao = new TokenDAO(redisClientMock);
 			String addTokenAnswer = tokenDao.addToken(token);
@@ -75,7 +75,7 @@ public class TokenDAOTest {
 			User user = UserFactoryForTests.getDefaultTestUser();
 			
 			String tokenValue = TokenFactory.getToken(user);
-			Token token = new Token(null, tokenValue);
+			Token token = new Token(tokenValue, null, user.getOrganizationId(), user.getRoleId());
 			
 			TokenDAO tokenDao = new TokenDAO(redisClientMock);
 			tokenDao.addToken(token);
@@ -95,14 +95,14 @@ public class TokenDAOTest {
 			
 			User user = UserFactoryForTests.getDefaultTestUser();
 			String tokenValue = TokenFactory.getToken(user);
-			Token token = new Token(user.getUsername(), tokenValue);
+			Token token = new Token(tokenValue, user.getUsername(), user.getOrganizationId(), user.getRoleId());
 			
-			Mockito.when(redisClientMock.get(token.getUsername())).thenReturn(token.getTokenValue());
+			Mockito.when(redisClientMock.get(token.getTokenValue())).thenReturn(token.toString());
 			
 			TokenDAO tokenDao = new TokenDAO(redisClientMock);
-			String retrievedToken = tokenDao.getToken(user.getUsername());
+			Token retrievedToken = tokenDao.getToken(tokenValue);
 			
-			assertEquals(token.getTokenValue(), retrievedToken);
+			assertEquals(0, token.compareTo(retrievedToken));
 			
 		} catch (TokenGenerationException e) {
 			
@@ -117,9 +117,9 @@ public class TokenDAOTest {
 			
 			User user = UserFactoryForTests.getDefaultTestUser();
 			String tokenValue = TokenFactory.getToken(user);
-			Token token = new Token(user.getUsername(), tokenValue);
+			Token token = new Token(tokenValue, user.getUsername(), user.getOrganizationId(), user.getRoleId());
 			
-			Mockito.when(redisClientMock.get(token.getUsername())).thenReturn(token.getTokenValue());
+			Mockito.when(redisClientMock.get(token.getTokenValue())).thenReturn(token.toString());
 			
 			String invalidUsername = "";
 			TokenDAO tokenDao = new TokenDAO(redisClientMock);

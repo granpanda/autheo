@@ -1,4 +1,4 @@
-package gp.e3.autheo.persistence.mappers;
+package gp.e3.autheo.authentication.persistence.mappers;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.fail;

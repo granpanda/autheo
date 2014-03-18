@@ -1,4 +1,4 @@
-package gp.e3.autheo.service;
+package gp.e3.autheo.authentication.service;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotEquals;
@@ -34,27 +34,9 @@ public class UserResourceTest extends ResourceTest {
 	@Override
 	protected void setUpResources() throws Exception {
 
-		
-		
 		userResource = new UserResource(userBusinessMock, tokenBusinessMock);
 		addResource(userResource);
 	}
-
-	//	@Before
-	//	public void setUp() {
-	//		
-	//		userBusinessMock = Mockito.mock(UserBusiness.class);
-	//		tokenBusinessMock = Mockito.mock(TokenBusiness.class);
-	//		userResource = new UserResource(userBusinessMock, tokenBusinessMock);
-	//	}
-	//
-	//	@After
-	//	public void tearDown() {
-	//		
-	//		userBusinessMock = null;
-	//		tokenBusinessMock = null;
-	//		userResource = null;
-	//	}
 
 	@Test
 	public void testCreateUser_OK() {
@@ -113,7 +95,7 @@ public class UserResourceTest extends ResourceTest {
 			User user = UserFactoryForTests.getDefaultTestUser();
 
 			String tokenValue = "Hello!123";
-			Token testingToken = new Token(user.getUsername(), tokenValue);
+			Token testingToken = new Token(tokenValue, user.getUsername(), user.getOrganizationId(), user.getRoleId());
 
 			Mockito.when(userBusinessMock.authenticateUser(Mockito.anyString(), Mockito.anyString())).thenReturn(true);
 			Mockito.when(tokenBusinessMock.generateToken((User) Mockito.any())).thenReturn(testingToken);
@@ -146,7 +128,7 @@ public class UserResourceTest extends ResourceTest {
 			User user = UserFactoryForTests.getDefaultTestUser();
 
 			String tokenValue = "Hello!123";
-			Token testingToken = new Token(user.getUsername(), tokenValue);
+			Token testingToken = new Token(tokenValue, user.getUsername(), user.getOrganizationId(), user.getRoleId());
 
 			// The user is not authenticated.
 			Mockito.when(userBusinessMock.authenticateUser(Mockito.anyString(), Mockito.anyString())).thenReturn(false);
@@ -174,7 +156,7 @@ public class UserResourceTest extends ResourceTest {
 			User user = UserFactoryForTests.getDefaultTestUser();
 
 			String tokenValue = "Hello!123";
-			Token testingToken = new Token(user.getUsername(), tokenValue);
+			Token testingToken = new Token(tokenValue, user.getUsername(), user.getOrganizationId(), user.getRoleId());
 
 			// The user is not authenticated.
 			Mockito.when(userBusinessMock.authenticateUser(Mockito.anyString(), Mockito.anyString())).thenReturn(false);

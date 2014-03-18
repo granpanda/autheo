@@ -1,4 +1,4 @@
-package gp.e3.autheo.domain.business;
+package gp.e3.autheo.authentication.domain.business;
 
 import static org.junit.Assert.*;
 

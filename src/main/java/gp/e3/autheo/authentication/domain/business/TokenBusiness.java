@@ -3,6 +3,7 @@ package gp.e3.autheo.authentication.domain.business;
 import gp.e3.autheo.authentication.domain.entities.Token;
 import gp.e3.autheo.authentication.domain.entities.User;
 import gp.e3.autheo.authentication.domain.exceptions.TokenGenerationException;
+import gp.e3.autheo.authentication.infrastructure.validators.StringValidator;
 import gp.e3.autheo.authentication.persistence.daos.TokenDAO;
 
 public class TokenBusiness {
@@ -20,7 +21,7 @@ public class TokenBusiness {
 		if ((user != null) && (!user.getUsername().isEmpty())) {
 		
 			String tokenValue = TokenFactory.getToken(user);
-			token = new Token(user.getUsername(), tokenValue);
+			token = new Token(tokenValue, user.getUsername(), user.getOrganizationId(), user.getRoleId());
 			tokenDao.addToken(token);
 			
 		} else {
@@ -32,11 +33,11 @@ public class TokenBusiness {
 		return token;
 	}
 	
-	public String getTokenValue(String username) throws IllegalArgumentException {
+	public Token getToken(String tokenValue) throws IllegalArgumentException {
 		
-		if ((username != null) && (!username.isEmpty())) {
+		if (StringValidator.isValidString(tokenValue)) {
 			
-			return tokenDao.getToken(username);
+			return tokenDao.getToken(tokenValue);
 			
 		} else {
 			

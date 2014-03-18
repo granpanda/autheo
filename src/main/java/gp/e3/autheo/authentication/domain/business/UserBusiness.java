@@ -28,7 +28,8 @@ public class UserBusiness {
 			String passwordHash = PasswordHandler.getPasswordHash(originalPassword);
 			String passwordSalt = PasswordHandler.getSaltFromHashedAndSaltedPassword(passwordHash);
 			
-			userDao.createUser(newUser.getName(), newUser.getUsername(), passwordHash, passwordSalt);
+			userDao.createUser(newUser.getName(), newUser.getUsername(), passwordHash, passwordSalt, 
+					newUser.getOrganizationId(), newUser.getRoleId());
 			
 		} catch (Exception e) {
 			
