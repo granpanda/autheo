@@ -1,5 +1,8 @@
 package gp.e3.autheo.authorization.domain.entities;
 
+import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonProperty;
+
 import gp.e3.autheo.authentication.infrastructure.validators.StringValidator;
 import gp.e3.autheo.authorization.infrastructure.validators.HttpVerbValidator;
 
@@ -9,7 +12,9 @@ public class Ticket {
 	private final String httpVerb;
 	private final String requestedUrl;
 	
-	public Ticket(String tokenValue, String httpVerb, String requestedUrl) {
+	@JsonCreator
+	public Ticket(@JsonProperty("tokenValue") String tokenValue, @JsonProperty("httpVerb") String httpVerb, 
+			@JsonProperty("requestedUrl") String requestedUrl) {
 		
 		this.tokenValue = tokenValue;
 		this.httpVerb = httpVerb;

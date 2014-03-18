@@ -14,11 +14,11 @@ import javax.ws.rs.core.Response;
 @Path("/auth")
 @Consumes(MediaType.APPLICATION_JSON)
 @Produces(MediaType.APPLICATION_JSON)
-public class AuthorizatorResource {
+public class TicketResource {
 	
 	private final TicketBusiness ticketBusiness;
 	
-	public AuthorizatorResource(TicketBusiness ticketBusiness) {
+	public TicketResource(TicketBusiness ticketBusiness) {
 		
 		this.ticketBusiness = ticketBusiness;
 	}
