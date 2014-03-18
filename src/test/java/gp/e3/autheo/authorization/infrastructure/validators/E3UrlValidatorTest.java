@@ -36,6 +36,10 @@ public class E3UrlValidatorTest {
 		urlTemplate = "/api/orders/*/payment/*/payment-mode";
 		requestedUrl = "/api/orders/123/payment/credit-card/payment-mode";
 		assertTrue(E3UrlValidator.urlsMatch(urlTemplate, requestedUrl));
+		
+		urlTemplate = "www.google.com/docs";
+		requestedUrl = "www.google.com/docs";
+		assertTrue(E3UrlValidator.urlsMatch(urlTemplate, requestedUrl));
 	}
 	
 	@Test
