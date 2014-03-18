@@ -29,8 +29,8 @@ import javax.ws.rs.core.Response;
 @Produces(MediaType.APPLICATION_JSON)
 public class RoleResource {
 	
-	@Context 
-	private HttpServletRequest httpServletRequest;
+//	@Context 
+//	private HttpServletRequest httpServletRequest;
 	
 //	@Context
 //	private ExtendedUriInfo extendedUriInfo;
@@ -54,6 +54,9 @@ public class RoleResource {
 				Role createdRole = roleBusiness.createRole(role);
 				response = Response.status(201).entity(createdRole).build();
 				
+//				System.out.println("************************ qwe");
+//				System.out.println(response.getEntity().toString());
+				
 			} catch (DuplicateIdException e) {
 				
 				response = Response.status(500).entity(e.getMessage()).build();
@@ -67,16 +70,16 @@ public class RoleResource {
 		return response;
 	}
 	
-	private Ticket getRequestTicket(HttpServletRequest httpServletRequest) {
-		
-		String TOKEN_HEADER = "";
-		String tokenValue = httpServletRequest.getHeader(TOKEN_HEADER);
-		
-		String httpVerb = httpServletRequest.getMethod();
-		String requestedUrl = httpServletRequest.getRequestURI();
-		
-		return new Ticket(tokenValue, httpVerb, requestedUrl);
-	}
+//	private Ticket getRequestTicket(HttpServletRequest httpServletRequest) {
+//		
+//		String TOKEN_HEADER = "";
+//		String tokenValue = httpServletRequest.getHeader(TOKEN_HEADER);
+//		
+//		String httpVerb = httpServletRequest.getMethod();
+//		String requestedUrl = httpServletRequest.getRequestURI();
+//		
+//		return new Ticket(tokenValue, httpVerb, requestedUrl);
+//	}
 	
 	@GET
 	@Path("/{ roleName }")
@@ -100,8 +103,8 @@ public class RoleResource {
 	@GET
 	public Response getAllRolesNames() {
 		
-		System.out.println("************************************ 1");
-		System.out.println(getRequestTicket(httpServletRequest));
+//		System.out.println("************************************ 1");
+//		System.out.println(getRequestTicket(httpServletRequest));
 		
 		List<String> rolesNames = roleBusiness.getAllRolesNames();
 		return Response.status(200).entity(rolesNames).build();
@@ -128,7 +131,7 @@ public class RoleResource {
 	
 	@DELETE
 	@Path("/{ roleName }")
-	public Response updateRole(@PathParam("roleName") String roleName) {
+	public Response deleteRole(@PathParam("roleName") String roleName) {
 		
 		Response response = null;
 		
@@ -151,11 +154,18 @@ public class RoleResource {
 		
 		Response response = null;
 		
-		String username = user.getUsername();
-		if (StringValidator.isValidString(roleName) && StringValidator.isValidString(username)) {
+		if (StringValidator.isValidString(roleName) && user != null) {
 			
-			roleBusiness.addUserToRole(username, roleName);
-			response = Response.status(200).build();
+			String username = user.getUsername();
+			if (StringValidator.isValidString(username)) {
+				
+				roleBusiness.addUserToRole(username, roleName);
+				response = Response.status(201).build();
+				
+			} else {
+				
+				response = HttpCommonResponses.getInvalidSyntaxResponse();
+			}
 			
 		} else {
 			

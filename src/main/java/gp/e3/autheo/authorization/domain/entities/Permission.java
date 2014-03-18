@@ -1,5 +1,8 @@
 package gp.e3.autheo.authorization.domain.entities;
 
+import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonProperty;
+
 import gp.e3.autheo.authentication.infrastructure.validators.StringValidator;
 import gp.e3.autheo.authorization.infrastructure.validators.HttpVerbValidator;
 
@@ -21,7 +24,9 @@ public class Permission implements Comparable<Permission> {
 		this.url = url;
 	}
 	
-	public Permission(int id, String name, String httpVerb, String url) {
+	@JsonCreator
+	public Permission(@JsonProperty("id") int id, @JsonProperty("name") String name, 
+			@JsonProperty("httpVerb") String httpVerb, @JsonProperty("url") String url) {
 		
 		this.id = id;
 		this.name = name;
