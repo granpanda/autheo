@@ -34,8 +34,6 @@ public class UserResourceTest extends ResourceTest {
 	@Override
 	protected void setUpResources() throws Exception {
 
-		
-		
 		userResource = new UserResource(userBusinessMock, tokenBusinessMock);
 		addResource(userResource);
 	}

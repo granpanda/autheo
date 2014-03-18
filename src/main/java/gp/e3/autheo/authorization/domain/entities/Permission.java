@@ -47,7 +47,8 @@ public class Permission implements Comparable<Permission> {
 	
 	public static boolean isValidPermission(Permission permission) {
 		
-		return (StringValidator.isValidString(permission.getName())) &&
+		return (permission != null) &&
+				(StringValidator.isValidString(permission.getName())) &&
 				(HttpVerbValidator.isValidHttpVerb(permission.getHttpVerb())) && 
 				(StringValidator.isValidString(permission.getUrl()));
 	}
