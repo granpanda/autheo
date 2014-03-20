@@ -74,7 +74,7 @@ public class Autheo extends Service<AutheoConfig> {
 		
 		final DBIFactory dbiFactory = new DBIFactory();
 		final DBI jdbi = dbiFactory.build(environment, 
-				autheoConfig.getAuthenticationConfig().getAuthenticationDatabase(), "mysql");
+				autheoConfig.getMySqlConfig(), "mysql");
 		
 		return jdbi;
 	}
