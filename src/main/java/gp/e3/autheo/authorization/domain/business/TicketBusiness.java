@@ -25,8 +25,15 @@ public class TicketBusiness {
 		
 		if (ticket != null && StringValidator.isValidString(ticket.getTokenValue())) {
 			
-			Token retrievedToken = tokenBusiness.getToken(ticket.getTokenValue());
-			answer = retrievedToken.getTokenValue().equals(ticket.getTokenValue());
+			try {
+				
+				Token retrievedToken = tokenBusiness.getToken(ticket.getTokenValue());
+				answer = retrievedToken.getTokenValue().equals(ticket.getTokenValue());
+				
+			} catch (Exception e) {
+				
+				// Do nothing, the answer is false.
+			}
 		}
 		
 		return answer;

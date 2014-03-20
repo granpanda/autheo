@@ -31,11 +31,20 @@ public class TokenDAO {
 		if (StringValidator.isValidString(tokenValue)) {
 			
 			String tokenToString = redisClient.get(tokenValue);
-			return Token.buildTokenFromTokenToString(tokenToString);
+			
+			if (StringValidator.isValidString(tokenToString)) {
+				
+				return Token.buildTokenFromTokenToString(tokenToString);
+				
+			} else {
+				
+				String errorMessage = "The given token is not valid.";
+				throw new IllegalArgumentException(errorMessage);
+			}
 			
 		} else {
 			
-			String errorMessage = "The given username is not valid.";
+			String errorMessage = "The given token is not valid.";
 			throw new IllegalArgumentException(errorMessage);
 		}
 	}
