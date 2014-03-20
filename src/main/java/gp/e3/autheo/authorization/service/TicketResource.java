@@ -11,9 +11,15 @@ import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
+import com.wordnik.swagger.annotations.Api;
+import com.wordnik.swagger.annotations.ApiOperation;
+import com.wordnik.swagger.annotations.ApiResponse;
+import com.wordnik.swagger.annotations.ApiResponses;
+
 @Path("/auth")
 @Consumes(MediaType.APPLICATION_JSON)
 @Produces(MediaType.APPLICATION_JSON)
+@Api(value = "/auth", description = "Authorization related operations")
 public class TicketResource {
 	
 	private final TicketBusiness ticketBusiness;
@@ -24,6 +30,11 @@ public class TicketResource {
 	}
 
 	@PUT
+	@ApiOperation(value = "Ask if a user is allowed to execute a given action.")
+	@ApiResponses(value = {
+			@ApiResponse(code = 401, message = "The user is unauthorized."),
+			@ApiResponse(code = 403, message = "The user is forbidden.")
+	})
 	public Response isAuthorized(Ticket ticket) {
 		
 		Response response = null;

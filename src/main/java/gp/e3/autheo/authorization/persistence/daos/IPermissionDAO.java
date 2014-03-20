@@ -69,7 +69,7 @@ public interface IPermissionDAO {
 	//------------------------------------------------------------------------------------------------------
 
 	@SqlUpdate(CREATE_PERMISSIONS_TABLE_IF_NOT_EXISTS)
-	public void createPermissionsTable();
+	public int createPermissionsTable();
 	
 	@SqlUpdate(CREATE_PERMISSIONS_UNIQUE_INDEX)
 	public void createPermissionsUniqueIndex();

@@ -1,10 +1,10 @@
 package gp.e3.autheo.authorization.domain.entities;
 
-import com.fasterxml.jackson.annotation.JsonCreator;
-import com.fasterxml.jackson.annotation.JsonProperty;
-
 import gp.e3.autheo.authentication.infrastructure.validators.StringValidator;
 import gp.e3.autheo.authorization.infrastructure.validators.HttpVerbValidator;
+
+import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonProperty;
 
 public class Ticket {
 	
@@ -44,7 +44,8 @@ public class Ticket {
 
 	public static boolean isValidTicket(Ticket ticket) {
 		
-		return (StringValidator.isValidString(ticket.getTokenValue())) &&
+		return (ticket != null) &&
+				(StringValidator.isValidString(ticket.getTokenValue())) &&
 				(HttpVerbValidator.isValidHttpVerb(ticket.getHttpVerb())) &&
 				(StringValidator.isValidString(ticket.getRequestedUrl()));
 	}
