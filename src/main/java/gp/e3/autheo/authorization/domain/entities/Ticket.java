@@ -8,6 +8,9 @@ import gp.e3.autheo.authorization.infrastructure.validators.HttpVerbValidator;
 
 public class Ticket {
 	
+	public static final String ATTRIBUTE_SPLIT = ":";
+	public static final String PERMISSION_SPLIT = ";";
+	
 	private final String tokenValue;
 	private final String httpVerb;
 	private final String requestedUrl;
@@ -31,6 +34,12 @@ public class Ticket {
 
 	public String getRequestedUrl() {
 		return requestedUrl;
+	}
+	
+	@Override
+	public String toString() {
+		
+		return tokenValue + ATTRIBUTE_SPLIT + httpVerb + ATTRIBUTE_SPLIT + requestedUrl;
 	}
 
 	public static boolean isValidTicket(Ticket ticket) {

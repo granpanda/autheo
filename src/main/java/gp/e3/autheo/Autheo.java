@@ -8,10 +8,12 @@ import gp.e3.autheo.authentication.persistence.daos.TokenDAO;
 import gp.e3.autheo.authentication.service.resources.UserResource;
 import gp.e3.autheo.authorization.domain.business.PermissionBusiness;
 import gp.e3.autheo.authorization.domain.business.RoleBusiness;
+import gp.e3.autheo.authorization.domain.business.TicketBusiness;
 import gp.e3.autheo.authorization.persistence.daos.IPermissionDAO;
 import gp.e3.autheo.authorization.persistence.daos.IRoleDAO;
 import gp.e3.autheo.authorization.service.PermissionResource;
 import gp.e3.autheo.authorization.service.RoleResource;
+import gp.e3.autheo.authorization.service.TicketResource;
 
 import org.skife.jdbi.v2.DBI;
 
@@ -60,22 +62,26 @@ public class Autheo extends Service<AutheoConfig> {
 		// Add user resource to the environment.
 		UserResource userResource = getUserResource(jdbi, jedis);
 		environment.addResource(userResource);
+
+		// Add ticket resource to the environment.
+		TicketResource ticketResource = getTicketResource(jdbi, jedis);
+		environment.addResource(ticketResource);
 	}
 
 	private Jedis getRedisInstance(AutheoConfig autheoConfig) {
-		
+
 		RedisConfig redisConfig = autheoConfig.getRedisConfig();
 		Jedis jedis = new Jedis(redisConfig.getHost(), redisConfig.getPort());
-		
+
 		return jedis;
 	}
 
 	private DBI getJDBIInstance(AutheoConfig autheoConfig, Environment environment) throws ClassNotFoundException {
-		
+
 		final DBIFactory dbiFactory = new DBIFactory();
 		final DBI jdbi = dbiFactory.build(environment, 
 				autheoConfig.getMySqlConfig(), "mysql");
-		
+
 		return jdbi;
 	}
 
@@ -84,7 +90,7 @@ public class Autheo extends Service<AutheoConfig> {
 		final IPermissionDAO permissionDao = jdbi.onDemand(IPermissionDAO.class);
 		final PermissionBusiness permissionBusiness = new PermissionBusiness(permissionDao);
 		PermissionResource permissionResource = new PermissionResource(permissionBusiness);
-		
+
 		return permissionResource;
 	}
 
@@ -92,13 +98,11 @@ public class Autheo extends Service<AutheoConfig> {
 
 		final IPermissionDAO permissionDao = jdbi.onDemand(IPermissionDAO.class);
 		final PermissionBusiness permissionBusiness = new PermissionBusiness(permissionDao);
-		
+
 		final IRoleDAO roleDao = jdbi.onDemand(IRoleDAO.class);
 		final RoleBusiness roleBusiness = new RoleBusiness(roleDao, permissionBusiness, jedis);
-		
-		RoleResource roleResource = new RoleResource(roleBusiness);
-		
-		return roleResource;
+
+		return new RoleResource(roleBusiness);
 	}
 
 	private UserResource getUserResource(DBI jdbi, Jedis jedis) 
@@ -106,12 +110,25 @@ public class Autheo extends Service<AutheoConfig> {
 
 		final IUserDAO userDAO = jdbi.onDemand(IUserDAO.class);
 		final UserBusiness userBusiness = new UserBusiness(userDAO);
-		
+
 		final TokenDAO tokenDao = new TokenDAO(jedis);
 		final TokenBusiness tokenBusiness = new TokenBusiness(tokenDao);
 
-		UserResource userResource = new UserResource(userBusiness, tokenBusiness);
+		return new UserResource(userBusiness, tokenBusiness);
+	}
 
-		return userResource;
+	private TicketResource getTicketResource(final DBI jdbi, Jedis jedis) {
+
+		TokenDAO tokenDao = new TokenDAO(jedis);
+		TokenBusiness tokenBusiness = new TokenBusiness(tokenDao);
+
+		IRoleDAO roleDao = jdbi.onDemand(IRoleDAO.class);
+		IPermissionDAO permissionDao = jdbi.onDemand(IPermissionDAO.class);
+		PermissionBusiness permissionBusiness = new PermissionBusiness(permissionDao);
+		RoleBusiness roleBusiness = new RoleBusiness(roleDao, permissionBusiness, jedis);
+
+		TicketBusiness ticketBusiness = new TicketBusiness(tokenBusiness, roleBusiness);
+
+		return new TicketResource(ticketBusiness);
 	}
 }
