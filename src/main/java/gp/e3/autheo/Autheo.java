@@ -15,10 +15,20 @@ import gp.e3.autheo.authorization.service.PermissionResource;
 import gp.e3.autheo.authorization.service.RoleResource;
 import gp.e3.autheo.authorization.service.TicketResource;
 
+import org.eclipse.jetty.servlets.CrossOriginFilter;
 import org.skife.jdbi.v2.DBI;
 
 import redis.clients.jedis.Jedis;
 
+import com.wordnik.swagger.config.ConfigFactory;
+import com.wordnik.swagger.config.ScannerFactory;
+import com.wordnik.swagger.config.SwaggerConfig;
+import com.wordnik.swagger.jaxrs.config.DefaultJaxrsScanner;
+import com.wordnik.swagger.jaxrs.listing.ApiDeclarationProvider;
+import com.wordnik.swagger.jaxrs.listing.ApiListingResourceJSON;
+import com.wordnik.swagger.jaxrs.listing.ResourceListingProvider;
+import com.wordnik.swagger.jaxrs.reader.DefaultJaxrsApiReader;
+import com.wordnik.swagger.reader.ClassReaders;
 import com.yammer.dropwizard.Service;
 import com.yammer.dropwizard.config.Bootstrap;
 import com.yammer.dropwizard.config.Environment;
@@ -44,6 +54,11 @@ public class Autheo extends Service<AutheoConfig> {
 
 	@Override
 	public void run(AutheoConfig autheoConfig, Environment environment) throws Exception {
+		
+		// Jetty CORS support
+		environment.addFilter(CrossOriginFilter.class, "/*")
+		// See: http://download.eclipse.org/jetty/stable-9/xref/org/eclipse/jetty/servlets/CrossOriginFilter.html line 154.
+		.setInitParam(CrossOriginFilter.ALLOWED_METHODS_PARAM, "OPTIONS,HEAD,GET,POST,PUT,DELETE");
 
 		// Initialize JDBI
 		final DBI jdbi = getJDBIInstance(autheoConfig, environment);
@@ -66,6 +81,18 @@ public class Autheo extends Service<AutheoConfig> {
 		// Add ticket resource to the environment.
 		TicketResource ticketResource = getTicketResource(jdbi, jedis);
 		environment.addResource(ticketResource);
+
+		// Swagger stuff.
+		environment.addResource(new ApiListingResourceJSON());
+		environment.addProvider(new ApiDeclarationProvider());
+		environment.addProvider(new ResourceListingProvider());
+
+		ScannerFactory.setScanner(new DefaultJaxrsScanner());
+		ClassReaders.setReader(new DefaultJaxrsApiReader());
+
+		SwaggerConfig swaggerConfig = ConfigFactory.config();
+		swaggerConfig.setApiVersion("1.0");
+		swaggerConfig.setBasePath("/");
 	}
 
 	private Jedis getRedisInstance(AutheoConfig autheoConfig) {

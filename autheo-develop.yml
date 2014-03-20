@@ -1,7 +1,7 @@
 http:
 
-  port: 9000
-  adminPort: 9001
+  port: 9002
+  adminPort: 9003
   rootPath: /api/*
   
 logging:
