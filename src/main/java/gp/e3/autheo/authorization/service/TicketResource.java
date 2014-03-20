@@ -17,9 +17,9 @@ import com.wordnik.swagger.annotations.ApiResponse;
 import com.wordnik.swagger.annotations.ApiResponses;
 
 @Path("/auth")
-@Api(value = "/auth", /*basePath = "http://localhost:9000",*/ description = "Authorization operations")
 @Consumes(MediaType.APPLICATION_JSON)
 @Produces(MediaType.APPLICATION_JSON)
+@Api(value = "/auth", description = "Authorization related operations")
 public class TicketResource {
 	
 	private final TicketBusiness ticketBusiness;
@@ -30,9 +30,8 @@ public class TicketResource {
 	}
 
 	@PUT
-	@ApiOperation(value = "Ask if a given user is allowed to execute a given action.")
+	@ApiOperation(value = "Ask if a user is allowed to execute a given action.")
 	@ApiResponses(value = {
-			//@ApiResponse(code = 200, message = "The user is authorized."),
 			@ApiResponse(code = 401, message = "The user is unauthorized."),
 			@ApiResponse(code = 403, message = "The user is forbidden.")
 	})

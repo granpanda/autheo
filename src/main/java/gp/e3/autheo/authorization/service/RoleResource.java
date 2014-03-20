@@ -21,16 +21,16 @@ import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
+import com.wordnik.swagger.annotations.Api;
+import com.wordnik.swagger.annotations.ApiOperation;
+import com.wordnik.swagger.annotations.ApiResponse;
+import com.wordnik.swagger.annotations.ApiResponses;
+
 @Path("/roles")
 @Consumes(MediaType.APPLICATION_JSON)
 @Produces(MediaType.APPLICATION_JSON)
+@Api(value = "/roles", description = "Role related operations")
 public class RoleResource {
-	
-//	@Context 
-//	private HttpServletRequest httpServletRequest;
-	
-//	@Context
-//	private ExtendedUriInfo extendedUriInfo;
 	
 	private final RoleBusiness roleBusiness;
 	
@@ -40,6 +40,12 @@ public class RoleResource {
 	}
 
 	@POST
+	@ApiOperation(value = "Create a new role.", response = Role.class)
+	@ApiResponses(value = {
+			@ApiResponse(code = 401, message = "The user is unauthorized."),
+			@ApiResponse(code = 403, message = "The user is forbidden."),
+			@ApiResponse(code = 500, message = "There is a role with the same name.")
+	})
 	public Response createRole(Role role) {
 		
 		Response response = null;
@@ -50,9 +56,6 @@ public class RoleResource {
 				
 				Role createdRole = roleBusiness.createRole(role);
 				response = Response.status(201).entity(createdRole).build();
-				
-//				System.out.println("************************ qwe");
-//				System.out.println(response.getEntity().toString());
 				
 			} catch (DuplicateIdException e) {
 				
@@ -67,19 +70,13 @@ public class RoleResource {
 		return response;
 	}
 	
-//	private Ticket getRequestTicket(HttpServletRequest httpServletRequest) {
-//		
-//		String TOKEN_HEADER = "";
-//		String tokenValue = httpServletRequest.getHeader(TOKEN_HEADER);
-//		
-//		String httpVerb = httpServletRequest.getMethod();
-//		String requestedUrl = httpServletRequest.getRequestURI();
-//		
-//		return new Ticket(tokenValue, httpVerb, requestedUrl);
-//	}
-	
 	@GET
-	@Path("/{ roleName }")
+	@Path("/{roleName}")
+	@ApiOperation(value = "Get a role by its name.", response = Role.class)
+	@ApiResponses(value = {
+			@ApiResponse(code = 401, message = "The user is unauthorized."),
+			@ApiResponse(code = 403, message = "The user is forbidden.")
+	})
 	public Response getRoleByName(@PathParam("roleName") String roleName) {
 		
 		Response response = null;
@@ -98,17 +95,24 @@ public class RoleResource {
 	}
 	
 	@GET
+	@ApiOperation(value = "Get all roles.", response = List.class)
+	@ApiResponses(value = {
+			@ApiResponse(code = 401, message = "The user is unauthorized."),
+			@ApiResponse(code = 403, message = "The user is forbidden.")
+	})
 	public Response getAllRolesNames() {
-		
-//		System.out.println("************************************ 1");
-//		System.out.println(getRequestTicket(httpServletRequest));
 		
 		List<String> rolesNames = roleBusiness.getAllRolesNames();
 		return Response.status(200).entity(rolesNames).build();
 	}
 	
 	@PUT
-	@Path("/{ roleName }")
+	@Path("/{roleName}")
+	@ApiOperation(value = "Update a role by its name.")
+	@ApiResponses(value = {
+			@ApiResponse(code = 401, message = "The user is unauthorized."),
+			@ApiResponse(code = 403, message = "The user is forbidden.")
+	})
 	public Response updateRole(@PathParam("roleName") String roleName, Role updatedRole) {
 		
 		Response response = null;
@@ -127,7 +131,12 @@ public class RoleResource {
 	}
 	
 	@DELETE
-	@Path("/{ roleName }")
+	@Path("/{roleName}")
+	@ApiOperation(value = "Delete a role by its name.")
+	@ApiResponses(value = {
+			@ApiResponse(code = 401, message = "The user is unauthorized."),
+			@ApiResponse(code = 403, message = "The user is forbidden.")
+	})
 	public Response deleteRole(@PathParam("roleName") String roleName) {
 		
 		Response response = null;
@@ -146,7 +155,12 @@ public class RoleResource {
 	}
 	
 	@POST
-	@Path("/{ roleName }/users")
+	@Path("/{roleName}/users")
+	@ApiOperation(value = "Add a user to a given role.")
+	@ApiResponses(value = {
+			@ApiResponse(code = 401, message = "The user is unauthorized."),
+			@ApiResponse(code = 403, message = "The user is forbidden.")
+	})
 	public Response addUserToRole(@PathParam("roleName") String roleName, User user) {
 		
 		Response response = null;
@@ -173,7 +187,12 @@ public class RoleResource {
 	}
 	
 	@DELETE
-	@Path("/{ roleName }/users/{ username }")
+	@Path("/{roleName}/users/{username}")
+	@ApiOperation(value = "Remove a specific user from a given role.")
+	@ApiResponses(value = {
+			@ApiResponse(code = 401, message = "The user is unauthorized."),
+			@ApiResponse(code = 403, message = "The user is forbidden.")
+	})
 	public Response removeUserFromRole(@PathParam("roleName") String roleName, @PathParam("username") String username) {
 		
 		Response response = null;
@@ -192,7 +211,12 @@ public class RoleResource {
 	}
 	
 	@GET
-	@Path("/{ roleName }/permissions")
+	@Path("/{roleName}/permissions")
+	@ApiOperation(value = "Get all permissions of a given role.", response = List.class)
+	@ApiResponses(value = {
+			@ApiResponse(code = 401, message = "The user is unauthorized."),
+			@ApiResponse(code = 403, message = "The user is forbidden.")
+	})
 	public Response getAllPermissionsOfAGivenRole(@PathParam("roleName") String roleName) {
 		
 		Response response = null;

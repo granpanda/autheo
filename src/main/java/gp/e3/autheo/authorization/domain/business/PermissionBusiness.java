@@ -14,8 +14,11 @@ public class PermissionBusiness {
 	public PermissionBusiness(IPermissionDAO permissionDao) {
 
 		this.permissionDao = permissionDao;
-		this.permissionDao.createPermissionsTable();
-		this.permissionDao.createPermissionsUniqueIndex();
+		
+		if (this.permissionDao.createPermissionsTable() != 0) {
+			
+			this.permissionDao.createPermissionsUniqueIndex();
+		}
 	}
 
 	public Permission createPermission(Permission permission) throws DuplicateIdException {
