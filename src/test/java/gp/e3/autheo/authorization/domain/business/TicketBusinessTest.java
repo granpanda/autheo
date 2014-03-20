@@ -60,7 +60,7 @@ public class TicketBusinessTest {
 	}
 
 	@Test
-	public void testTokenWasIssuedByUs_NOK() {
+	public void testTokenWasIssuedByUs_NOK_1() {
 
 		Ticket ticket = TicketFactoryForTests.getDefaultTestTicket();
 
@@ -83,6 +83,18 @@ public class TicketBusinessTest {
 
 		// It is also false if the ticket given as argument is null
 		assertFalse(ticketBusiness.tokenWasIssuedByUs(null));
+	}
+	
+	@Test
+	public void testTokenWasIssuedByUs_NOK_2() {
+
+		Ticket ticket = TicketFactoryForTests.getDefaultTestTicket();
+
+		String errorMessage = "The parameter is null or empty.";
+		IllegalArgumentException illegalArgumentException = new IllegalArgumentException(errorMessage);
+		Mockito.when(tokenBusinessMock.getToken(ticket.getTokenValue())).thenThrow(illegalArgumentException);
+
+		assertFalse(ticketBusiness.tokenWasIssuedByUs(ticket));
 	}
 
 	@Test
