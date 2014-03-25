@@ -18,7 +18,7 @@ public class TokenBusiness {
 		
 		Token token = null;
 		
-		if ((user != null) && (!user.getUsername().isEmpty())) {
+		if (User.isAValidUser(user)) {
 		
 			String tokenValue = TokenFactory.getToken(user);
 			token = new Token(tokenValue, user.getUsername(), user.getOrganizationId(), user.getRoleId());

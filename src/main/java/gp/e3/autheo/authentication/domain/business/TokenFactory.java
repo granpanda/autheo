@@ -2,6 +2,7 @@ package gp.e3.autheo.authentication.domain.business;
 
 import gp.e3.autheo.authentication.domain.entities.User;
 import gp.e3.autheo.authentication.domain.exceptions.TokenGenerationException;
+import gp.e3.autheo.authentication.infrastructure.validators.StringValidator;
 
 import java.math.BigInteger;
 import java.security.NoSuchAlgorithmException;
@@ -51,7 +52,8 @@ public class TokenFactory {
 		
 		String errorMessage = "";
 		
-		if (User.isAValidUser(user)) {
+		if ((user != null) && StringValidator.isValidString(user.getUsername()) && 
+				StringValidator.isValidString(user.getPassword())) {
 			
 			long currentMillis = DateTime.now().getMillis();
 			String baseForToken = currentMillis + user.getUsername() + user.getPassword();

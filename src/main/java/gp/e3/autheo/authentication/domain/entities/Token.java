@@ -1,5 +1,8 @@
 package gp.e3.autheo.authentication.domain.entities;
 
+import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonProperty;
+
 import gp.e3.autheo.authentication.infrastructure.validators.StringValidator;
 
 public class Token implements Comparable<Token> {
@@ -12,7 +15,10 @@ public class Token implements Comparable<Token> {
 	private final String userOrganization;
 	private final String userRole; 
 
-	public Token(String tokenValue, String username, String userOrganization, String userRole) {
+	@JsonCreator
+	public Token(@JsonProperty("tokenValue") String tokenValue, @JsonProperty("username") String username, 
+				 @JsonProperty("userOrganization") String userOrganization, 
+				 @JsonProperty("userRole") String userRole) {
 		
 		this.tokenValue = tokenValue;
 		this.username = username;

@@ -1,7 +1,6 @@
 package gp.e3.autheo.authentication.service;
 
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.fail;
 import gp.e3.autheo.authentication.domain.business.TokenBusiness;
@@ -108,11 +107,10 @@ public class UserResourceTest extends ResourceTest {
 
 			assertEquals(201, httpResponse.getStatus());
 
-			String generatedToken = httpResponse.getEntity(String.class);
+			Token generatedToken = httpResponse.getEntity(Token.class);
 
 			assertNotNull(generatedToken);
-			assertNotEquals(0, generatedToken.length());
-			assertEquals(testingToken.getTokenValue(), generatedToken);
+			assertEquals(0, testingToken.compareTo(generatedToken));
 
 		} catch (AuthenticationException | IllegalArgumentException | TokenGenerationException e) {
 

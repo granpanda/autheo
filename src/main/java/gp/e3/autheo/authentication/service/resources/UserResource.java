@@ -87,9 +87,12 @@ public class UserResource {
 			try {
 
 				if (userBusiness.authenticateUser(user.getUsername(), user.getPassword())) {
-
-					Token token = tokenBusiness.generateToken(user);
-					response = Response.status(201).entity(token.getTokenValue()).build();
+					
+					// Get the complete user because its possible that the given user just
+					// contains username and password.
+					User completeUser = userBusiness.getUserByUsername(user.getUsername());
+					Token token = tokenBusiness.generateToken(completeUser);
+					response = Response.status(201).entity(token).build();
 
 				} else {
 
@@ -97,7 +100,7 @@ public class UserResource {
 					response = Response.status(401).entity(errorMessage).build();
 				}
 
-			} catch (AuthenticationException | TokenGenerationException e) {
+			} catch (AuthenticationException | TokenGenerationException | IllegalArgumentException e) {
 
 				response = Response.status(401).entity(e.getMessage()).build();
 			}
