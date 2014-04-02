@@ -1,15 +1,17 @@
 package gp.e3.autheo.authorization.service;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
+import gp.e3.autheo.authentication.domain.entities.Token;
+import gp.e3.autheo.authentication.domain.entities.User;
+import gp.e3.autheo.authorization.domain.business.TicketBusiness;
+import gp.e3.autheo.authorization.domain.entities.Ticket;
+import gp.e3.autheo.util.TicketFactoryForTests;
+import gp.e3.autheo.util.UserFactoryForTests;
 
 import javax.ws.rs.core.MediaType;
 
 import org.junit.Test;
 import org.mockito.Mockito;
-
-import gp.e3.autheo.authorization.domain.business.TicketBusiness;
-import gp.e3.autheo.authorization.domain.entities.Ticket;
-import gp.e3.autheo.util.TicketFactoryForTests;
 
 import com.sun.jersey.api.client.ClientResponse;
 import com.sun.jersey.api.client.WebResource.Builder;
@@ -40,7 +42,10 @@ public class TicketResourceTest extends ResourceTest {
 		
 		Ticket ticket = TicketFactoryForTests.getDefaultTestTicket();
 		
-		Mockito.when(ticketBusinessMock.tokenWasIssuedByUs((Ticket) Mockito.any())).thenReturn(true);
+		User user = UserFactoryForTests.getDefaultTestUser();
+		Token token = new Token(ticket.getTokenValue(), user.getUsername(), user.getOrganizationId(), user.getRoleId());
+		
+		Mockito.when(ticketBusinessMock.tokenWasIssuedByUs((Ticket) Mockito.any())).thenReturn(token);
 		Mockito.when(ticketBusinessMock.userIsAuthorized((Ticket) Mockito.any())).thenReturn(true);
 		
 		String url = "/auth";
@@ -54,7 +59,10 @@ public class TicketResourceTest extends ResourceTest {
 		
 		Ticket ticket = TicketFactoryForTests.getDefaultTestTicket();
 		
-		Mockito.when(ticketBusinessMock.tokenWasIssuedByUs((Ticket) Mockito.any())).thenReturn(true);
+		User user = UserFactoryForTests.getDefaultTestUser();
+		Token token = new Token(ticket.getTokenValue(), user.getUsername(), user.getOrganizationId(), user.getRoleId());
+		
+		Mockito.when(ticketBusinessMock.tokenWasIssuedByUs((Ticket) Mockito.any())).thenReturn(token);
 		Mockito.when(ticketBusinessMock.userIsAuthorized((Ticket) Mockito.any())).thenReturn(false);
 		
 		String url = "/auth";
@@ -68,7 +76,7 @@ public class TicketResourceTest extends ResourceTest {
 		
 		Ticket ticket = TicketFactoryForTests.getDefaultTestTicket();
 		
-		Mockito.when(ticketBusinessMock.tokenWasIssuedByUs((Ticket) Mockito.any())).thenReturn(false);
+		Mockito.when(ticketBusinessMock.tokenWasIssuedByUs((Ticket) Mockito.any())).thenReturn(null);
 		
 		String url = "/auth";
 		ClientResponse response = getDefaultHttpRequest(url).put(ClientResponse.class, ticket);

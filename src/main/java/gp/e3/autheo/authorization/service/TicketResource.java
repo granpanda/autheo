@@ -1,5 +1,6 @@
 package gp.e3.autheo.authorization.service;
 
+import gp.e3.autheo.authentication.domain.entities.Token;
 import gp.e3.autheo.authentication.service.resources.commons.HttpCommonResponses;
 import gp.e3.autheo.authorization.domain.business.TicketBusiness;
 import gp.e3.autheo.authorization.domain.entities.Ticket;
@@ -41,11 +42,13 @@ public class TicketResource {
 		
 		if (Ticket.isValidTicket(ticket)) {
 			
-			if (ticketBusiness.tokenWasIssuedByUs(ticket)) {
+			Token retrievedToken = ticketBusiness.tokenWasIssuedByUs(ticket);
+			
+			if (retrievedToken != null) {
 				
 				if (ticketBusiness.userIsAuthorized(ticket)) {
 					
-					response = Response.status(200).build();
+					response = Response.status(200).entity(retrievedToken).build();
 					
 				} else {
 					

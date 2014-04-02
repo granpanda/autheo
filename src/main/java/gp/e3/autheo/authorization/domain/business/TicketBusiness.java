@@ -19,16 +19,15 @@ public class TicketBusiness {
 		this.roleBusiness = roleBusiness;
 	}
 
-	public boolean tokenWasIssuedByUs(Ticket ticket) {
+	public Token tokenWasIssuedByUs(Ticket ticket) {
 		
-		boolean answer = false;
+		Token answerToken = null;
 		
 		if (ticket != null && StringValidator.isValidString(ticket.getTokenValue())) {
 			
 			try {
 				
-				Token retrievedToken = tokenBusiness.getToken(ticket.getTokenValue());
-				answer = retrievedToken.getTokenValue().equals(ticket.getTokenValue());
+				answerToken = tokenBusiness.getToken(ticket.getTokenValue());
 				
 			} catch (Exception e) {
 				
@@ -36,7 +35,7 @@ public class TicketBusiness {
 			}
 		}
 		
-		return answer;
+		return answerToken;
 	}
 	
 	private boolean permissionBelongsToUserRole(PermissionTuple requestedPermission, 

@@ -1,8 +1,6 @@
 package gp.e3.autheo.authorization.domain.business;
 
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
+import static org.junit.Assert.*;
 import gp.e3.autheo.authentication.domain.business.TokenBusiness;
 import gp.e3.autheo.authentication.domain.business.TokenFactory;
 import gp.e3.autheo.authentication.domain.entities.Token;
@@ -56,7 +54,8 @@ public class TicketBusinessTest {
 
 		Mockito.when(tokenBusinessMock.getToken(ticket.getTokenValue())).thenReturn(token);
 
-		assertTrue(ticketBusiness.tokenWasIssuedByUs(ticket));
+		Token retrievedToken = ticketBusiness.tokenWasIssuedByUs(ticket);
+		assertTrue(retrievedToken != null);
 	}
 
 	@Test
@@ -79,10 +78,12 @@ public class TicketBusinessTest {
 
 		Mockito.when(tokenBusinessMock.getToken(ticket.getTokenValue())).thenReturn(token);
 
-		assertFalse(ticketBusiness.tokenWasIssuedByUs(ticket));
+		Token retrievedToken = ticketBusiness.tokenWasIssuedByUs(ticket);
+		assertNotNull(retrievedToken);
 
 		// It is also false if the ticket given as argument is null
-		assertFalse(ticketBusiness.tokenWasIssuedByUs(null));
+		retrievedToken = ticketBusiness.tokenWasIssuedByUs(null);
+		assertNull(retrievedToken);
 	}
 	
 	@Test
@@ -94,7 +95,8 @@ public class TicketBusinessTest {
 		IllegalArgumentException illegalArgumentException = new IllegalArgumentException(errorMessage);
 		Mockito.when(tokenBusinessMock.getToken(ticket.getTokenValue())).thenThrow(illegalArgumentException);
 
-		assertFalse(ticketBusiness.tokenWasIssuedByUs(ticket));
+		Token retrievedToken = ticketBusiness.tokenWasIssuedByUs(ticket);
+		assertFalse(retrievedToken != null);
 	}
 
 	@Test

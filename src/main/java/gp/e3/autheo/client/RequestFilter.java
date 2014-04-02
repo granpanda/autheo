@@ -1,6 +1,7 @@
 package gp.e3.autheo.client;
 
 import java.io.IOException;
+import java.io.InputStreamReader;
 
 import javax.servlet.Filter;
 import javax.servlet.FilterChain;
@@ -22,14 +23,16 @@ import org.apache.http.impl.client.HttpClients;
 import com.google.gson.Gson;
 
 public class RequestFilter implements Filter {
-
-	public static final String AUTHEO_URI = "http://localhost:9000/api/auth"; 
+ 
 	public static final String TOKEN_HEADER = "Authorization";
+	public static final String TOKEN_ATTRIBUTE = "Token";
 	
 	private String autheoUri;
+	private Gson gson;
 	
 	public RequestFilter(String autheoUri) {
 		
+		gson = new Gson();
 		this.autheoUri = autheoUri;
 	}
 
@@ -42,17 +45,16 @@ public class RequestFilter implements Filter {
 		
 		CloseableHttpClient httpClient = HttpClients.createDefault();
 		
-		HttpPut putRequest = new HttpPut(autheoUri);
+		HttpPut isAuthorizedRequest = new HttpPut(autheoUri);
 		String appJson = ContentType.APPLICATION_JSON.toString();
 
-		putRequest.addHeader("Accept", appJson);
-		putRequest.addHeader("Content-Type", appJson);
+		isAuthorizedRequest.addHeader("Accept", appJson);
+		isAuthorizedRequest.addHeader("Content-Type", appJson);
 
-		Gson gson = new Gson();
 		StringEntity stringEntity = new StringEntity(gson.toJson(ticketDto), "UTF-8");
-		putRequest.setEntity(stringEntity);
+		isAuthorizedRequest.setEntity(stringEntity);
 		
-		return httpClient.execute(putRequest);
+		return httpClient.execute(isAuthorizedRequest);
 	}
 
 	@Override
@@ -71,7 +73,15 @@ public class RequestFilter implements Filter {
 		int authorizationStatusCode = authorizationResponse.getStatusLine().getStatusCode();
 		
 		if (authorizationStatusCode == 200) {
-
+			
+			// Puts the token in the http request.
+			
+			InputStreamReader inputStreamReader = new InputStreamReader(authorizationResponse.getEntity().getContent());
+			TokenDTO tokenDTO = gson.fromJson(inputStreamReader, TokenDTO.class);
+			servletRequest.setAttribute(TOKEN_ATTRIBUTE, tokenDTO);
+			
+			inputStreamReader.close();
+			
 			// Go to the next filter. If this filter is the last one, then go to the resource.
 			filterChain.doFilter(servletRequest, servletResponse);
 
@@ -81,6 +91,12 @@ public class RequestFilter implements Filter {
 			HttpServletResponse httpResponse = (HttpServletResponse) servletResponse;
 			httpResponse.sendError(authorizationStatusCode);
 		}
+	}
+	
+	public static TokenDTO getTokenFromHttpRequest(HttpServletRequest httpRequest) {
+		
+		TokenDTO tokenDTO = (TokenDTO) httpRequest.getAttribute(RequestFilter.TOKEN_ATTRIBUTE);
+		return tokenDTO;
 	}
 
 	@Override
