@@ -1,19 +1,19 @@
 package gp.e3.autheo.authorization.service;
 
-import static org.junit.Assert.*;
-
-import java.util.List;
-
-import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.Response;
-
-import org.junit.Test;
-import org.mockito.Mockito;
-
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.fail;
 import gp.e3.autheo.authentication.persistence.exceptions.DuplicateIdException;
 import gp.e3.autheo.authorization.domain.business.PermissionBusiness;
 import gp.e3.autheo.authorization.domain.entities.Permission;
 import gp.e3.autheo.util.PermissionFactoryForTests;
+
+import java.util.List;
+
+import javax.ws.rs.core.MediaType;
+
+import org.junit.Test;
+import org.mockito.Mockito;
 
 import com.sun.jersey.api.client.ClientResponse;
 import com.sun.jersey.api.client.WebResource.Builder;

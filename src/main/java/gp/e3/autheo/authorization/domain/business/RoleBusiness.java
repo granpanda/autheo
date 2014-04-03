@@ -68,6 +68,7 @@ public class RoleBusiness {
 	public void updateRole(String roleName, List<Permission> updatedPermissions) {
 
 		permissionBusiness.overwritePermissionsToRole(roleName, updatedPermissions);
+		addRolePermissionsToRedis(roleName); // Update role in Redis.
 	}
 
 	public void deleteRole(String roleName) {
@@ -75,6 +76,7 @@ public class RoleBusiness {
 		permissionBusiness.disassociateAllPermissionsFromRole(roleName);
 		roleDao.removeAllUsersFromRole(roleName);
 		roleDao.deleteRole(roleName);
+		redisClient.del(roleName);
 	}
 
 	public void addUserToRole(String username, String roleName) {
