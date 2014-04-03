@@ -54,11 +54,14 @@ public class Autheo extends Service<AutheoConfig> {
 
 	@Override
 	public void run(AutheoConfig autheoConfig, Environment environment) throws Exception {
-		
+
 		// Jetty CORS support
 		environment.addFilter(CrossOriginFilter.class, "/*")
 		// See: http://download.eclipse.org/jetty/stable-9/xref/org/eclipse/jetty/servlets/CrossOriginFilter.html line 154.
-		.setInitParam(CrossOriginFilter.ALLOWED_METHODS_PARAM, "OPTIONS,HEAD,GET,POST,PUT,DELETE");
+			.setInitParam(CrossOriginFilter.ALLOWED_HEADERS_PARAM, "X-Requested-With,Content-Type,Accept,Origin,Authorization")
+			.setInitParam(CrossOriginFilter.ALLOWED_METHODS_PARAM, "OPTIONS,HEAD,GET,POST,PUT,DELETE");
+
+		// Access-Control-Request-Headers
 
 		// Initialize JDBI
 		final DBI jdbi = getJDBIInstance(autheoConfig, environment);

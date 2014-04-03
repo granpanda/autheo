@@ -38,6 +38,8 @@ public class TicketResource {
 	})
 	public Response isAuthorized(Ticket ticket) {
 		
+		System.out.println(ticket);
+		
 		Response response = null;
 		
 		if (Ticket.isValidTicket(ticket)) {

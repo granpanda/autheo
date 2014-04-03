@@ -23,15 +23,15 @@ import org.apache.http.impl.client.HttpClients;
 import com.google.gson.Gson;
 
 public class RequestFilter implements Filter {
- 
+
 	public static final String TOKEN_HEADER = "Authorization";
 	public static final String TOKEN_ATTRIBUTE = "Token";
-	
+
 	private String autheoUri;
 	private Gson gson;
-	
+
 	public RequestFilter(String autheoUri) {
-		
+
 		gson = new Gson();
 		this.autheoUri = autheoUri;
 	}
@@ -42,9 +42,9 @@ public class RequestFilter implements Filter {
 	}
 
 	private HttpResponse getAuthorizationResponse(TicketDTO ticketDto) throws IOException, ClientProtocolException {
-		
+
 		CloseableHttpClient httpClient = HttpClients.createDefault();
-		
+
 		HttpPut isAuthorizedRequest = new HttpPut(autheoUri);
 		String appJson = ContentType.APPLICATION_JSON.toString();
 
@@ -53,7 +53,7 @@ public class RequestFilter implements Filter {
 
 		StringEntity stringEntity = new StringEntity(gson.toJson(ticketDto), "UTF-8");
 		isAuthorizedRequest.setEntity(stringEntity);
-		
+
 		return httpClient.execute(isAuthorizedRequest);
 	}
 
@@ -67,34 +67,46 @@ public class RequestFilter implements Filter {
 		String httpVerb = httpRequest.getMethod();
 		String requestedUri = httpRequest.getRequestURI();
 
-		TicketDTO ticketDto = new TicketDTO(tokenValue, httpVerb, requestedUri);
+		/* 
+		 * Typically the browser sends an OPTIONS request by itself. Duw to the browser does not 
+		 * include the Authorization header we will allow all OPTIONS requests to pass.
+		 */
+		if (httpVerb.equalsIgnoreCase("OPTIONS")) {
 
-		HttpResponse authorizationResponse = getAuthorizationResponse(ticketDto);
-		int authorizationStatusCode = authorizationResponse.getStatusLine().getStatusCode();
-		
-		if (authorizationStatusCode == 200) {
-			
-			// Puts the token in the http request.
-			
-			InputStreamReader inputStreamReader = new InputStreamReader(authorizationResponse.getEntity().getContent());
-			TokenDTO tokenDTO = gson.fromJson(inputStreamReader, TokenDTO.class);
-			servletRequest.setAttribute(TOKEN_ATTRIBUTE, tokenDTO);
-			
-			inputStreamReader.close();
-			
 			// Go to the next filter. If this filter is the last one, then go to the resource.
 			filterChain.doFilter(servletRequest, servletResponse);
 
 		} else {
 			
-			// Response with the given status code.
-			HttpServletResponse httpResponse = (HttpServletResponse) servletResponse;
-			httpResponse.sendError(authorizationStatusCode);
+			TicketDTO ticketDto = new TicketDTO(tokenValue, httpVerb, requestedUri);
+
+			HttpResponse authorizationResponse = getAuthorizationResponse(ticketDto);
+			int authorizationStatusCode = authorizationResponse.getStatusLine().getStatusCode();
+			
+			if (authorizationStatusCode == 200) {
+
+				// Puts the token in the http request.
+
+				InputStreamReader inputStreamReader = new InputStreamReader(authorizationResponse.getEntity().getContent());
+				TokenDTO tokenDTO = gson.fromJson(inputStreamReader, TokenDTO.class);
+				servletRequest.setAttribute(TOKEN_ATTRIBUTE, tokenDTO);
+
+				inputStreamReader.close();
+
+				// Go to the next filter. If this filter is the last one, then go to the resource.
+				filterChain.doFilter(servletRequest, servletResponse);
+
+			} else {
+
+				// Response with the given status code.
+				HttpServletResponse httpResponse = (HttpServletResponse) servletResponse;
+				httpResponse.sendError(authorizationStatusCode);
+			}
 		}
 	}
-	
+
 	public static TokenDTO getTokenFromHttpRequest(HttpServletRequest httpRequest) {
-		
+
 		TokenDTO tokenDTO = (TokenDTO) httpRequest.getAttribute(RequestFilter.TOKEN_ATTRIBUTE);
 		return tokenDTO;
 	}
