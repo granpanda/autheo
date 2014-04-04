@@ -23,6 +23,7 @@ public class E3UrlValidatorTest {
 		String urlTemplate = "/api/users/*";
 		String requestedUrl = "/api/users/julian";
 		assertTrue(E3UrlValidator.urlsMatch(urlTemplate, requestedUrl));
+		assertTrue(E3UrlValidator.urlsMatch(requestedUrl, urlTemplate)); // The other way around.
 		
 		// Trailing slashes are omited.
 		urlTemplate = "/api/users/*";

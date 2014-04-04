@@ -4,11 +4,6 @@ import gp.e3.autheo.authentication.infrastructure.validators.StringValidator;
 
 public class E3UrlValidator {
 
-//	public static boolean isValidUrl(String url) {
-//
-//		return StringValidator.isValidString(url) && UrlValidator.getInstance().isValid(url);
-//	}
-
 	private static boolean matchUrlPart(String anyCharacter, String templateString, String requestString) {
 
 		boolean partiallyMatch = false;
@@ -99,7 +94,9 @@ public class E3UrlValidator {
 						String templateString = templateArray[i];
 						String requestString = requestedArray[i];
 
-						partiallyMatch = matchUrlPart(anyCharacter, templateString, requestString);
+						// Check both ways.
+						partiallyMatch = matchUrlPart(anyCharacter, templateString, requestString) ||
+								matchUrlPart(anyCharacter, requestString, templateString);
 					}
 
 					match = partiallyMatch;
