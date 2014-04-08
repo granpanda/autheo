@@ -6,7 +6,7 @@ http:
   
 logging:
 
-  level: DEBUG
+  level: INFO
 
 mySqlConfig:
   
