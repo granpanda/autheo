@@ -21,12 +21,14 @@ import org.junit.Test;
 import org.mockito.Mockito;
 
 import redis.clients.jedis.Jedis;
+import redis.clients.jedis.JedisPool;
 
 public class RoleBusinessTest {
 
 	private IRoleDAO roleDaoMock;
 	private PermissionBusiness permissionBusinessMock;
-	private Jedis redisClientMock;
+	private JedisPool redisPoolMock;
+	private Jedis redisMock;
 
 	private RoleBusiness roleBusiness;
 
@@ -35,17 +37,19 @@ public class RoleBusinessTest {
 
 		roleDaoMock = Mockito.mock(IRoleDAO.class);
 		permissionBusinessMock =  Mockito.mock(PermissionBusiness.class);
-		redisClientMock = Mockito.mock(Jedis.class);
-
-		roleBusiness = new RoleBusiness(roleDaoMock, permissionBusinessMock, redisClientMock);
+		redisPoolMock = Mockito.mock(JedisPool.class);
+		redisMock = Mockito.mock(Jedis.class);
+		Mockito.when(redisPoolMock.getResource()).thenReturn(redisMock);
+		
+		roleBusiness = new RoleBusiness(roleDaoMock, permissionBusinessMock, redisPoolMock);
 	}
 
 	@After
 	public void tearDown() {
-
 		roleDaoMock = null;
 		permissionBusinessMock = null;
-		redisClientMock = null;
+		redisMock = null;
+		redisPoolMock = null;
 
 		roleBusiness = null;
 	}
@@ -193,8 +197,8 @@ public class RoleBusinessTest {
 		int listSize = 5;
 		Role role = RoleFactoryForTests.getDefaultTestRole(listSize);
 		String rolePermissionsToString = role.getPermissions().toString();
-
-		Mockito.when(redisClientMock.get(role.getName())).thenReturn(rolePermissionsToString);
+		
+		Mockito.when(redisMock.get(role.getName())).thenReturn(rolePermissionsToString);
 
 		assertTrue(roleBusiness.rolePermissionsAreInRedis(role.getName()));
 	}
@@ -205,7 +209,7 @@ public class RoleBusinessTest {
 		int listSize = 5;
 		Role role = RoleFactoryForTests.getDefaultTestRole(listSize);
 
-		Mockito.when(redisClientMock.get(role.getName())).thenReturn(null);
+		Mockito.when(redisMock.get(role.getName())).thenReturn(null);
 
 		assertFalse(roleBusiness.rolePermissionsAreInRedis(role.getName()));
 	}
@@ -232,7 +236,7 @@ public class RoleBusinessTest {
 		String rolePermissionsToString = getRolePermissionsAsStringToRedis(rolePermissions);
 
 		Mockito.when(permissionBusinessMock.getAllPermissionsOfAGivenRole(role.getName())).thenReturn(rolePermissions);
-		Mockito.when(redisClientMock.set(role.getName(), rolePermissionsToString)).thenReturn("OK");
+		Mockito.when(redisMock.set(role.getName(), rolePermissionsToString)).thenReturn("OK");
 
 		assertTrue(roleBusiness.addRolePermissionsToRedis(role.getName()));
 	}
@@ -254,7 +258,7 @@ public class RoleBusinessTest {
 		Role role = RoleFactoryForTests.getDefaultTestRole(listSize);
 		String rolePermissionsToString = getRolePermissionsAsStringToRedis(role.getPermissions());
 
-		Mockito.when(redisClientMock.get(role.getName())).thenReturn(rolePermissionsToString);
+		Mockito.when(redisMock.get(role.getName())).thenReturn(rolePermissionsToString);
 
 		List<PermissionTuple> retrievedRolePermissions = roleBusiness.getRolePermissionsFromRedis(role.getName());
 
@@ -270,7 +274,7 @@ public class RoleBusinessTest {
 		Role role = RoleFactoryForTests.getDefaultTestRole(listSize);
 		String rolePermissionsToString = getRolePermissionsAsStringToRedis(role.getPermissions());
 
-		Mockito.when(redisClientMock.get(role.getName())).thenReturn(rolePermissionsToString);
+		Mockito.when(redisMock.get(role.getName())).thenReturn(rolePermissionsToString);
 
 		List<PermissionTuple> retrievedRolePermissions = roleBusiness.getRolePermissionsFromRedis(role.getName());
 

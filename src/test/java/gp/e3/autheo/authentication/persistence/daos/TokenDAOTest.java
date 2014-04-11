@@ -18,10 +18,12 @@ import org.junit.Test;
 import org.mockito.Mockito;
 
 import redis.clients.jedis.Jedis;
+import redis.clients.jedis.JedisPool;
 
 public class TokenDAOTest {
 	
-	private Jedis redisClientMock;
+	private JedisPool redisPoolMock;
+	private Jedis redisMock;
 
 	@BeforeClass
 	public static void setUpClass() {
@@ -34,13 +36,15 @@ public class TokenDAOTest {
 	@Before
 	public void setUp() {
 		
-		redisClientMock = Mockito.mock(Jedis.class);
+		redisPoolMock = Mockito.mock(JedisPool.class);
+		redisMock = Mockito.mock(Jedis.class);
+		Mockito.when(redisPoolMock.getResource()).thenReturn(redisMock);
 	}
 
 	@After
 	public void tearDown() {
-		
-		redisClientMock = null;
+		redisMock = null;
+		redisPoolMock = null;
 	}
 	
 	@Test
@@ -54,9 +58,9 @@ public class TokenDAOTest {
 			Token token = new Token(tokenValue, user.getUsername(), user.getOrganizationId(), user.getRoleId());
 			String returnValue = "OK";
 			
-			Mockito.when(redisClientMock.set(token.getTokenValue(), token.toString())).thenReturn(returnValue);
+			Mockito.when(redisMock.set(token.getTokenValue(), token.toString())).thenReturn(returnValue);
 			
-			TokenDAO tokenDao = new TokenDAO(redisClientMock);
+			TokenDAO tokenDao = new TokenDAO(redisPoolMock);
 			String addTokenAnswer = tokenDao.addToken(token);
 			
 			assertEquals(returnValue, addTokenAnswer);
@@ -77,7 +81,7 @@ public class TokenDAOTest {
 			String tokenValue = TokenFactory.getToken(user);
 			Token token = new Token(tokenValue, null, user.getOrganizationId(), user.getRoleId());
 			
-			TokenDAO tokenDao = new TokenDAO(redisClientMock);
+			TokenDAO tokenDao = new TokenDAO(redisPoolMock);
 			tokenDao.addToken(token);
 			
 			fail("The method should return an IllegalArgumentException because the given token is not valid.");
@@ -97,9 +101,9 @@ public class TokenDAOTest {
 			String tokenValue = TokenFactory.getToken(user);
 			Token token = new Token(tokenValue, user.getUsername(), user.getOrganizationId(), user.getRoleId());
 			
-			Mockito.when(redisClientMock.get(token.getTokenValue())).thenReturn(token.toString());
+			Mockito.when(redisMock.get(token.getTokenValue())).thenReturn(token.toString());
 			
-			TokenDAO tokenDao = new TokenDAO(redisClientMock);
+			TokenDAO tokenDao = new TokenDAO(redisPoolMock);
 			Token retrievedToken = tokenDao.getToken(tokenValue);
 			
 			assertEquals(0, token.compareTo(retrievedToken));
@@ -119,10 +123,10 @@ public class TokenDAOTest {
 			String tokenValue = TokenFactory.getToken(user);
 			Token token = new Token(tokenValue, user.getUsername(), user.getOrganizationId(), user.getRoleId());
 			
-			Mockito.when(redisClientMock.get(token.getTokenValue())).thenReturn(token.toString());
+			Mockito.when(redisMock.get(token.getTokenValue())).thenReturn(token.toString());
 			
 			String invalidUsername = "";
-			TokenDAO tokenDao = new TokenDAO(redisClientMock);
+			TokenDAO tokenDao = new TokenDAO(redisPoolMock);
 			tokenDao.getToken(invalidUsername);
 			
 			fail("The method should throw an IllegalArgumentException because the given username was empty.");

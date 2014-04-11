@@ -11,15 +11,17 @@ import java.util.ArrayList;
 import java.util.List;
 
 import redis.clients.jedis.Jedis;
+import redis.clients.jedis.JedisPool;
+import redis.clients.jedis.exceptions.JedisConnectionException;
 
 public class RoleBusiness {
 
 	private final IRoleDAO roleDao;
 	private final PermissionBusiness permissionBusiness;
+	
+	private JedisPool redisPool;
 
-	private final Jedis redisClient;
-
-	public RoleBusiness(IRoleDAO roleDao, PermissionBusiness permissionBusiness, Jedis jedis) {
+	public RoleBusiness(IRoleDAO roleDao, PermissionBusiness permissionBusiness, JedisPool redisPool) {
 
 		this.roleDao = roleDao;
 		this.permissionBusiness = permissionBusiness;
@@ -27,9 +29,23 @@ public class RoleBusiness {
 		this.roleDao.createRolesTable();
 		this.roleDao.createRolesAndPermissionsTable();
 		this.roleDao.createRolesAndUsersTable();
-
-		redisClient = jedis;
+		
+		
+		this.redisPool = redisPool;
 	}
+	
+	private Jedis getRedisClient(){
+		return redisPool.getResource();
+	}
+	
+	private void returnBrokenResource(Jedis jedis){
+		redisPool.returnBrokenResource(jedis);
+	}
+	
+	private void returnResource(Jedis jedis){
+		redisPool.returnResource(jedis);
+	}
+	
 
 	public Role createRole(Role role) throws DuplicateIdException {
 
@@ -72,11 +88,21 @@ public class RoleBusiness {
 	}
 
 	public void deleteRole(String roleName) {
-
-		permissionBusiness.disassociateAllPermissionsFromRole(roleName);
-		roleDao.removeAllUsersFromRole(roleName);
-		roleDao.deleteRole(roleName);
-		redisClient.del(roleName);
+		Jedis redisClient = null;
+		try {
+			redisClient = getRedisClient();
+			permissionBusiness.disassociateAllPermissionsFromRole(roleName);
+			roleDao.removeAllUsersFromRole(roleName);
+			roleDao.deleteRole(roleName);
+			redisClient.del(roleName);
+		} catch(JedisConnectionException e) {
+			returnBrokenResource(redisClient);
+			throw e;
+		} finally {
+			if ( redisClient != null ) {
+			    returnResource(redisClient);
+			}
+		}
 	}
 
 	public void addUserToRole(String username, String roleName) {
@@ -95,63 +121,96 @@ public class RoleBusiness {
 	}
 
 	public boolean rolePermissionsAreInRedis(String roleName) {
+		Jedis redisClient = null;
+		try {
+			redisClient = getRedisClient();
+			String getResult = redisClient.get(roleName);
 
-		String getResult = redisClient.get(roleName);
+			System.out.println("areRolePermissionsInRedis()");
+			System.out.println(getResult);
 
-		System.out.println("areRolePermissionsInRedis()");
-		System.out.println(getResult);
-
-		return StringValidator.isValidString(getResult);
+			return StringValidator.isValidString(getResult);
+		} catch(JedisConnectionException e) {
+			returnBrokenResource(redisClient);
+			throw e;
+		} finally {
+			if ( redisClient != null ) {
+			    returnResource(redisClient);
+			}
+		}
 	}
 
 	public boolean addRolePermissionsToRedis(String roleName) {
-
-		boolean answer = false;
-
-		List<Permission> rolePermissions = permissionBusiness.getAllPermissionsOfAGivenRole(roleName);
-
-		if (rolePermissions != null && rolePermissions.size() > 0) {
-
-			String permissionsString = "";
-
-			for (Permission permission : rolePermissions) {
-
-				permissionsString += permission.toString() + Permission.PERMISSION_SPLIT;
+		Jedis redisClient = null;
+		try {
+			redisClient = getRedisClient();
+			
+			boolean answer = false;
+	
+			List<Permission> rolePermissions = permissionBusiness.getAllPermissionsOfAGivenRole(roleName);
+	
+			if (rolePermissions != null && rolePermissions.size() > 0) {
+	
+				String permissionsString = "";
+	
+				for (Permission permission : rolePermissions) {
+	
+					permissionsString += permission.toString() + Permission.PERMISSION_SPLIT;
+				}
+	
+				String setResult = redisClient.set(roleName, permissionsString);
+	
+				System.out.println("addRolePermissionsToRedis");
+				System.out.println(setResult);
+	
+				answer = (setResult.equals("OK"));
 			}
-
-			String setResult = redisClient.set(roleName, permissionsString);
-
-			System.out.println("addRolePermissionsToRedis");
-			System.out.println(setResult);
-
-			answer = (setResult.equals("OK"));
+	
+			// See: http://redis.io/commands/SET
+			return answer;
+			
+		} catch(JedisConnectionException e) {
+			returnBrokenResource(redisClient);
+			throw e;
+		} finally {
+			if ( redisClient != null ) {
+			    returnResource(redisClient);
+			}
 		}
-
-		// See: http://redis.io/commands/SET
-		return answer;
 	}
 
 	public List<PermissionTuple> getRolePermissionsFromRedis(String roleName) {
-
-		String rolePermissionsString = redisClient.get(roleName);
-
-		List<PermissionTuple> rolePermissions = new ArrayList<PermissionTuple>();
-
-		if (StringValidator.isValidString(rolePermissionsString)) {
-
-			String[] permissionsArray = rolePermissionsString.split(Permission.PERMISSION_SPLIT);
-
-			if (permissionsArray.length > 0) {
-
-				for (int i = 0; i < permissionsArray.length; i++) {
-
-					String permissionString = permissionsArray[i];
-					String[] permissionAttributes = permissionString.split(Permission.ATTRIBUTE_SPLIT);
-					rolePermissions.add(new PermissionTuple(permissionAttributes[2], permissionAttributes[3]));
+		Jedis redisClient = null;
+		try {
+			redisClient = getRedisClient();
+		
+			String rolePermissionsString = redisClient.get(roleName);
+	
+			List<PermissionTuple> rolePermissions = new ArrayList<PermissionTuple>();
+	
+			if (StringValidator.isValidString(rolePermissionsString)) {
+	
+				String[] permissionsArray = rolePermissionsString.split(Permission.PERMISSION_SPLIT);
+	
+				if (permissionsArray.length > 0) {
+	
+					for (int i = 0; i < permissionsArray.length; i++) {
+	
+						String permissionString = permissionsArray[i];
+						String[] permissionAttributes = permissionString.split(Permission.ATTRIBUTE_SPLIT);
+						rolePermissions.add(new PermissionTuple(permissionAttributes[2], permissionAttributes[3]));
+					}
 				}
 			}
+	
+			return rolePermissions;
+		} catch(JedisConnectionException e) {
+			returnBrokenResource(redisClient);
+			throw e;
+		} finally {
+			if ( redisClient != null ) {
+			    returnResource(redisClient);
+			}
 		}
-
-		return rolePermissions;
 	}
 }

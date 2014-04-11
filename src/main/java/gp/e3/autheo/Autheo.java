@@ -19,6 +19,8 @@ import org.eclipse.jetty.servlets.CrossOriginFilter;
 import org.skife.jdbi.v2.DBI;
 
 import redis.clients.jedis.Jedis;
+import redis.clients.jedis.JedisPool;
+import redis.clients.jedis.JedisPoolConfig;
 
 import com.wordnik.swagger.config.ConfigFactory;
 import com.wordnik.swagger.config.ScannerFactory;
@@ -67,22 +69,22 @@ public class Autheo extends Service<AutheoConfig> {
 		final DBI jdbi = getJDBIInstance(autheoConfig, environment);
 
 		// Initialize Redis
-		Jedis jedis = getRedisInstance(autheoConfig);
+		JedisPool jedisPool = getRedisPoolInstance(autheoConfig);
 
 		// Add Permission resource to the environment.
 		PermissionResource permissionResource = getPermissionResource(jdbi);
 		environment.addResource(permissionResource);
 
 		// Add Role resource to the environment.
-		RoleResource roleResource = getRoleResource(jdbi, jedis);
+		RoleResource roleResource = getRoleResource(jdbi, jedisPool);
 		environment.addResource(roleResource);
 
 		// Add user resource to the environment.
-		UserResource userResource = getUserResource(jdbi, jedis);
+		UserResource userResource = getUserResource(jdbi, jedisPool);
 		environment.addResource(userResource);
 
 		// Add ticket resource to the environment.
-		TicketResource ticketResource = getTicketResource(jdbi, jedis);
+		TicketResource ticketResource = getTicketResource(jdbi, jedisPool);
 		environment.addResource(ticketResource);
 
 		// Swagger stuff.
@@ -98,12 +100,12 @@ public class Autheo extends Service<AutheoConfig> {
 		swaggerConfig.setBasePath("/");
 	}
 
-	private Jedis getRedisInstance(AutheoConfig autheoConfig) {
+	private JedisPool getRedisPoolInstance(AutheoConfig autheoConfig) {
 
 		RedisConfig redisConfig = autheoConfig.getRedisConfig();
-		Jedis jedis = new Jedis(redisConfig.getHost(), redisConfig.getPort());
-
-		return jedis;
+		JedisPool jedisPool = new JedisPool(new JedisPoolConfig(), redisConfig.getHost(), redisConfig.getPort());
+				
+		return jedisPool;
 	}
 
 	private DBI getJDBIInstance(AutheoConfig autheoConfig, Environment environment) throws ClassNotFoundException {
@@ -124,38 +126,38 @@ public class Autheo extends Service<AutheoConfig> {
 		return permissionResource;
 	}
 
-	private RoleResource getRoleResource(final DBI jdbi, final Jedis jedis) {
+	private RoleResource getRoleResource(final DBI jdbi, JedisPool jedisPool) {
 
 		final IPermissionDAO permissionDao = jdbi.onDemand(IPermissionDAO.class);
 		final PermissionBusiness permissionBusiness = new PermissionBusiness(permissionDao);
 
 		final IRoleDAO roleDao = jdbi.onDemand(IRoleDAO.class);
-		final RoleBusiness roleBusiness = new RoleBusiness(roleDao, permissionBusiness, jedis);
+		final RoleBusiness roleBusiness = new RoleBusiness(roleDao, permissionBusiness, jedisPool);
 
 		return new RoleResource(roleBusiness);
 	}
 
-	private UserResource getUserResource(DBI jdbi, Jedis jedis) 
+	private UserResource getUserResource(DBI jdbi, JedisPool jedisPool) 
 			throws ClassNotFoundException {
 
 		final IUserDAO userDAO = jdbi.onDemand(IUserDAO.class);
 		final UserBusiness userBusiness = new UserBusiness(userDAO);
 
-		final TokenDAO tokenDao = new TokenDAO(jedis);
+		final TokenDAO tokenDao = new TokenDAO(jedisPool);
 		final TokenBusiness tokenBusiness = new TokenBusiness(tokenDao);
 
 		return new UserResource(userBusiness, tokenBusiness);
 	}
 
-	private TicketResource getTicketResource(final DBI jdbi, Jedis jedis) {
+	private TicketResource getTicketResource(final DBI jdbi, JedisPool jedisPool) {
 
-		TokenDAO tokenDao = new TokenDAO(jedis);
+		TokenDAO tokenDao = new TokenDAO(jedisPool);
 		TokenBusiness tokenBusiness = new TokenBusiness(tokenDao);
 
 		IRoleDAO roleDao = jdbi.onDemand(IRoleDAO.class);
 		IPermissionDAO permissionDao = jdbi.onDemand(IPermissionDAO.class);
 		PermissionBusiness permissionBusiness = new PermissionBusiness(permissionDao);
-		RoleBusiness roleBusiness = new RoleBusiness(roleDao, permissionBusiness, jedis);
+		RoleBusiness roleBusiness = new RoleBusiness(roleDao, permissionBusiness, jedisPool);
 
 		TicketBusiness ticketBusiness = new TicketBusiness(tokenBusiness, roleBusiness);
 
