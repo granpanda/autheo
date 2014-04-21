@@ -68,7 +68,7 @@ public class RequestFilter implements Filter {
 		String requestedUri = httpRequest.getRequestURI();
 
 		/* 
-		 * Typically the browser sends an OPTIONS request by itself. Duw to the browser does not 
+		 * Typically the browser sends an OPTIONS request by itself. Due to the browser does not 
 		 * include the Authorization header we will allow all OPTIONS requests to pass.
 		 */
 		if (httpVerb.equalsIgnoreCase("OPTIONS")) {
