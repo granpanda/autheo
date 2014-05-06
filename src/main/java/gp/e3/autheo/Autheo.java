@@ -52,12 +52,12 @@ public class Autheo extends Service<AutheoConfig> {
 
 		bootstrap.addBundle(new DBIExceptionsBundle());
 	}
-	
+
 	private JedisPool getRedisPoolInstance(AutheoConfig autheoConfig) {
 
 		RedisConfig redisConfig = autheoConfig.getRedisConfig();
 		JedisPool jedisPool = new JedisPool(new JedisPoolConfig(), redisConfig.getHost(), redisConfig.getPort());
-				
+
 		return jedisPool;
 	}
 
@@ -117,14 +117,28 @@ public class Autheo extends Service<AutheoConfig> {
 		return new TicketResource(ticketBusiness);
 	}
 
+	private void addSwaggerSupport(Environment environment) {
+
+		environment.addResource(new ApiListingResourceJSON());
+		environment.addProvider(new ApiDeclarationProvider());
+		environment.addProvider(new ResourceListingProvider());
+
+		ScannerFactory.setScanner(new DefaultJaxrsScanner());
+		ClassReaders.setReader(new DefaultJaxrsApiReader());
+
+		SwaggerConfig swaggerConfig = ConfigFactory.config();
+		swaggerConfig.setApiVersion("1.0");
+		swaggerConfig.setBasePath("/");
+	}
+
 	@Override
 	public void run(AutheoConfig autheoConfig, Environment environment) throws Exception {
 
 		// Jetty CORS support
 		environment.addFilter(CrossOriginFilter.class, "/*")
 		// See: http://download.eclipse.org/jetty/stable-9/xref/org/eclipse/jetty/servlets/CrossOriginFilter.html line 154.
-			.setInitParam(CrossOriginFilter.ALLOWED_HEADERS_PARAM, "X-Requested-With,Content-Type,Accept,Origin,Authorization")
-			.setInitParam(CrossOriginFilter.ALLOWED_METHODS_PARAM, "OPTIONS,HEAD,GET,POST,PUT,DELETE");
+		.setInitParam(CrossOriginFilter.ALLOWED_HEADERS_PARAM, "X-Requested-With,Content-Type,Accept,Origin,Authorization")
+		.setInitParam(CrossOriginFilter.ALLOWED_METHODS_PARAM, "OPTIONS,HEAD,GET,POST,PUT,DELETE");
 
 		// Access-Control-Request-Headers
 
@@ -151,15 +165,6 @@ public class Autheo extends Service<AutheoConfig> {
 		environment.addResource(ticketResource);
 
 		// Swagger stuff.
-		environment.addResource(new ApiListingResourceJSON());
-		environment.addProvider(new ApiDeclarationProvider());
-		environment.addProvider(new ResourceListingProvider());
-
-		ScannerFactory.setScanner(new DefaultJaxrsScanner());
-		ClassReaders.setReader(new DefaultJaxrsApiReader());
-
-		SwaggerConfig swaggerConfig = ConfigFactory.config();
-		swaggerConfig.setApiVersion("1.0");
-		swaggerConfig.setBasePath("/");
+		addSwaggerSupport(environment);
 	}
 }
