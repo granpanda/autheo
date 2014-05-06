@@ -18,7 +18,6 @@ import gp.e3.autheo.authorization.service.TicketResource;
 import org.eclipse.jetty.servlets.CrossOriginFilter;
 import org.skife.jdbi.v2.DBI;
 
-import redis.clients.jedis.Jedis;
 import redis.clients.jedis.JedisPool;
 import redis.clients.jedis.JedisPoolConfig;
 
@@ -53,53 +52,7 @@ public class Autheo extends Service<AutheoConfig> {
 
 		bootstrap.addBundle(new DBIExceptionsBundle());
 	}
-
-	@Override
-	public void run(AutheoConfig autheoConfig, Environment environment) throws Exception {
-
-		// Jetty CORS support
-		environment.addFilter(CrossOriginFilter.class, "/*")
-		// See: http://download.eclipse.org/jetty/stable-9/xref/org/eclipse/jetty/servlets/CrossOriginFilter.html line 154.
-			.setInitParam(CrossOriginFilter.ALLOWED_HEADERS_PARAM, "X-Requested-With,Content-Type,Accept,Origin,Authorization")
-			.setInitParam(CrossOriginFilter.ALLOWED_METHODS_PARAM, "OPTIONS,HEAD,GET,POST,PUT,DELETE");
-
-		// Access-Control-Request-Headers
-
-		// Initialize JDBI
-		final DBI jdbi = getJDBIInstance(autheoConfig, environment);
-
-		// Initialize Redis
-		JedisPool jedisPool = getRedisPoolInstance(autheoConfig);
-
-		// Add Permission resource to the environment.
-		PermissionResource permissionResource = getPermissionResource(jdbi);
-		environment.addResource(permissionResource);
-
-		// Add Role resource to the environment.
-		RoleResource roleResource = getRoleResource(jdbi, jedisPool);
-		environment.addResource(roleResource);
-
-		// Add user resource to the environment.
-		UserResource userResource = getUserResource(jdbi, jedisPool);
-		environment.addResource(userResource);
-
-		// Add ticket resource to the environment.
-		TicketResource ticketResource = getTicketResource(jdbi, jedisPool);
-		environment.addResource(ticketResource);
-
-		// Swagger stuff.
-		environment.addResource(new ApiListingResourceJSON());
-		environment.addProvider(new ApiDeclarationProvider());
-		environment.addProvider(new ResourceListingProvider());
-
-		ScannerFactory.setScanner(new DefaultJaxrsScanner());
-		ClassReaders.setReader(new DefaultJaxrsApiReader());
-
-		SwaggerConfig swaggerConfig = ConfigFactory.config();
-		swaggerConfig.setApiVersion("1.0");
-		swaggerConfig.setBasePath("/");
-	}
-
+	
 	private JedisPool getRedisPoolInstance(AutheoConfig autheoConfig) {
 
 		RedisConfig redisConfig = autheoConfig.getRedisConfig();
@@ -162,5 +115,51 @@ public class Autheo extends Service<AutheoConfig> {
 		TicketBusiness ticketBusiness = new TicketBusiness(tokenBusiness, roleBusiness);
 
 		return new TicketResource(ticketBusiness);
+	}
+
+	@Override
+	public void run(AutheoConfig autheoConfig, Environment environment) throws Exception {
+
+		// Jetty CORS support
+		environment.addFilter(CrossOriginFilter.class, "/*")
+		// See: http://download.eclipse.org/jetty/stable-9/xref/org/eclipse/jetty/servlets/CrossOriginFilter.html line 154.
+			.setInitParam(CrossOriginFilter.ALLOWED_HEADERS_PARAM, "X-Requested-With,Content-Type,Accept,Origin,Authorization")
+			.setInitParam(CrossOriginFilter.ALLOWED_METHODS_PARAM, "OPTIONS,HEAD,GET,POST,PUT,DELETE");
+
+		// Access-Control-Request-Headers
+
+		// Initialize JDBI
+		final DBI jdbi = getJDBIInstance(autheoConfig, environment);
+
+		// Initialize Redis
+		JedisPool jedisPool = getRedisPoolInstance(autheoConfig);
+
+		// Add Permission resource to the environment.
+		PermissionResource permissionResource = getPermissionResource(jdbi);
+		environment.addResource(permissionResource);
+
+		// Add Role resource to the environment.
+		RoleResource roleResource = getRoleResource(jdbi, jedisPool);
+		environment.addResource(roleResource);
+
+		// Add user resource to the environment.
+		UserResource userResource = getUserResource(jdbi, jedisPool);
+		environment.addResource(userResource);
+
+		// Add ticket resource to the environment.
+		TicketResource ticketResource = getTicketResource(jdbi, jedisPool);
+		environment.addResource(ticketResource);
+
+		// Swagger stuff.
+		environment.addResource(new ApiListingResourceJSON());
+		environment.addProvider(new ApiDeclarationProvider());
+		environment.addProvider(new ResourceListingProvider());
+
+		ScannerFactory.setScanner(new DefaultJaxrsScanner());
+		ClassReaders.setReader(new DefaultJaxrsApiReader());
+
+		SwaggerConfig swaggerConfig = ConfigFactory.config();
+		swaggerConfig.setApiVersion("1.0");
+		swaggerConfig.setBasePath("/");
 	}
 }
