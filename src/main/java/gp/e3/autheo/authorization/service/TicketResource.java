@@ -12,6 +12,9 @@ import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import com.wordnik.swagger.annotations.Api;
 import com.wordnik.swagger.annotations.ApiOperation;
 import com.wordnik.swagger.annotations.ApiResponse;
@@ -22,6 +25,8 @@ import com.wordnik.swagger.annotations.ApiResponses;
 @Produces(MediaType.APPLICATION_JSON)
 @Api(value = "/auth", description = "Authorization related operations")
 public class TicketResource {
+	
+	private static Logger logger = LoggerFactory.getLogger(TicketResource.class);
 	
 	private final TicketBusiness ticketBusiness;
 	
@@ -38,7 +43,7 @@ public class TicketResource {
 	})
 	public Response isAuthorized(Ticket ticket) {
 		
-		System.out.println(ticket);
+		logger.info("Received ticket: " + ticket);
 		
 		Response response = null;
 		
