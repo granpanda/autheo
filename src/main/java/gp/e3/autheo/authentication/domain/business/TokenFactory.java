@@ -1,7 +1,9 @@
 package gp.e3.autheo.authentication.domain.business;
 
+import gp.e3.autheo.authentication.domain.entities.ApiUser;
 import gp.e3.autheo.authentication.domain.entities.User;
 import gp.e3.autheo.authentication.domain.exceptions.TokenGenerationException;
+import gp.e3.autheo.authentication.infrastructure.exceptions.CheckedIllegalArgumentException;
 import gp.e3.autheo.authentication.infrastructure.validators.StringValidator;
 
 import java.math.BigInteger;
@@ -48,7 +50,7 @@ public class TokenFactory {
 	 * @return A new authentication token. 
 	 * @throws TokenGenerationException, exception thrown when there is an error generating the authentication token.
 	 */
-	public static final String getToken(User user) throws TokenGenerationException, IllegalArgumentException {
+	public static final String getToken(User user) throws TokenGenerationException, CheckedIllegalArgumentException {
 		
 		String errorMessage = "";
 		
@@ -75,7 +77,45 @@ public class TokenFactory {
 		} else {
 			
 			errorMessage = "The user given as argument is not valid.";
-			throw new IllegalArgumentException(errorMessage);
+			throw new CheckedIllegalArgumentException(errorMessage);
+		}
+	}
+	
+	/**
+	 * Generates the authentication token.
+	 * 
+	 * @param user, user information used to generate the token.
+	 * @return A new authentication token. 
+	 * @throws TokenGenerationException, exception thrown when there is an error generating the authentication token.
+	 */
+	public static final String getToken(ApiUser apiUser) throws TokenGenerationException, CheckedIllegalArgumentException {
+		
+		String errorMessage = "";
+		
+		if ((apiUser != null) && StringValidator.isValidString(apiUser.getUsername()) && 
+				StringValidator.isValidString(apiUser.getPassword())) {
+			
+			long currentMillis = DateTime.now().getMillis();
+			String baseForToken = currentMillis + apiUser.getUsername() + apiUser.getPassword();
+			
+			String generatedToken = "";
+			
+			try {
+				
+				generatedToken = getHashFromString(baseForToken).substring(0, TOKEN_CHARACTER_LIMIT);
+				
+			} catch (NoSuchAlgorithmException | InvalidKeySpecException e) {
+				
+				errorMessage = "There was an error generating the authentication token.";
+				throw new TokenGenerationException(errorMessage);
+			}
+			
+			return generatedToken;
+			
+		} else {
+			
+			errorMessage = "The user given as argument is not valid.";
+			throw new CheckedIllegalArgumentException(errorMessage);
 		}
 	}
 }

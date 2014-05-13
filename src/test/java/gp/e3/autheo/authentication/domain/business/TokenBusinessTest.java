@@ -6,6 +6,8 @@ import gp.e3.autheo.authentication.domain.business.TokenFactory;
 import gp.e3.autheo.authentication.domain.entities.Token;
 import gp.e3.autheo.authentication.domain.entities.User;
 import gp.e3.autheo.authentication.domain.exceptions.TokenGenerationException;
+import gp.e3.autheo.authentication.infrastructure.exceptions.CheckedIllegalArgumentException;
+import gp.e3.autheo.authentication.persistence.daos.IApiUserDAO;
 import gp.e3.autheo.authentication.persistence.daos.TokenDAO;
 import gp.e3.autheo.util.UserFactoryForTests;
 
@@ -17,11 +19,13 @@ import org.mockito.Mockito;
 public class TokenBusinessTest {
 
 	private TokenDAO tokenDaoMock;
+	private IApiUserDAO apiUserDAOMock;
 
 	@Before
 	public void setUp() {
 
 		tokenDaoMock = Mockito.mock(TokenDAO.class);
+		apiUserDAOMock = Mockito.mock(IApiUserDAO.class);
 	}
 
 	@After
@@ -43,8 +47,8 @@ public class TokenBusinessTest {
 			String returnValue = "OK";
 			Mockito.when(tokenDaoMock.addToken(testToken)).thenReturn(returnValue);
 
-			TokenBusiness tokenBusiness = new TokenBusiness(tokenDaoMock);
-			Token generatedToken = tokenBusiness.generateToken(user);
+			TokenBusiness tokenBusiness = new TokenBusiness(tokenDaoMock, apiUserDAOMock);
+			Token generatedToken = tokenBusiness.generateAndSaveTokenInCache(user);
 
 			/*
 			 * The username of both tokens should be the same, but the token values
@@ -53,7 +57,7 @@ public class TokenBusinessTest {
 			assertEquals(testToken.getUsername(), generatedToken.getUsername());
 			assertNotEquals(testToken.getTokenValue(), generatedToken.getTokenValue());
 
-		} catch (IllegalArgumentException | TokenGenerationException e) {
+		} catch (IllegalArgumentException | TokenGenerationException | CheckedIllegalArgumentException e) {
 
 			fail(e.getMessage());
 		}
@@ -66,13 +70,13 @@ public class TokenBusinessTest {
 
 			User user = null;
 
-			TokenBusiness tokenBusiness = new TokenBusiness(tokenDaoMock);
-			tokenBusiness.generateToken(user);
+			TokenBusiness tokenBusiness = new TokenBusiness(tokenDaoMock, apiUserDAOMock);
+			tokenBusiness.generateAndSaveTokenInCache(user);
 
 			String errorMessage = "The method should throw an exception because the user give nby parameter was null";
 			fail(errorMessage);
 
-		} catch (IllegalArgumentException | TokenGenerationException e) {
+		} catch (IllegalArgumentException | TokenGenerationException | CheckedIllegalArgumentException e) {
 
 			// Should get here.
 			assertNotNull(e);
@@ -89,12 +93,12 @@ public class TokenBusinessTest {
 			Token testToken = new Token(tokenValue, user.getUsername(), user.getOrganizationId(), user.getRoleId());
 			
 			Mockito.when(tokenDaoMock.getToken(tokenValue)).thenReturn(testToken);
-			TokenBusiness tokenBusiness = new TokenBusiness(tokenDaoMock);
+			TokenBusiness tokenBusiness = new TokenBusiness(tokenDaoMock, apiUserDAOMock);
 			
 			Token retrievedToken = tokenBusiness.getToken(testToken.getTokenValue());
 			assertEquals(0, testToken.compareTo(retrievedToken));
 
-		} catch (TokenGenerationException e) {
+		} catch (TokenGenerationException | CheckedIllegalArgumentException e) {
 
 			fail(e.getMessage());
 		}
@@ -103,17 +107,17 @@ public class TokenBusinessTest {
 	@Test
 	public void testGetTokenValue_NOK() {
 		
-		User user = UserFactoryForTests.getDefaultTestUser();
-
-		String tokenValue = "NULL";
-		Token testToken = new Token(tokenValue, user.getUsername(), user.getOrganizationId(), user.getRoleId());
-		
-		Mockito.when(tokenDaoMock.getToken(Mockito.anyString())).thenReturn(testToken);
-		TokenBusiness tokenBusiness = new TokenBusiness(tokenDaoMock);
-		
-		String invalidTokenValue = null;
-		
 		try {
+			
+			User user = UserFactoryForTests.getDefaultTestUser();
+
+			String tokenValue = "NULL";
+			Token testToken = new Token(tokenValue, user.getUsername(), user.getOrganizationId(), user.getRoleId());
+			
+			Mockito.when(tokenDaoMock.getToken(Mockito.anyString())).thenReturn(testToken);
+			TokenBusiness tokenBusiness = new TokenBusiness(tokenDaoMock, apiUserDAOMock);
+			
+			String invalidTokenValue = null;
 			
 			tokenBusiness.getToken(invalidTokenValue);
 			fail("The method should throw an exception because the username parameter was null.");

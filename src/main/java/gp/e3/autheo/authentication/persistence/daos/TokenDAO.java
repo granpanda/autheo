@@ -1,85 +1,104 @@
 package gp.e3.autheo.authentication.persistence.daos;
 
-import redis.clients.jedis.Jedis;
-import redis.clients.jedis.JedisPool;
-import redis.clients.jedis.exceptions.JedisConnectionException;
 import gp.e3.autheo.authentication.domain.entities.Token;
+import gp.e3.autheo.authentication.infrastructure.exceptions.CheckedIllegalArgumentException;
 import gp.e3.autheo.authentication.infrastructure.validators.StringValidator;
 
+import java.util.List;
+
+import redis.clients.jedis.Jedis;
+import redis.clients.jedis.JedisPool;
+
 public class TokenDAO {
-	
+
+	// See: http://tool.oschina.net/uploads/apidocs/jedis-2.1.0/index.html?redis/clients/jedis/Jedis.html -> get(String key) docs.
+	public static final String NIL = "nil";
+	public static final String NOK = "NOK";
+
 	private JedisPool redisPool;
-	
+
 	public TokenDAO(JedisPool jedisPool) {
-		
 		this.redisPool = jedisPool;
 	}
-	
-	private Jedis getRedisClient(){
+
+	private Jedis getRedisClient() {
 		return redisPool.getResource();
 	}
-	
-	private void returnBrokenResource(Jedis jedis){
-		redisPool.returnBrokenResource(jedis);
-	}
-	
+
 	private void returnResource(Jedis jedis){
 		redisPool.returnResource(jedis);
 	}
-	
-	public String addToken(Token token) throws IllegalArgumentException {
+
+	public String addToken(Token token) throws CheckedIllegalArgumentException {
+
 		Jedis redisClient = null;
-		try {
-			redisClient = getRedisClient();
+		redisClient = getRedisClient();
+
+		String redisAnswer = NOK;
 		
-			if (Token.isAValidToken(token)) {
-				return redisClient.set(token.getTokenValue(), token.toString());
-				
-			} else {
-				
-				String errorMessage = "The given token is not valid.";
-				throw new IllegalArgumentException(errorMessage);
-			}
-		} catch(JedisConnectionException e) {
-			returnBrokenResource(redisClient);
-			throw e;
-		} finally {
-			if ( redisClient != null ) {
-			    returnResource(redisClient);
-			}
+		if (Token.isAValidToken(token)) {
+			
+			redisAnswer = redisClient.set(token.getTokenValue(), token.toString());
+			
+		} else { 
+			
+			String errorMessage = "The given token was not valid.";
+			throw new CheckedIllegalArgumentException(errorMessage);
 		}
+
+		returnResource(redisClient);
+		
+		return redisAnswer;
 	}
-	
-	public Token getToken(String tokenValue) throws IllegalArgumentException {
+
+	public void addMultipleTokens(List<Token> tokenList) {
+
 		Jedis redisClient = null;
-		try {
-			redisClient = getRedisClient();
-			if (StringValidator.isValidString(tokenValue)) {
-				
-				String tokenToString = redisClient.get(tokenValue);
-				
-				if (StringValidator.isValidString(tokenToString)) {
-					
-					return Token.buildTokenFromTokenToString(tokenToString);
-					
-				} else {
-					
-					String errorMessage = "The given token is not valid.";
-					throw new IllegalArgumentException(errorMessage);
-				}
-				
-			} else {
-				
-				String errorMessage = "The given token is not valid.";
-				throw new IllegalArgumentException(errorMessage);
-			}
-		} catch(JedisConnectionException e) {
-			returnBrokenResource(redisClient);
-			throw e;
-		} finally {
-			if ( redisClient != null ) {
-			    returnResource(redisClient);
+
+		redisClient = getRedisClient();
+
+		for (Token token : tokenList) {
+
+			if (Token.isAValidToken(token)) {
+				redisClient.set(token.getTokenValue(), token.toString());
 			}
 		}
+
+		returnResource(redisClient);
+	}
+
+	public Token getToken(String tokenValue) throws CheckedIllegalArgumentException {
+
+		Jedis redisClient = null;
+
+		Token token = null;
+
+		redisClient = getRedisClient();
+
+		if (StringValidator.isValidString(tokenValue)) {
+
+			String tokenToString = redisClient.get(tokenValue);
+
+			if (!tokenToString.equalsIgnoreCase(NIL)) {
+
+				try {
+					
+					token = Token.buildTokenFromTokenToString(tokenToString);
+					
+				} catch (CheckedIllegalArgumentException e) {
+					
+					e.printStackTrace();
+				}
+			}
+			
+		} else {
+			
+			String errorMessage = "The given token value was not valid.";
+			throw new CheckedIllegalArgumentException(errorMessage);
+		}
+		
+		returnResource(redisClient);
+		
+		return token;
 	}
 }

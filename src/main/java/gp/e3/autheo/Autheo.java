@@ -1,10 +1,13 @@
 package gp.e3.autheo;
 
+import gp.e3.autheo.authentication.domain.business.ApiUserBusiness;
 import gp.e3.autheo.authentication.domain.business.TokenBusiness;
 import gp.e3.autheo.authentication.domain.business.UserBusiness;
 import gp.e3.autheo.authentication.infrastructure.RedisConfig;
+import gp.e3.autheo.authentication.persistence.daos.IApiUserDAO;
 import gp.e3.autheo.authentication.persistence.daos.IUserDAO;
 import gp.e3.autheo.authentication.persistence.daos.TokenDAO;
+import gp.e3.autheo.authentication.service.resources.ApiUserResource;
 import gp.e3.autheo.authentication.service.resources.UserResource;
 import gp.e3.autheo.authorization.domain.business.PermissionBusiness;
 import gp.e3.autheo.authorization.domain.business.RoleBusiness;
@@ -95,17 +98,30 @@ public class Autheo extends Service<AutheoConfig> {
 
 		final IUserDAO userDAO = jdbi.onDemand(IUserDAO.class);
 		final UserBusiness userBusiness = new UserBusiness(userDAO);
+		
 
 		final TokenDAO tokenDao = new TokenDAO(jedisPool);
-		final TokenBusiness tokenBusiness = new TokenBusiness(tokenDao);
+		final IApiUserDAO apiUserDAO = jdbi.onDemand(IApiUserDAO.class);
+		final TokenBusiness tokenBusiness = new TokenBusiness(tokenDao, apiUserDAO);
 
 		return new UserResource(userBusiness, tokenBusiness);
+	}
+	
+	private ApiUserResource getApiUserResource(DBI jdbi, JedisPool jedisPool) 
+			throws ClassNotFoundException {
+
+		final IApiUserDAO apiUserDAO = jdbi.onDemand(IApiUserDAO.class);
+		final TokenDAO tokenDao = new TokenDAO(jedisPool);
+		final ApiUserBusiness apiUserBusiness = new ApiUserBusiness(apiUserDAO, tokenDao);
+		
+		return new ApiUserResource(apiUserBusiness);
 	}
 
 	private TicketResource getTicketResource(final DBI jdbi, JedisPool jedisPool) {
 
 		TokenDAO tokenDao = new TokenDAO(jedisPool);
-		TokenBusiness tokenBusiness = new TokenBusiness(tokenDao);
+		final IApiUserDAO apiUserDAO = jdbi.onDemand(IApiUserDAO.class);
+		TokenBusiness tokenBusiness = new TokenBusiness(tokenDao, apiUserDAO);
 
 		IRoleDAO roleDao = jdbi.onDemand(IRoleDAO.class);
 		IPermissionDAO permissionDao = jdbi.onDemand(IPermissionDAO.class);
@@ -159,6 +175,10 @@ public class Autheo extends Service<AutheoConfig> {
 		// Add user resource to the environment.
 		UserResource userResource = getUserResource(jdbi, jedisPool);
 		environment.addResource(userResource);
+		
+		// Add api user resource to the environment.
+		ApiUserResource apiUserResource = getApiUserResource(jdbi, jedisPool);
+		environment.addResource(apiUserResource);
 
 		// Add ticket resource to the environment.
 		TicketResource ticketResource = getTicketResource(jdbi, jedisPool);

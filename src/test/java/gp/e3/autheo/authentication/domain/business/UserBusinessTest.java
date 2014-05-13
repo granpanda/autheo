@@ -9,6 +9,7 @@ import static org.junit.Assert.fail;
 import gp.e3.autheo.authentication.domain.business.PasswordHandler;
 import gp.e3.autheo.authentication.domain.business.UserBusiness;
 import gp.e3.autheo.authentication.domain.entities.User;
+import gp.e3.autheo.authentication.infrastructure.exceptions.CheckedIllegalArgumentException;
 import gp.e3.autheo.authentication.persistence.daos.IUserDAO;
 import gp.e3.autheo.authentication.persistence.exceptions.DuplicateIdException;
 import gp.e3.autheo.util.UserFactoryForTests;
@@ -105,7 +106,7 @@ public class UserBusinessTest {
 			UserBusiness userBusiness = new UserBusiness(userDaoMock);
 			assertTrue(userBusiness.authenticateUser(user.getUsername(), user.getPassword()));
 
-		} catch (NoSuchAlgorithmException | InvalidKeySpecException | AuthenticationException e) {
+		} catch (NoSuchAlgorithmException | InvalidKeySpecException | AuthenticationException | CheckedIllegalArgumentException e) {
 
 			e.printStackTrace();
 			fail(e.getMessage());
@@ -131,7 +132,7 @@ public class UserBusinessTest {
 
 			assertFalse(userBusiness.authenticateUser(user.getUsername(), modifiedOriginalPassword));
 
-		} catch (NoSuchAlgorithmException | InvalidKeySpecException | AuthenticationException e) {
+		} catch (NoSuchAlgorithmException | InvalidKeySpecException | AuthenticationException | CheckedIllegalArgumentException e) {
 
 			e.printStackTrace();
 			fail(e.getMessage());

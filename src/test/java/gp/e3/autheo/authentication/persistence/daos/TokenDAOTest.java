@@ -7,6 +7,7 @@ import gp.e3.autheo.authentication.domain.business.TokenFactory;
 import gp.e3.autheo.authentication.domain.entities.Token;
 import gp.e3.autheo.authentication.domain.entities.User;
 import gp.e3.autheo.authentication.domain.exceptions.TokenGenerationException;
+import gp.e3.autheo.authentication.infrastructure.exceptions.CheckedIllegalArgumentException;
 import gp.e3.autheo.authentication.persistence.daos.TokenDAO;
 import gp.e3.autheo.util.UserFactoryForTests;
 
@@ -65,7 +66,7 @@ public class TokenDAOTest {
 			
 			assertEquals(returnValue, addTokenAnswer);
 			
-		} catch (TokenGenerationException e) {
+		} catch (TokenGenerationException | CheckedIllegalArgumentException e) {
 			
 			fail(e.getMessage());
 		}
@@ -86,7 +87,7 @@ public class TokenDAOTest {
 			
 			fail("The method should return an IllegalArgumentException because the given token is not valid.");
 			
-		} catch (TokenGenerationException | IllegalArgumentException e) {
+		} catch (TokenGenerationException | IllegalArgumentException | CheckedIllegalArgumentException e) {
 			
 			assertNotNull(e);
 		}
@@ -108,7 +109,7 @@ public class TokenDAOTest {
 			
 			assertEquals(0, token.compareTo(retrievedToken));
 			
-		} catch (TokenGenerationException e) {
+		} catch (TokenGenerationException | CheckedIllegalArgumentException e) {
 			
 			fail(e.getMessage());
 		}
@@ -131,7 +132,7 @@ public class TokenDAOTest {
 			
 			fail("The method should throw an IllegalArgumentException because the given username was empty.");
 			
-		} catch (TokenGenerationException | IllegalArgumentException e) {
+		} catch (TokenGenerationException | IllegalArgumentException | CheckedIllegalArgumentException e) {
 			
 			assertNotNull(e);
 		}
