@@ -78,7 +78,7 @@ public class User implements Comparable<User> {
 			answer += this.username.compareTo(user.getUsername());
 			answer += this.password.compareTo(user.getPassword());
 			answer += this.organizationId.compareTo(user.getOrganizationId());
-			answer += this.roleId.compareTo(user.roleId);
+			answer += this.roleId.compareTo(user.getRoleId());
 		}
 		
 		return answer;

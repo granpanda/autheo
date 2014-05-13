@@ -7,6 +7,7 @@ import gp.e3.autheo.authentication.domain.business.TokenFactory;
 import gp.e3.autheo.authentication.domain.entities.Token;
 import gp.e3.autheo.authentication.domain.entities.User;
 import gp.e3.autheo.authentication.domain.exceptions.TokenGenerationException;
+import gp.e3.autheo.authentication.infrastructure.exceptions.CheckedIllegalArgumentException;
 import gp.e3.autheo.authentication.persistence.daos.TokenDAO;
 import gp.e3.autheo.util.UserFactoryForTests;
 
@@ -24,6 +25,7 @@ public class TokenDAOTest {
 	
 	private JedisPool redisPoolMock;
 	private Jedis redisMock;
+	private TokenDAO tokenDAO;
 
 	@BeforeClass
 	public static void setUpClass() {
@@ -39,12 +41,16 @@ public class TokenDAOTest {
 		redisPoolMock = Mockito.mock(JedisPool.class);
 		redisMock = Mockito.mock(Jedis.class);
 		Mockito.when(redisPoolMock.getResource()).thenReturn(redisMock);
+		
+		tokenDAO = new TokenDAO(redisPoolMock);
 	}
 
 	@After
 	public void tearDown() {
+		
 		redisMock = null;
 		redisPoolMock = null;
+		tokenDAO = null;
 	}
 	
 	@Test
@@ -59,13 +65,11 @@ public class TokenDAOTest {
 			String returnValue = "OK";
 			
 			Mockito.when(redisMock.set(token.getTokenValue(), token.toString())).thenReturn(returnValue);
-			
-			TokenDAO tokenDao = new TokenDAO(redisPoolMock);
-			String addTokenAnswer = tokenDao.addToken(token);
+			String addTokenAnswer = tokenDAO.addToken(token);
 			
 			assertEquals(returnValue, addTokenAnswer);
 			
-		} catch (TokenGenerationException e) {
+		} catch (TokenGenerationException | CheckedIllegalArgumentException e) {
 			
 			fail(e.getMessage());
 		}
@@ -79,14 +83,12 @@ public class TokenDAOTest {
 			User user = UserFactoryForTests.getDefaultTestUser();
 			
 			String tokenValue = TokenFactory.getToken(user);
-			Token token = new Token(tokenValue, null, user.getOrganizationId(), user.getRoleId());
-			
-			TokenDAO tokenDao = new TokenDAO(redisPoolMock);
-			tokenDao.addToken(token);
+			Token token = new Token(tokenValue, null, user.getOrganizationId(), user.getRoleId());			
+			tokenDAO.addToken(token);
 			
 			fail("The method should return an IllegalArgumentException because the given token is not valid.");
 			
-		} catch (TokenGenerationException | IllegalArgumentException e) {
+		} catch (TokenGenerationException | IllegalArgumentException | CheckedIllegalArgumentException e) {
 			
 			assertNotNull(e);
 		}
@@ -101,14 +103,12 @@ public class TokenDAOTest {
 			String tokenValue = TokenFactory.getToken(user);
 			Token token = new Token(tokenValue, user.getUsername(), user.getOrganizationId(), user.getRoleId());
 			
-			Mockito.when(redisMock.get(token.getTokenValue())).thenReturn(token.toString());
-			
-			TokenDAO tokenDao = new TokenDAO(redisPoolMock);
-			Token retrievedToken = tokenDao.getToken(tokenValue);
+			Mockito.when(redisMock.get(token.getTokenValue())).thenReturn(token.toString());			
+			Token retrievedToken = tokenDAO.getToken(tokenValue);
 			
 			assertEquals(0, token.compareTo(retrievedToken));
 			
-		} catch (TokenGenerationException e) {
+		} catch (TokenGenerationException | CheckedIllegalArgumentException e) {
 			
 			fail(e.getMessage());
 		}
@@ -126,14 +126,37 @@ public class TokenDAOTest {
 			Mockito.when(redisMock.get(token.getTokenValue())).thenReturn(token.toString());
 			
 			String invalidUsername = "";
-			TokenDAO tokenDao = new TokenDAO(redisPoolMock);
-			tokenDao.getToken(invalidUsername);
+			tokenDAO.getToken(invalidUsername);
 			
 			fail("The method should throw an IllegalArgumentException because the given username was empty.");
 			
-		} catch (TokenGenerationException | IllegalArgumentException e) {
+		} catch (TokenGenerationException | IllegalArgumentException | CheckedIllegalArgumentException e) {
 			
 			assertNotNull(e);
 		}
+	}
+	
+	@Test
+	public void testRemoveToken_OK() {
+		
+		String tokenValue = "tokenValue";
+		
+		long expectedValue = 1;
+		Mockito.when(redisMock.del(tokenValue)).thenReturn(expectedValue);
+		long numberOfRemovedKeys = tokenDAO.removeToken(tokenValue);
+		
+		assertEquals(expectedValue, numberOfRemovedKeys);
+	}
+	
+	@Test
+	public void testRemoveToken_NOK() {
+		
+		String tokenValue = "tokenValue";
+		
+		long expectedValue = 0;
+		Mockito.when(redisMock.del(tokenValue)).thenReturn(expectedValue);
+		long numberOfRemovedKeys = tokenDAO.removeToken(tokenValue);
+		
+		assertEquals(expectedValue, numberOfRemovedKeys);
 	}
 }

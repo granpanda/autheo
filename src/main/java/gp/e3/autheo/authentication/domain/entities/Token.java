@@ -3,6 +3,7 @@ package gp.e3.autheo.authentication.domain.entities;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
+import gp.e3.autheo.authentication.infrastructure.exceptions.CheckedIllegalArgumentException;
 import gp.e3.autheo.authentication.infrastructure.validators.StringValidator;
 
 public class Token implements Comparable<Token> {
@@ -51,10 +52,18 @@ public class Token implements Comparable<Token> {
 				StringValidator.isValidString(token.getUserRole());
 	}
 	
-	public static Token buildTokenFromTokenToString(String tokenToString) {
+	public static Token buildTokenFromTokenToString(String tokenToString) throws CheckedIllegalArgumentException {
 		
-		String[] tokenAttributes = tokenToString.split(ATTRIBUTE_SEPATATOR);
-		return new Token(tokenAttributes[0], tokenAttributes[1], tokenAttributes[2], tokenAttributes[3]);
+		try {
+			
+			String[] tokenAttributes = tokenToString.split(ATTRIBUTE_SEPATATOR);
+			return new Token(tokenAttributes[0], tokenAttributes[1], tokenAttributes[2], tokenAttributes[3]);
+			
+		} catch (Exception e) {
+			
+			String errorMessage = "The given tokenToString argument does not follow the expected pattern.";
+			throw new CheckedIllegalArgumentException(errorMessage);
+		}
 	}
 
 	@Override

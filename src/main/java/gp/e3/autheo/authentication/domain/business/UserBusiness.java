@@ -1,6 +1,7 @@
 package gp.e3.autheo.authentication.domain.business;
 
 import gp.e3.autheo.authentication.domain.entities.User;
+import gp.e3.autheo.authentication.infrastructure.exceptions.CheckedIllegalArgumentException;
 import gp.e3.autheo.authentication.persistence.daos.IUserDAO;
 import gp.e3.autheo.authentication.persistence.exceptions.DuplicateIdException;
 
@@ -53,9 +54,8 @@ public class UserBusiness {
 				
 				isAuthenticated = PasswordHandler.validatePassword(password, passwordHashFromDb);
 				
-			} catch (NoSuchAlgorithmException e) {
-				throw new AuthenticationException(errorMessage);
-			} catch (InvalidKeySpecException e) {
+			} catch (NoSuchAlgorithmException | InvalidKeySpecException	| CheckedIllegalArgumentException e) {
+				
 				throw new AuthenticationException(errorMessage);
 			}
 			

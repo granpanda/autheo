@@ -8,6 +8,7 @@ import gp.e3.autheo.authentication.domain.business.UserBusiness;
 import gp.e3.autheo.authentication.domain.entities.Token;
 import gp.e3.autheo.authentication.domain.entities.User;
 import gp.e3.autheo.authentication.domain.exceptions.TokenGenerationException;
+import gp.e3.autheo.authentication.infrastructure.exceptions.CheckedIllegalArgumentException;
 import gp.e3.autheo.authentication.persistence.exceptions.DuplicateIdException;
 import gp.e3.autheo.authentication.service.resources.UserResource;
 import gp.e3.autheo.util.UserFactoryForTests;
@@ -25,14 +26,17 @@ import com.yammer.dropwizard.testing.ResourceTest;
 
 public class UserResourceTest extends ResourceTest {
 
-	private UserBusiness userBusinessMock = Mockito.mock(UserBusiness.class);
-	private TokenBusiness tokenBusinessMock = Mockito.mock(TokenBusiness.class);
+	private UserBusiness userBusinessMock;
+	private TokenBusiness tokenBusinessMock;
 
 	private UserResource userResource;
 
 	@Override
 	protected void setUpResources() throws Exception {
 
+		userBusinessMock = Mockito.mock(UserBusiness.class);
+		tokenBusinessMock = Mockito.mock(TokenBusiness.class);
+		
 		userResource = new UserResource(userBusinessMock, tokenBusinessMock);
 		addResource(userResource);
 	}
@@ -97,7 +101,7 @@ public class UserResourceTest extends ResourceTest {
 			Token testingToken = new Token(tokenValue, user.getUsername(), user.getOrganizationId(), user.getRoleId());
 
 			Mockito.when(userBusinessMock.authenticateUser(Mockito.anyString(), Mockito.anyString())).thenReturn(true);
-			Mockito.when(tokenBusinessMock.generateToken((User) Mockito.any())).thenReturn(testingToken);
+			Mockito.when(tokenBusinessMock.generateAndSaveTokenInCache((User) Mockito.any())).thenReturn(testingToken);
 
 			String url = "/users/token";
 			ClientResponse httpResponse = client().resource(url)
@@ -112,7 +116,7 @@ public class UserResourceTest extends ResourceTest {
 			assertNotNull(generatedToken);
 			assertEquals(0, testingToken.compareTo(generatedToken));
 
-		} catch (AuthenticationException | IllegalArgumentException | TokenGenerationException e) {
+		} catch (AuthenticationException | TokenGenerationException | CheckedIllegalArgumentException e) {
 
 			fail(e.getMessage());
 		}
@@ -130,7 +134,7 @@ public class UserResourceTest extends ResourceTest {
 
 			// The user is not authenticated.
 			Mockito.when(userBusinessMock.authenticateUser(Mockito.anyString(), Mockito.anyString())).thenReturn(false);
-			Mockito.when(tokenBusinessMock.generateToken((User) Mockito.any())).thenReturn(testingToken);
+			Mockito.when(tokenBusinessMock.generateAndSaveTokenInCache((User) Mockito.any())).thenReturn(testingToken);
 
 			String url = "/users/token";
 			ClientResponse httpResponse = client().resource(url)
@@ -140,7 +144,7 @@ public class UserResourceTest extends ResourceTest {
 
 			assertEquals(401, httpResponse.getStatus());
 
-		} catch (AuthenticationException | IllegalArgumentException | TokenGenerationException e) {
+		} catch (AuthenticationException | TokenGenerationException | CheckedIllegalArgumentException e) {
 
 			fail(e.getMessage());
 		}
@@ -158,7 +162,7 @@ public class UserResourceTest extends ResourceTest {
 
 			// The user is not authenticated.
 			Mockito.when(userBusinessMock.authenticateUser(Mockito.anyString(), Mockito.anyString())).thenReturn(false);
-			Mockito.when(tokenBusinessMock.generateToken((User) Mockito.any())).thenReturn(testingToken);
+			Mockito.when(tokenBusinessMock.generateAndSaveTokenInCache((User) Mockito.any())).thenReturn(testingToken);
 
 			String url = "/users/token";
 			ClientResponse httpResponse = client().resource(url)
@@ -168,7 +172,7 @@ public class UserResourceTest extends ResourceTest {
 
 			assertEquals(400, httpResponse.getStatus());
 
-		} catch (AuthenticationException | IllegalArgumentException | TokenGenerationException e) {
+		} catch (AuthenticationException | TokenGenerationException | CheckedIllegalArgumentException e) {
 
 			fail(e.getMessage());
 		}

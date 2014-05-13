@@ -4,6 +4,7 @@ import static org.junit.Assert.*;
 import gp.e3.autheo.authentication.domain.business.TokenFactory;
 import gp.e3.autheo.authentication.domain.entities.User;
 import gp.e3.autheo.authentication.domain.exceptions.TokenGenerationException;
+import gp.e3.autheo.authentication.infrastructure.exceptions.CheckedIllegalArgumentException;
 import gp.e3.autheo.util.UserFactoryForTests;
 
 import org.junit.After;
@@ -41,7 +42,7 @@ public class TokenFactoryTest {
 			 */
 			assertNotEquals(tokenFromDefaultUser, defaultUserSecondToken);
 			
-		} catch (TokenGenerationException e) {
+		} catch (TokenGenerationException | CheckedIllegalArgumentException e) {
 			
 			fail(e.getMessage());
 		}
@@ -57,7 +58,7 @@ public class TokenFactoryTest {
 			
 			fail("The method should throw an exception because the user was null.");
 			
-		} catch (TokenGenerationException | IllegalArgumentException e) {
+		} catch (TokenGenerationException | CheckedIllegalArgumentException e) {
 			
 			assertNotNull(e);
 		}

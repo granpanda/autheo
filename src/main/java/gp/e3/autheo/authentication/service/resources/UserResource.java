@@ -5,6 +5,7 @@ import gp.e3.autheo.authentication.domain.business.UserBusiness;
 import gp.e3.autheo.authentication.domain.entities.Token;
 import gp.e3.autheo.authentication.domain.entities.User;
 import gp.e3.autheo.authentication.domain.exceptions.TokenGenerationException;
+import gp.e3.autheo.authentication.infrastructure.exceptions.CheckedIllegalArgumentException;
 import gp.e3.autheo.authentication.infrastructure.validators.StringValidator;
 import gp.e3.autheo.authentication.persistence.exceptions.DuplicateIdException;
 import gp.e3.autheo.authentication.service.resources.commons.HttpCommonResponses;
@@ -62,6 +63,7 @@ public class UserResource {
 
 			} catch (DuplicateIdException e) {
 
+				e.printStackTrace();
 				response = Response.status(500).entity(e.getMessage()).build();
 			}
 
@@ -91,7 +93,7 @@ public class UserResource {
 					// Get the complete user because its possible that the given user just
 					// contains username and password.
 					User completeUser = userBusiness.getUserByUsername(user.getUsername());
-					Token token = tokenBusiness.generateToken(completeUser);
+					Token token = tokenBusiness.generateAndSaveTokenInCache(completeUser);
 					response = Response.status(201).entity(token).build();
 
 				} else {
@@ -100,7 +102,7 @@ public class UserResource {
 					response = Response.status(401).entity(errorMessage).build();
 				}
 
-			} catch (AuthenticationException | TokenGenerationException | IllegalArgumentException e) {
+			} catch (AuthenticationException | TokenGenerationException | IllegalArgumentException | CheckedIllegalArgumentException e) {
 
 				response = Response.status(401).entity(e.getMessage()).build();
 			}
