@@ -78,7 +78,7 @@ public class ApiUserResource {
 	
 	@DELETE
 	@Path("/{username}")
-	public Response updateApiUser(@PathParam("username") String username) {
+	public Response deleteApiUser(@PathParam("username") String username) {
 		
 		Response response = null;
 		

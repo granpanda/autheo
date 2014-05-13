@@ -117,6 +117,8 @@ public class ApiUserBusiness {
 	
 	public void deleteApiUser(String username) {
 		
+		ApiUser apiUser = apiUserDao.getApiUserByUsername(username);
 		apiUserDao.deleteApiUser(username);
+		tokenDAO.removeToken(apiUser.getTokenValue());
 	}
 }

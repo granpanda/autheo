@@ -26,14 +26,17 @@ import com.yammer.dropwizard.testing.ResourceTest;
 
 public class UserResourceTest extends ResourceTest {
 
-	private UserBusiness userBusinessMock = Mockito.mock(UserBusiness.class);
-	private TokenBusiness tokenBusinessMock = Mockito.mock(TokenBusiness.class);
+	private UserBusiness userBusinessMock;
+	private TokenBusiness tokenBusinessMock;
 
 	private UserResource userResource;
 
 	@Override
 	protected void setUpResources() throws Exception {
 
+		userBusinessMock = Mockito.mock(UserBusiness.class);
+		tokenBusinessMock = Mockito.mock(TokenBusiness.class);
+		
 		userResource = new UserResource(userBusinessMock, tokenBusinessMock);
 		addResource(userResource);
 	}

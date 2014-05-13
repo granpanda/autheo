@@ -31,9 +31,7 @@ public class TokenDAO {
 
 	public String addToken(Token token) throws CheckedIllegalArgumentException {
 
-		Jedis redisClient = null;
-		redisClient = getRedisClient();
-
+		Jedis redisClient = getRedisClient();
 		String redisAnswer = NOK;
 		
 		if (Token.isAValidToken(token)) {
@@ -53,9 +51,7 @@ public class TokenDAO {
 
 	public void addMultipleTokens(List<Token> tokenList) {
 
-		Jedis redisClient = null;
-
-		redisClient = getRedisClient();
+		Jedis redisClient = getRedisClient();
 
 		for (Token token : tokenList) {
 
@@ -100,5 +96,11 @@ public class TokenDAO {
 		returnResource(redisClient);
 		
 		return token;
+	}
+	
+	public long removeToken(String tokenValue) {
+		
+		Jedis redisClient = getRedisClient();
+		return redisClient.del(tokenValue);
 	}
 }
