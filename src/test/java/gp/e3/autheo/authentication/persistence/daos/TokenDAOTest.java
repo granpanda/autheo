@@ -1,8 +1,6 @@
 package gp.e3.autheo.authentication.persistence.daos;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.fail;
+import static org.junit.Assert.*;
 import gp.e3.autheo.authentication.domain.business.TokenFactory;
 import gp.e3.autheo.authentication.domain.entities.Token;
 import gp.e3.autheo.authentication.domain.entities.User;
@@ -61,13 +59,13 @@ public class TokenDAOTest {
 			Mockito.when(redisMock.set(token.getTokenValue(), token.toString())).thenReturn(returnValue);
 			
 			TokenCacheDAO tokenDao = new TokenCacheDAO(redisPoolMock);
-			String addTokenAnswer = tokenDao.addToken(token);
+			boolean addTokenAnswer = tokenDao.addTokenUsingTokenValueAsKey(token);
 			
-			assertEquals(returnValue, addTokenAnswer);
+			assertEquals(true, addTokenAnswer);
 			
 		} catch (TokenGenerationException e) {
 			
-			fail(e.getMessage());
+			fail("Unexpected exception: " + e.getMessage());
 		}
 	}
 	
@@ -82,13 +80,11 @@ public class TokenDAOTest {
 			Token token = new Token(tokenValue, null, user.getOrganizationId(), user.getRoleId());
 			
 			TokenCacheDAO tokenDao = new TokenCacheDAO(redisPoolMock);
-			tokenDao.addToken(token);
+			assertEquals(false, tokenDao.addTokenUsingTokenValueAsKey(token));
 			
-			fail("The method should return an IllegalArgumentException because the given token is not valid.");
+		} catch (TokenGenerationException e) {
 			
-		} catch (TokenGenerationException | IllegalArgumentException e) {
-			
-			assertNotNull(e);
+			fail("Unexpected exception: " + e.getMessage());
 		}
 	}
 	
@@ -104,13 +100,13 @@ public class TokenDAOTest {
 			Mockito.when(redisMock.get(token.getTokenValue())).thenReturn(token.toString());
 			
 			TokenCacheDAO tokenDao = new TokenCacheDAO(redisPoolMock);
-			Token retrievedToken = tokenDao.getToken(tokenValue);
+			Token retrievedToken = tokenDao.getTokenByTokenValue(tokenValue);
 			
 			assertEquals(0, token.compareTo(retrievedToken));
 			
 		} catch (TokenGenerationException e) {
 			
-			fail(e.getMessage());
+			fail("Unexpected exception: " + e.getMessage());
 		}
 	}
 	
@@ -127,13 +123,11 @@ public class TokenDAOTest {
 			
 			String invalidUsername = "";
 			TokenCacheDAO tokenDao = new TokenCacheDAO(redisPoolMock);
-			tokenDao.getToken(invalidUsername);
-			
-			fail("The method should throw an IllegalArgumentException because the given username was empty.");
+			assertNull(tokenDao.getTokenByTokenValue(invalidUsername));
 			
 		} catch (TokenGenerationException | IllegalArgumentException e) {
 			
-			assertNotNull(e);
+			fail("Unexpected exception: " + e.getMessage());
 		}
 	}
 }

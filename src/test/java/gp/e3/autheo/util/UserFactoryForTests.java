@@ -17,10 +17,11 @@ public class UserFactoryForTests {
 		String name = "name";
 		String username = "username";
 		String password = "password";
+		boolean apiClient = true;
 		String organizationId = "organization";
 		String roleId = "role";
 
-		return new User(name, username, password, organizationId, roleId);
+		return new User(name, username, password, apiClient, organizationId, roleId);
 	}
 
 	public static User getDefaultTestUser(int userNumber) {
@@ -28,10 +29,11 @@ public class UserFactoryForTests {
 		String name = "name" + userNumber;
 		String username = "username" + userNumber;
 		String password = "password" + userNumber;
+		boolean apiClient = true;
 		String organizationId = "organization" + userNumber;
 		String roleId = "role" + username;
 
-		return new User(name, username, password, organizationId, roleId);
+		return new User(name, username, password, apiClient, organizationId, roleId);
 	}
 
 	public static List<User> getUserList(int listSize) {

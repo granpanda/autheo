@@ -3,6 +3,7 @@ package gp.e3.autheo;
 import gp.e3.autheo.authentication.domain.business.TokenBusiness;
 import gp.e3.autheo.authentication.domain.business.UserBusiness;
 import gp.e3.autheo.authentication.infrastructure.RedisConfig;
+import gp.e3.autheo.authentication.persistence.daos.ITokenDAO;
 import gp.e3.autheo.authentication.persistence.daos.IUserDAO;
 import gp.e3.autheo.authentication.persistence.daos.TokenCacheDAO;
 import gp.e3.autheo.authentication.service.resources.UserResource;
@@ -96,16 +97,18 @@ public class Autheo extends Service<AutheoConfig> {
 		final IUserDAO userDAO = jdbi.onDemand(IUserDAO.class);
 		final UserBusiness userBusiness = new UserBusiness(userDAO);
 
-		final TokenCacheDAO tokenDao = new TokenCacheDAO(jedisPool);
-		final TokenBusiness tokenBusiness = new TokenBusiness(tokenDao);
+		ITokenDAO tokenDAO = jdbi.onDemand(ITokenDAO.class);
+		TokenCacheDAO tokenCacheDao = new TokenCacheDAO(jedisPool);
+		TokenBusiness tokenBusiness = new TokenBusiness(tokenDAO, tokenCacheDao);
 
 		return new UserResource(userBusiness, tokenBusiness);
 	}
 
 	private TicketResource getTicketResource(final DBI jdbi, JedisPool jedisPool) {
 
-		TokenCacheDAO tokenDao = new TokenCacheDAO(jedisPool);
-		TokenBusiness tokenBusiness = new TokenBusiness(tokenDao);
+		ITokenDAO tokenDAO = jdbi.onDemand(ITokenDAO.class);
+		TokenCacheDAO tokenCacheDao = new TokenCacheDAO(jedisPool);
+		TokenBusiness tokenBusiness = new TokenBusiness(tokenDAO, tokenCacheDao);
 
 		IRoleDAO roleDao = jdbi.onDemand(IRoleDAO.class);
 		IPermissionDAO permissionDao = jdbi.onDemand(IPermissionDAO.class);

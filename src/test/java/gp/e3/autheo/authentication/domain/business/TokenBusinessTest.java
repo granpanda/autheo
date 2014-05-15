@@ -6,6 +6,7 @@ import gp.e3.autheo.authentication.domain.business.TokenFactory;
 import gp.e3.autheo.authentication.domain.entities.Token;
 import gp.e3.autheo.authentication.domain.entities.User;
 import gp.e3.autheo.authentication.domain.exceptions.TokenGenerationException;
+import gp.e3.autheo.authentication.persistence.daos.ITokenDAO;
 import gp.e3.autheo.authentication.persistence.daos.TokenCacheDAO;
 import gp.e3.autheo.util.UserFactoryForTests;
 
@@ -16,18 +17,24 @@ import org.mockito.Mockito;
 
 public class TokenBusinessTest {
 
-	private TokenCacheDAO tokenDaoMock;
+	private ITokenDAO tokenDAOMock;
+	private TokenCacheDAO tokenCacheDaoMock;
+	private TokenBusiness tokenBusiness;
 
 	@Before
 	public void setUp() {
 
-		tokenDaoMock = Mockito.mock(TokenCacheDAO.class);
+		tokenDAOMock = Mockito.mock(ITokenDAO.class);
+		tokenCacheDaoMock = Mockito.mock(TokenCacheDAO.class);
+		tokenBusiness = new TokenBusiness(tokenDAOMock, tokenCacheDaoMock);
 	}
 
 	@After
 	public void tearDown() {
 
-		tokenDaoMock = null;
+		tokenDAOMock = null;
+		tokenCacheDaoMock = null;
+		tokenBusiness = null;
 	}
 
 	@Test
@@ -40,10 +47,9 @@ public class TokenBusinessTest {
 			String tokenValue = TokenFactory.getToken(user);
 			Token testToken = new Token(tokenValue, user.getUsername(), user.getOrganizationId(), user.getRoleId());
 
-			String returnValue = "OK";
-			Mockito.when(tokenDaoMock.addToken(testToken)).thenReturn(returnValue);
+			boolean returnValue = true;
+			Mockito.when(tokenCacheDaoMock.addTokenUsingTokenValueAsKey(testToken)).thenReturn(returnValue);
 
-			TokenBusiness tokenBusiness = new TokenBusiness(tokenDaoMock);
 			Token generatedToken = tokenBusiness.generateToken(user);
 
 			/*
@@ -65,8 +71,6 @@ public class TokenBusinessTest {
 		try {
 
 			User user = null;
-
-			TokenBusiness tokenBusiness = new TokenBusiness(tokenDaoMock);
 			tokenBusiness.generateToken(user);
 
 			String errorMessage = "The method should throw an exception because the user give nby parameter was null";
@@ -88,8 +92,7 @@ public class TokenBusinessTest {
 			String tokenValue = TokenFactory.getToken(user);
 			Token testToken = new Token(tokenValue, user.getUsername(), user.getOrganizationId(), user.getRoleId());
 			
-			Mockito.when(tokenDaoMock.getToken(tokenValue)).thenReturn(testToken);
-			TokenBusiness tokenBusiness = new TokenBusiness(tokenDaoMock);
+			Mockito.when(tokenCacheDaoMock.getTokenByTokenValue(tokenValue)).thenReturn(testToken);
 			
 			Token retrievedToken = tokenBusiness.getToken(testToken.getTokenValue());
 			assertEquals(0, testToken.compareTo(retrievedToken));
@@ -107,20 +110,17 @@ public class TokenBusinessTest {
 
 		String tokenValue = "NULL";
 		Token testToken = new Token(tokenValue, user.getUsername(), user.getOrganizationId(), user.getRoleId());
-		
-		Mockito.when(tokenDaoMock.getToken(Mockito.anyString())).thenReturn(testToken);
-		TokenBusiness tokenBusiness = new TokenBusiness(tokenDaoMock);
+		Mockito.when(tokenCacheDaoMock.getTokenByTokenValue(Mockito.anyString())).thenReturn(testToken);
 		
 		String invalidTokenValue = null;
 		
 		try {
 			
-			tokenBusiness.getToken(invalidTokenValue);
-			fail("The method should throw an exception because the username parameter was null.");
+			assertNull(tokenBusiness.getToken(invalidTokenValue));
 			
 		} catch (Exception e) {
 			
-			assertNotNull(e);
+			fail("Unexpected exception: " + e.getMessage());
 		}
 	}
 }

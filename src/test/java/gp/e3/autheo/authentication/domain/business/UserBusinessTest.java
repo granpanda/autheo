@@ -50,7 +50,7 @@ public class UserBusinessTest {
 			String errorMessage = "The user with username: " + user.getUsername() + " is already registered.";
 
 			Mockito.doNothing().doThrow(new DuplicateIdException(errorMessage)).when(userDaoMock)
-			.createUser(Mockito.anyString(), Mockito.anyString(), Mockito.anyString(), Mockito.anyString(),
+			.createUser(Mockito.anyString(), Mockito.anyString(), Mockito.anyString(), Mockito.anyString(), Mockito.anyBoolean(),
 					Mockito.anyString(), Mockito.anyString());
 
 			UserBusiness userBusiness = new UserBusiness(userDaoMock);
@@ -74,7 +74,7 @@ public class UserBusinessTest {
 			String errorMessage = "The user with username: " + user.getUsername() + " is already registered.";
 
 			Mockito.doNothing().doThrow(new DuplicateIdException(errorMessage)).when(userDaoMock)
-			.createUser(Mockito.anyString(), Mockito.anyString(), Mockito.anyString(), Mockito.anyString(), 
+			.createUser(Mockito.anyString(), Mockito.anyString(), Mockito.anyString(), Mockito.anyString(), Mockito.anyBoolean(),
 					Mockito.anyString(), Mockito.anyString());
 
 			UserBusiness userBusiness = new UserBusiness(userDaoMock);

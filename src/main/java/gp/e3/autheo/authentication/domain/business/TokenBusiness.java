@@ -1,48 +1,87 @@
 package gp.e3.autheo.authentication.domain.business;
 
+import java.sql.SQLException;
+
 import gp.e3.autheo.authentication.domain.entities.Token;
 import gp.e3.autheo.authentication.domain.entities.User;
 import gp.e3.autheo.authentication.domain.exceptions.TokenGenerationException;
 import gp.e3.autheo.authentication.infrastructure.validators.StringValidator;
+import gp.e3.autheo.authentication.persistence.daos.ITokenDAO;
 import gp.e3.autheo.authentication.persistence.daos.TokenCacheDAO;
 
 public class TokenBusiness {
-	
-	private final TokenCacheDAO tokenDao;
-	
-	public TokenBusiness(TokenCacheDAO tokenDao) {
-		this.tokenDao = tokenDao;
+
+	public static final String INTERNAL_API_CLIENT_TOKEN = "_INTERNAL_API_CLIENT_TOKEN";
+	public static final String INTERNAL_API_CLIENT_ROLE = "MODULE";
+
+	private final ITokenDAO tokenDAO;
+	private final TokenCacheDAO tokenCacheDao;
+
+	public TokenBusiness(ITokenDAO tokenDAO, TokenCacheDAO tokenCacheDao) {
+
+		this.tokenDAO = tokenDAO;
+		this.tokenCacheDao = tokenCacheDao;
+	}
+
+	private Token generateRandomTokenFromUserInfo(User user) throws TokenGenerationException {
+
+		String tokenValue = TokenFactory.getToken(user);
+		Token token = new Token(tokenValue, user.getUsername(), user.getOrganizationId(), user.getRoleId());
+
+		return token;
+	}
+
+	private Token generateRandomTokenFromUserInfo(User user, String roleId) throws TokenGenerationException {
+
+		String tokenValue = TokenFactory.getToken(user);
+		Token token = new Token(tokenValue, user.getUsername(), user.getOrganizationId(), roleId);
+
+		return token;
 	}
 
 	public Token generateToken(User user) throws TokenGenerationException, IllegalArgumentException {
-		
+
 		Token token = null;
-		
+
 		if (User.isAValidUser(user)) {
-		
-			String tokenValue = TokenFactory.getToken(user);
-			token = new Token(tokenValue, user.getUsername(), user.getOrganizationId(), user.getRoleId());
-			tokenDao.addToken(token);
-			
+
+			token = generateRandomTokenFromUserInfo(user);
+			tokenCacheDao.addTokenUsingTokenValueAsKey(token);
+
+			if (user.isApiClient()) {
+
+				try {
+					// Add token to DB.
+					tokenDAO.createToken(token.getTokenValue(), token.getUsername(), token.getUserOrganization(), token.getUserRole());
+					
+					// Create a new API token. Save it to DB and Cache.
+					Token apiClientToken = generateRandomTokenFromUserInfo(user, INTERNAL_API_CLIENT_ROLE);
+					tokenDAO.createToken(apiClientToken.getTokenValue(), apiClientToken.getUsername(), apiClientToken.getUserOrganization(), apiClientToken.getUserRole());
+					tokenCacheDao.addTokenUsingOrganizationAsKey(apiClientToken);
+					
+				} catch (SQLException e) {
+					e.printStackTrace();
+				}
+			}
+
 		} else {
-			
+
 			String errorMessage = "The user given as argument is invalid.";
 			throw new IllegalArgumentException(errorMessage);
 		}
-		
+
 		return token;
 	}
-	
-	public Token getToken(String tokenValue) throws IllegalArgumentException {
+
+	public Token getToken(String tokenValue) {
+
+		Token token = null;
 		
 		if (StringValidator.isValidString(tokenValue)) {
-			
-			return tokenDao.getToken(tokenValue);
-			
-		} else {
-			
-			String errorMessage = "The parameter is null or empty.";
-			throw new IllegalArgumentException(errorMessage);
+
+			token = tokenCacheDao.getTokenByTokenValue(tokenValue);
 		}
+		
+		return token;
 	}
 }

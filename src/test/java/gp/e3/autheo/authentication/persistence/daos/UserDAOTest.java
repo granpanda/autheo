@@ -64,7 +64,7 @@ public class UserDAOTest {
 		try {
 
 			assertEquals(0, userDAO.countUsersTable());
-			userDAO.createUser(user.getName(), user.getUsername(), user.getPassword(), salt, 
+			userDAO.createUser(user.getName(), user.getUsername(), user.getPassword(), salt, user.isApiClient(),
 							   user.getOrganizationId(), user.getRoleId());
 
 			int numberOfUsersIntoDb = userDAO.getAllUsers().size();
@@ -112,7 +112,7 @@ public class UserDAOTest {
 		try {
 
 			assertEquals(0, userDAO.countUsersTable());
-			userDAO.createUser(user.getName(), user.getUsername(), user.getPassword(), salt, 
+			userDAO.createUser(user.getName(), user.getUsername(), user.getPassword(), salt, user.isApiClient(),
 							   user.getOrganizationId(), user.getRoleId());
 			
 			assertEquals(1, userDAO.countUsersTable());
@@ -130,13 +130,13 @@ public class UserDAOTest {
 	@Test
 	public void testCreateUser_NOK() {
 
-		User user = new User(null, null, null, null, null);
+		User user = new User(null, null, null, false, null, null);
 		String salt = "salt";
 
 		try {
 
 			assertEquals(0, userDAO.countUsersTable());
-			userDAO.createUser(user.getName(), user.getUsername(), user.getPassword(), salt, 
+			userDAO.createUser(user.getName(), user.getUsername(), user.getPassword(), salt, user.isApiClient(),
 							   user.getOrganizationId(), user.getRoleId());
 			
 			fail("Should throw an exception in the line above.");
@@ -155,7 +155,7 @@ public class UserDAOTest {
 
 		try {
 
-			userDAO.createUser(user.getName(), user.getUsername(), user.getPassword(), salt, 
+			userDAO.createUser(user.getName(), user.getUsername(), user.getPassword(), salt, user.isApiClient(),
 							   user.getOrganizationId(), user.getRoleId());
 
 			User retrievedUser = userDAO.getUserByUsername(user.getUsername());
@@ -175,7 +175,7 @@ public class UserDAOTest {
 
 		try {
 
-			userDAO.createUser(user.getName(), user.getUsername(), user.getPassword(), salt, 
+			userDAO.createUser(user.getName(), user.getUsername(), user.getPassword(), salt, user.isApiClient(),
 							   user.getOrganizationId(), user.getRoleId());
 
 			String unknownUsername = "unknownUsername";
@@ -200,7 +200,7 @@ public class UserDAOTest {
 
 			for (User user : userList) {
 
-				userDAO.createUser(user.getName(), user.getUsername(), user.getPassword(), salt, 
+				userDAO.createUser(user.getName(), user.getUsername(), user.getPassword(), salt, user.isApiClient(),
 								   user.getOrganizationId(), user.getRoleId());
 			}
 
@@ -226,7 +226,7 @@ public class UserDAOTest {
 
 			for (User user : userList) {
 
-				userDAO.createUser(user.getName(), user.getUsername(), user.getPassword(), salt, 
+				userDAO.createUser(user.getName(), user.getUsername(), user.getPassword(), salt, user.isApiClient(),
 								   user.getOrganizationId(), user.getRoleId());
 			}
 
@@ -250,7 +250,7 @@ public class UserDAOTest {
 		try {
 
 			assertEquals(0, userDAO.countUsersTable());
-			userDAO.createUser(user.getName(), user.getUsername(), user.getPassword(), salt, 
+			userDAO.createUser(user.getName(), user.getUsername(), user.getPassword(), salt, user.isApiClient(),
 							   user.getOrganizationId(), user.getRoleId());
 			
 			assertEquals(1, userDAO.countUsersTable());
@@ -291,7 +291,7 @@ public class UserDAOTest {
 		try {
 
 			assertEquals(0, userDAO.countUsersTable());
-			userDAO.createUser(defaultUser.getName(), defaultUser.getUsername(), defaultUser.getPassword(), salt, 
+			userDAO.createUser(defaultUser.getName(), defaultUser.getUsername(), defaultUser.getPassword(), salt, defaultUser.isApiClient(),
 					defaultUser.getOrganizationId(), defaultUser.getRoleId());
 			
 			assertEquals(1, userDAO.countUsersTable());
@@ -326,7 +326,7 @@ public class UserDAOTest {
 		try {
 
 			assertEquals(0, userDAO.countUsersTable());
-			userDAO.createUser(defaultUser.getName(), defaultUser.getUsername(), defaultUser.getPassword(), salt,
+			userDAO.createUser(defaultUser.getName(), defaultUser.getUsername(), defaultUser.getPassword(), salt, defaultUser.isApiClient(),
 					defaultUser.getOrganizationId(), defaultUser.getRoleId());
 			
 			assertEquals(1, userDAO.countUsersTable());
@@ -365,7 +365,7 @@ public class UserDAOTest {
 		try {
 
 			assertEquals(0, userDAO.countUsersTable());
-			userDAO.createUser(defaultUser.getName(), defaultUser.getUsername(), defaultUser.getPassword(), salt,
+			userDAO.createUser(defaultUser.getName(), defaultUser.getUsername(), defaultUser.getPassword(), salt, defaultUser.isApiClient(),
 					defaultUser.getOrganizationId(), defaultUser.getRoleId());
 			
 			assertEquals(1, userDAO.countUsersTable());
