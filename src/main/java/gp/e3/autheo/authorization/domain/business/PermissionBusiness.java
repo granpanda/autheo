@@ -29,6 +29,8 @@ public class PermissionBusiness {
 
 		} catch (Exception e) {
 
+			e.printStackTrace();
+			
 			String errorMessage = "The permission with http verb: " + permission.getHttpVerb() +
 					" and url: " + permission.getUrl() + " is alredy registered.";
 			throw new DuplicateIdException(errorMessage);

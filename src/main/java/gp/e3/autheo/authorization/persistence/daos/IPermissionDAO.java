@@ -31,7 +31,7 @@ public interface IPermissionDAO {
 	//------------------------------------------------------------------------------------------------------
 
 	public static final String CREATE_PERMISSIONS_TABLE_IF_NOT_EXISTS = 
-			"CREATE TABLE IF NOT EXISTS permissions (id INT AUTO_INCREMENT, name VARCHAR(32), http_verb VARCHAR(32), url VARCHAR(256), PRIMARY KEY (id));";
+			"CREATE TABLE IF NOT EXISTS permissions (id INT AUTO_INCREMENT, name VARCHAR(140), http_verb VARCHAR(32), url VARCHAR(256), PRIMARY KEY (id));";
 
 	public static final String CREATE_PERMISSIONS_UNIQUE_INDEX = 
 			"ALTER TABLE permissions ADD UNIQUE INDEX(http_verb, url);";
