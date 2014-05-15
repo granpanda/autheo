@@ -1,13 +1,13 @@
 package gp.e3.autheo.authentication.domain.business;
 
-import java.sql.SQLException;
-
 import gp.e3.autheo.authentication.domain.entities.Token;
 import gp.e3.autheo.authentication.domain.entities.User;
 import gp.e3.autheo.authentication.domain.exceptions.TokenGenerationException;
 import gp.e3.autheo.authentication.infrastructure.validators.StringValidator;
 import gp.e3.autheo.authentication.persistence.daos.ITokenDAO;
 import gp.e3.autheo.authentication.persistence.daos.TokenCacheDAO;
+
+import org.skife.jdbi.v2.exceptions.UnableToExecuteStatementException;
 
 public class TokenBusiness {
 
@@ -59,7 +59,7 @@ public class TokenBusiness {
 					tokenDAO.createToken(apiClientToken.getTokenValue(), apiClientToken.getUsername(), apiClientToken.getUserOrganization(), apiClientToken.getUserRole());
 					tokenCacheDao.addTokenUsingOrganizationAsKey(apiClientToken);
 					
-				} catch (SQLException e) {
+				} catch (UnableToExecuteStatementException e) {
 					e.printStackTrace();
 				}
 			}
