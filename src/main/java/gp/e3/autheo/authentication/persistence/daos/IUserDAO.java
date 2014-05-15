@@ -16,13 +16,18 @@ public interface IUserDAO {
 	public static final String USERNAME_FIELD = "username";
 	public static final String PASSWORD_FIELD = "password";
 	public static final String SALT_FIELD = "salt";
+	public static final String IS_API_CLIENT_FIELD = "api_client";
 	public static final String ORGANIZATION_ID_FIELD = "organization_id";
 	public static final String ROLE_ID_FIELD = "role_id";
 	
-	public static final String CREATE_USERS_TABLE_IF_NOT_EXISTS = "CREATE TABLE IF NOT EXISTS users (name varchar(32), username varchar(32) primary key, password varchar(256), salt varchar(256), organization_id varchar(32), role_id varchar(32));";
+	public static final String CREATE_USERS_TABLE_IF_NOT_EXISTS = "CREATE TABLE IF NOT EXISTS users (name varchar(32), username varchar(32) primary key, "
+			+ "password varchar(256), salt varchar(256), api_client TINYINT(1), organization_id varchar(32), role_id varchar(32));";
+	
 	public static final String COUNT_USERS_TABLE = "SELECT COUNT(*) FROM users;";
 	
-	public static final String INSERT_USER = "INSERT INTO users (name, username, password, salt, organization_id, role_id) VALUES (:name, :username:, :password, :salt, :organization_id, :role_id);";
+	public static final String INSERT_USER = "INSERT INTO users (name, username, password, salt, api_client, organization_id, role_id) VALUES (:name, :username:, :password, "
+			+ ":salt, :api_client, :organization_id, :role_id);";
+	
 	public static final String GET_USER_BY_USERNAME = "SELECT * FROM users WHERE username = :username;";
 	public static final String GET_PASSWORD_BY_USERNAME = "SELECT password FROM users WHERE username = :username;";
 	public static final String GET_ALL_USERS = "SELECT * FROM users;";
@@ -41,6 +46,7 @@ public interface IUserDAO {
 						   @Bind(USERNAME_FIELD) String username, 
 						   @Bind(PASSWORD_FIELD) String password, 
 						   @Bind(SALT_FIELD) String salt,
+						   @Bind(IS_API_CLIENT_FIELD) boolean apiClient,
 						   @Bind(ORGANIZATION_ID_FIELD) String organizationId,
 						   @Bind(ROLE_ID_FIELD) String roleId) throws Exception;
 	

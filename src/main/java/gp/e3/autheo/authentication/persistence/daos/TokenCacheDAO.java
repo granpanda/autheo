@@ -6,11 +6,11 @@ import redis.clients.jedis.exceptions.JedisConnectionException;
 import gp.e3.autheo.authentication.domain.entities.Token;
 import gp.e3.autheo.authentication.infrastructure.validators.StringValidator;
 
-public class TokenDAO {
+public class TokenCacheDAO {
 	
 	private JedisPool redisPool;
 	
-	public TokenDAO(JedisPool jedisPool) {
+	public TokenCacheDAO(JedisPool jedisPool) {
 		
 		this.redisPool = jedisPool;
 	}

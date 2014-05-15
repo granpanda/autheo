@@ -7,7 +7,7 @@ import gp.e3.autheo.authentication.domain.business.TokenFactory;
 import gp.e3.autheo.authentication.domain.entities.Token;
 import gp.e3.autheo.authentication.domain.entities.User;
 import gp.e3.autheo.authentication.domain.exceptions.TokenGenerationException;
-import gp.e3.autheo.authentication.persistence.daos.TokenDAO;
+import gp.e3.autheo.authentication.persistence.daos.TokenCacheDAO;
 import gp.e3.autheo.util.UserFactoryForTests;
 
 import org.junit.After;
@@ -60,7 +60,7 @@ public class TokenDAOTest {
 			
 			Mockito.when(redisMock.set(token.getTokenValue(), token.toString())).thenReturn(returnValue);
 			
-			TokenDAO tokenDao = new TokenDAO(redisPoolMock);
+			TokenCacheDAO tokenDao = new TokenCacheDAO(redisPoolMock);
 			String addTokenAnswer = tokenDao.addToken(token);
 			
 			assertEquals(returnValue, addTokenAnswer);
@@ -81,7 +81,7 @@ public class TokenDAOTest {
 			String tokenValue = TokenFactory.getToken(user);
 			Token token = new Token(tokenValue, null, user.getOrganizationId(), user.getRoleId());
 			
-			TokenDAO tokenDao = new TokenDAO(redisPoolMock);
+			TokenCacheDAO tokenDao = new TokenCacheDAO(redisPoolMock);
 			tokenDao.addToken(token);
 			
 			fail("The method should return an IllegalArgumentException because the given token is not valid.");
@@ -103,7 +103,7 @@ public class TokenDAOTest {
 			
 			Mockito.when(redisMock.get(token.getTokenValue())).thenReturn(token.toString());
 			
-			TokenDAO tokenDao = new TokenDAO(redisPoolMock);
+			TokenCacheDAO tokenDao = new TokenCacheDAO(redisPoolMock);
 			Token retrievedToken = tokenDao.getToken(tokenValue);
 			
 			assertEquals(0, token.compareTo(retrievedToken));
@@ -126,7 +126,7 @@ public class TokenDAOTest {
 			Mockito.when(redisMock.get(token.getTokenValue())).thenReturn(token.toString());
 			
 			String invalidUsername = "";
-			TokenDAO tokenDao = new TokenDAO(redisPoolMock);
+			TokenCacheDAO tokenDao = new TokenCacheDAO(redisPoolMock);
 			tokenDao.getToken(invalidUsername);
 			
 			fail("The method should throw an IllegalArgumentException because the given username was empty.");

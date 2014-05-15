@@ -31,6 +31,7 @@ public class TicketBusiness {
 				
 			} catch (Exception e) {
 				
+				e.printStackTrace();
 				// Do nothing, the answer is false.
 			}
 		}

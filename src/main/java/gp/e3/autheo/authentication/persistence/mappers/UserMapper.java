@@ -10,15 +10,15 @@ import org.skife.jdbi.v2.StatementContext;
 import org.skife.jdbi.v2.tweak.ResultSetMapper;
 
 public class UserMapper implements ResultSetMapper<User> {
-	
+
 	@Override
 	public User map(int integer, ResultSet resultSet, StatementContext statementContext) throws SQLException {
-		
+
 		User user = new User(resultSet.getString(IUserDAO.NAME_FIELD), resultSet.getString(IUserDAO.USERNAME_FIELD), 
-							 resultSet.getString(IUserDAO.PASSWORD_FIELD), 
-							 resultSet.getString(IUserDAO.ORGANIZATION_ID_FIELD),
-							 resultSet.getString(IUserDAO.ROLE_ID_FIELD));
-		
+				resultSet.getString(IUserDAO.PASSWORD_FIELD), resultSet.getBoolean(IUserDAO.IS_API_CLIENT_FIELD),
+				resultSet.getString(IUserDAO.ORGANIZATION_ID_FIELD),
+				resultSet.getString(IUserDAO.ROLE_ID_FIELD));
+
 		return user;
 	}
 }

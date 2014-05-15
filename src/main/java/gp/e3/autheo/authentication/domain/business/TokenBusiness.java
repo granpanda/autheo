@@ -4,13 +4,13 @@ import gp.e3.autheo.authentication.domain.entities.Token;
 import gp.e3.autheo.authentication.domain.entities.User;
 import gp.e3.autheo.authentication.domain.exceptions.TokenGenerationException;
 import gp.e3.autheo.authentication.infrastructure.validators.StringValidator;
-import gp.e3.autheo.authentication.persistence.daos.TokenDAO;
+import gp.e3.autheo.authentication.persistence.daos.TokenCacheDAO;
 
 public class TokenBusiness {
 	
-	private final TokenDAO tokenDao;
+	private final TokenCacheDAO tokenDao;
 	
-	public TokenBusiness(TokenDAO tokenDao) {
+	public TokenBusiness(TokenCacheDAO tokenDao) {
 		this.tokenDao = tokenDao;
 	}
 

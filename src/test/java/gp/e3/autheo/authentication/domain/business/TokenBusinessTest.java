@@ -6,7 +6,7 @@ import gp.e3.autheo.authentication.domain.business.TokenFactory;
 import gp.e3.autheo.authentication.domain.entities.Token;
 import gp.e3.autheo.authentication.domain.entities.User;
 import gp.e3.autheo.authentication.domain.exceptions.TokenGenerationException;
-import gp.e3.autheo.authentication.persistence.daos.TokenDAO;
+import gp.e3.autheo.authentication.persistence.daos.TokenCacheDAO;
 import gp.e3.autheo.util.UserFactoryForTests;
 
 import org.junit.After;
@@ -16,12 +16,12 @@ import org.mockito.Mockito;
 
 public class TokenBusinessTest {
 
-	private TokenDAO tokenDaoMock;
+	private TokenCacheDAO tokenDaoMock;
 
 	@Before
 	public void setUp() {
 
-		tokenDaoMock = Mockito.mock(TokenDAO.class);
+		tokenDaoMock = Mockito.mock(TokenCacheDAO.class);
 	}
 
 	@After

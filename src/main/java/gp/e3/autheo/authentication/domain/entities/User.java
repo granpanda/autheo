@@ -10,19 +10,21 @@ public class User implements Comparable<User> {
 	private final String name;
 	private final String username;
 	private final String password;
+	private final boolean apiClient;
 	
 	private final String organizationId;
 	private final String roleId;
 	
 	@JsonCreator
 	public User(@JsonProperty("name") String name, @JsonProperty("username") String username,
-				@JsonProperty("password") String password, 
+				@JsonProperty("password") String password, @JsonProperty("apiClient") boolean isApiClient,
 				@JsonProperty("organizationId") String organizationId,
 				@JsonProperty("roleId") String roleId) {
 	
 		this.name = name;
 		this.username = username;
 		this.password = password;
+		this.apiClient = isApiClient;
 		
 		this.organizationId = organizationId;
 		this.roleId= roleId;
@@ -40,6 +42,10 @@ public class User implements Comparable<User> {
 		return password;
 	}
 	
+	public boolean isApiClient() {
+		return apiClient;
+	}
+
 	public String getOrganizationId() {
 
 		String answer = organizationId;
@@ -77,6 +83,7 @@ public class User implements Comparable<User> {
 			answer += this.name.compareTo(user.getName());
 			answer += this.username.compareTo(user.getUsername());
 			answer += this.password.compareTo(user.getPassword());
+			answer += (this.apiClient == user.isApiClient())? 0 : 1;
 			answer += this.organizationId.compareTo(user.getOrganizationId());
 			answer += this.roleId.compareTo(user.roleId);
 		}
