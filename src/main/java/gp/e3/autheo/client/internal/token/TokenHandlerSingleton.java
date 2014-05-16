@@ -4,6 +4,7 @@ import gp.e3.autheo.authentication.infrastructure.validators.StringValidator;
 import gp.e3.autheo.client.exceptions.InvalidStateException;
 import gp.e3.autheo.client.filter.TokenDTO;
 import redis.clients.jedis.Jedis;
+import redis.clients.jedis.JedisPool;
 
 public enum TokenHandlerSingleton {
 	
@@ -12,20 +13,18 @@ public enum TokenHandlerSingleton {
 	public static final String NIL = "nil";
 	public static final String OK = "OK";
 	
-	private String tokenValue; 
-	private Jedis redisClient;
+	private JedisPool redisPool;
 
 	private boolean singletonHasBeenInitialized() {
 		
-		return (this.tokenValue != null && redisClient != null);
+		return (redisPool != null);
 	}
 	
-	public void initializeSingleton(Jedis redisClient, String tokenValue) {
+	public void initializeSingleton(JedisPool jedisPool) {
 		
 		if (!singletonHasBeenInitialized()) {
 			
-			this.tokenValue = tokenValue;
-			this.redisClient = redisClient;
+			redisPool = jedisPool;
 		}
 	}
 	
@@ -35,7 +34,9 @@ public enum TokenHandlerSingleton {
 		
 		if (singletonHasBeenInitialized()) {
 			
+			Jedis redisClient = redisPool.getResource();
 			String tokenToString = redisClient.get(sellerId);
+			redisPool.returnResource(redisClient);
 			
 			if (StringValidator.isValidString(tokenToString) && !tokenToString.equalsIgnoreCase(NIL)) {
 				tokenDTO = TokenDTO.buildTokenDTOFromTokenToString(tokenToString);
