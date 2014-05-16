@@ -18,12 +18,22 @@ public class TokenBusiness {
 	private final ITokenDAO tokenDAO;
 	private final TokenCacheDAO tokenCacheDao;
 
+	private void updateTokensCache() {
+
+		List<Token> tokens = tokenDAO.getAllTokens();
+
+		for (Token tokenFromDb : tokens) {
+			tokenCacheDao.addTokenUsingOrganizationAsKey(tokenFromDb);
+		}
+	}
+
 	public TokenBusiness(ITokenDAO tokenDAO, TokenCacheDAO tokenCacheDao) {
 
 		this.tokenDAO = tokenDAO;
 		this.tokenDAO.createTokensTableIfNotExists();
 
 		this.tokenCacheDao = tokenCacheDao;
+		updateTokensCache();
 	}
 
 	private Token generateRandomTokenFromUserInfo(User user) throws TokenGenerationException {
@@ -76,17 +86,6 @@ public class TokenBusiness {
 		return token;
 	}
 
-	private Token updateTokensCacheAndFindToken(String tokenValue) {
-		
-		List<Token> tokens = tokenDAO.getAllTokens();
-
-		for (Token tokenFromDb : tokens) {
-			tokenCacheDao.addTokenUsingOrganizationAsKey(tokenFromDb);
-		}
-
-		return tokenCacheDao.getTokenByTokenValue(tokenValue);
-	}
-
 	public Token getToken(String tokenValue) {
 
 		Token token = null;
@@ -96,7 +95,9 @@ public class TokenBusiness {
 			token = tokenCacheDao.getTokenByTokenValue(tokenValue);
 
 			if (token == null) {
-				token = updateTokensCacheAndFindToken(tokenValue);
+
+				updateTokensCache();
+				token = tokenCacheDao.getTokenByTokenValue(tokenValue);
 			}
 		}
 
