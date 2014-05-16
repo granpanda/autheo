@@ -1,8 +1,10 @@
 package gp.e3.autheo.client.internal.token;
 
-import gp.e3.autheo.authentication.infrastructure.validators.StringValidator;
 import gp.e3.autheo.client.exceptions.InvalidStateException;
 import gp.e3.autheo.client.filter.TokenDTO;
+
+import org.apache.commons.lang3.StringUtils;
+
 import redis.clients.jedis.Jedis;
 import redis.clients.jedis.JedisPool;
 
@@ -38,7 +40,7 @@ public enum TokenHandlerSingleton {
 			String tokenToString = redisClient.get(sellerId);
 			redisPool.returnResource(redisClient);
 			
-			if (StringValidator.isValidString(tokenToString) && !tokenToString.equalsIgnoreCase(NIL)) {
+			if (!StringUtils.isBlank(tokenToString) && !tokenToString.equalsIgnoreCase(NIL)) {
 				tokenDTO = TokenDTO.buildTokenDTOFromTokenToString(tokenToString);
 			}
 			
