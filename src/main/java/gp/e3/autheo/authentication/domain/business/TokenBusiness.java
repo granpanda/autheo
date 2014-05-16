@@ -59,7 +59,7 @@ public class TokenBusiness {
 
 					// Create a new API token. Save it to DB and Cache.
 					Token apiClientToken = generateRandomTokenFromUserInfo(user, INTERNAL_API_CLIENT_ROLE);
-					tokenDAO.createToken(apiClientToken.getTokenValue(), apiClientToken.getUsername(), apiClientToken.getUserOrganization(), apiClientToken.getUserRole());
+					tokenDAO.createToken(apiClientToken.getTokenValue(), apiClientToken.getUsername(), apiClientToken.getUserOrganization(), INTERNAL_API_CLIENT_ROLE);
 					tokenCacheDao.addTokenUsingOrganizationAsKey(apiClientToken);
 
 				} catch (UnableToExecuteStatementException e) {
