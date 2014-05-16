@@ -84,7 +84,7 @@ public class TokenBusinessTest {
 	}
 
 	@Test
-	public void testGetTokenValue_OK() {
+	public void testGetTokenValue_OK_1() {
 
 		try {
 
@@ -93,6 +93,27 @@ public class TokenBusinessTest {
 			Token testToken = new Token(tokenValue, user.getUsername(), user.getOrganizationId(), user.getRoleId());
 			
 			Mockito.when(tokenCacheDaoMock.getTokenByTokenValue(tokenValue)).thenReturn(testToken);
+			
+			Token retrievedToken = tokenBusiness.getToken(testToken.getTokenValue());
+			assertEquals(0, testToken.compareTo(retrievedToken));
+
+		} catch (TokenGenerationException e) {
+
+			fail(e.getMessage());
+		}
+	}
+	
+	@Test
+	public void testGetTokenValue_OK_2() {
+
+		try {
+
+			User user = UserFactoryForTests.getDefaultTestUser();
+			String tokenValue = TokenFactory.getToken(user);
+			Token testToken = new Token(tokenValue, user.getUsername(), user.getOrganizationId(), user.getRoleId());
+			
+			// First return null then return a valid Token object.
+			Mockito.when(tokenCacheDaoMock.getTokenByTokenValue(tokenValue)).thenReturn(null).thenReturn(testToken);
 			
 			Token retrievedToken = tokenBusiness.getToken(testToken.getTokenValue());
 			assertEquals(0, testToken.compareTo(retrievedToken));

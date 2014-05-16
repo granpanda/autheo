@@ -1,5 +1,7 @@
 package gp.e3.autheo.authentication.domain.business;
 
+import java.util.List;
+
 import gp.e3.autheo.authentication.domain.entities.Token;
 import gp.e3.autheo.authentication.domain.entities.User;
 import gp.e3.autheo.authentication.domain.exceptions.TokenGenerationException;
@@ -20,7 +22,7 @@ public class TokenBusiness {
 
 		this.tokenDAO = tokenDAO;
 		this.tokenDAO.createTokensTableIfNotExists();
-		
+
 		this.tokenCacheDao = tokenCacheDao;
 	}
 
@@ -54,12 +56,12 @@ public class TokenBusiness {
 				try {
 					// Add token to DB.
 					tokenDAO.createToken(token.getTokenValue(), token.getUsername(), token.getUserOrganization(), token.getUserRole());
-					
+
 					// Create a new API token. Save it to DB and Cache.
 					Token apiClientToken = generateRandomTokenFromUserInfo(user, INTERNAL_API_CLIENT_ROLE);
 					tokenDAO.createToken(apiClientToken.getTokenValue(), apiClientToken.getUsername(), apiClientToken.getUserOrganization(), apiClientToken.getUserRole());
 					tokenCacheDao.addTokenUsingOrganizationAsKey(apiClientToken);
-					
+
 				} catch (UnableToExecuteStatementException e) {
 					e.printStackTrace();
 				}
@@ -74,15 +76,30 @@ public class TokenBusiness {
 		return token;
 	}
 
+	private Token updateTokensCacheAndFindToken(String tokenValue) {
+		
+		List<Token> tokens = tokenDAO.getAllTokens();
+
+		for (Token tokenFromDb : tokens) {
+			tokenCacheDao.addTokenUsingOrganizationAsKey(tokenFromDb);
+		}
+
+		return tokenCacheDao.getTokenByTokenValue(tokenValue);
+	}
+
 	public Token getToken(String tokenValue) {
 
 		Token token = null;
-		
+
 		if (StringValidator.isValidString(tokenValue)) {
 
 			token = tokenCacheDao.getTokenByTokenValue(tokenValue);
+
+			if (token == null) {
+				token = updateTokensCacheAndFindToken(tokenValue);
+			}
 		}
-		
+
 		return token;
 	}
 }
