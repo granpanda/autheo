@@ -1,4 +1,4 @@
-package gp.e3.autheo.client;
+package gp.e3.autheo.client.filter;
 
 import java.io.IOException;
 import java.io.InputStreamReader;

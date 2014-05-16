@@ -1,4 +1,4 @@
-package gp.e3.autheo.client;
+package gp.e3.autheo.client.filter;
 
 public class TicketDTO {
 	

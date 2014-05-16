@@ -7,6 +7,9 @@ import redis.clients.jedis.JedisPool;
 
 public class TokenCacheDAO {
 
+	// See: http://tool.oschina.net/uploads/apidocs/jedis-2.1.0/index.html?redis/clients/jedis/Jedis.html get(String key) method.
+	public static final String NIL = "nil";
+	
 	public static final String OK = "OK";
 	public static final String NOK = "NOK";
 
@@ -49,7 +52,7 @@ public class TokenCacheDAO {
 			String tokenToString = redisClient.get(tokenValue);
 			returnResource(redisClient);
 
-			if (StringValidator.isValidString(tokenToString)) {
+			if (StringValidator.isValidString(tokenToString) && !tokenToString.equalsIgnoreCase(NIL)) {
 
 				token = Token.buildTokenFromTokenToString(tokenToString);
 			}
@@ -82,7 +85,7 @@ public class TokenCacheDAO {
 			String tokenToString = redisClient.get(userOrganization);
 			returnResource(redisClient);
 
-			if (StringValidator.isValidString(tokenToString)) {
+			if (StringValidator.isValidString(tokenToString) && !tokenToString.equalsIgnoreCase(NIL)) {
 
 				token = Token.buildTokenFromTokenToString(tokenToString);
 			}
