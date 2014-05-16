@@ -11,7 +11,7 @@ import org.skife.jdbi.v2.exceptions.UnableToExecuteStatementException;
 
 public class TokenBusiness {
 
-	public static final String INTERNAL_API_CLIENT_ROLE = "MODULE";
+	public static final String INTERNAL_API_CLIENT_ROLE = "module";
 
 	private final ITokenDAO tokenDAO;
 	private final TokenCacheDAO tokenCacheDao;
