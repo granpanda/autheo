@@ -19,6 +19,8 @@ public class TokenBusiness {
 	public TokenBusiness(ITokenDAO tokenDAO, TokenCacheDAO tokenCacheDao) {
 
 		this.tokenDAO = tokenDAO;
+		this.tokenDAO.createTokensTableIfNotExists();
+		
 		this.tokenCacheDao = tokenCacheDao;
 	}
 

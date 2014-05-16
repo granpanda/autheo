@@ -18,6 +18,11 @@ public class RedisConfig extends Configuration {
 	@NotEmpty
     @JsonProperty
 	private int port;
+	
+	@NotNull
+	@NotEmpty
+    @JsonProperty
+	private int database;
 
 	public String getHost() {
 		return host;
@@ -25,5 +30,9 @@ public class RedisConfig extends Configuration {
 
 	public int getPort() {
 		return port;
+	}
+
+	public int getDatabase() {
+		return database;
 	}
 }

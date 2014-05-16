@@ -21,6 +21,7 @@ import org.skife.jdbi.v2.DBI;
 
 import redis.clients.jedis.JedisPool;
 import redis.clients.jedis.JedisPoolConfig;
+import redis.clients.jedis.Protocol;
 
 import com.wordnik.swagger.config.ConfigFactory;
 import com.wordnik.swagger.config.ScannerFactory;
@@ -54,10 +55,10 @@ public class Autheo extends Service<AutheoConfig> {
 		bootstrap.addBundle(new DBIExceptionsBundle());
 	}
 
-	private JedisPool getRedisPoolInstance(AutheoConfig autheoConfig) {
+	private JedisPool getRedisPoolInstance(RedisConfig redisConfig) {
 
-		RedisConfig redisConfig = autheoConfig.getRedisConfig();
-		JedisPool jedisPool = new JedisPool(new JedisPoolConfig(), redisConfig.getHost(), redisConfig.getPort());
+		JedisPool jedisPool = new JedisPool(new JedisPoolConfig(), redisConfig.getHost(), redisConfig.getPort(), 
+				Protocol.DEFAULT_TIMEOUT, null, redisConfig.getDatabase());
 
 		return jedisPool;
 	}
@@ -149,7 +150,7 @@ public class Autheo extends Service<AutheoConfig> {
 		final DBI jdbi = getJDBIInstance(autheoConfig, environment);
 
 		// Initialize Redis
-		JedisPool jedisPool = getRedisPoolInstance(autheoConfig);
+		JedisPool jedisPool = getRedisPoolInstance(autheoConfig.getRedisConfig());
 
 		// Add Permission resource to the environment.
 		PermissionResource permissionResource = getPermissionResource(jdbi);
