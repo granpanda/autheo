@@ -1,6 +1,7 @@
 package gp.e3.autheo.authorization.service;
 
 import static org.junit.Assert.assertEquals;
+import gp.e3.autheo.authentication.domain.business.constants.TokenTypes;
 import gp.e3.autheo.authentication.domain.entities.Token;
 import gp.e3.autheo.authentication.domain.entities.User;
 import gp.e3.autheo.authorization.domain.business.TicketBusiness;
@@ -43,7 +44,7 @@ public class TicketResourceTest extends ResourceTest {
 		Ticket ticket = TicketFactoryForTests.getDefaultTestTicket();
 		
 		User user = UserFactoryForTests.getDefaultTestUser();
-		Token token = new Token(ticket.getTokenValue(), user.getUsername(), user.getOrganizationId(), user.getRoleId());
+		Token token = new Token(ticket.getTokenValue(), user.getUsername(), user.getOrganizationId(), user.getRoleId(), TokenTypes.TEMPORAL_TOKEN_TYPE.getTypeNumber());
 		
 		Mockito.when(ticketBusinessMock.tokenWasIssuedByUs((Ticket) Mockito.any())).thenReturn(token);
 		Mockito.when(ticketBusinessMock.userIsAuthorized((Ticket) Mockito.any())).thenReturn(true);
@@ -60,7 +61,7 @@ public class TicketResourceTest extends ResourceTest {
 		Ticket ticket = TicketFactoryForTests.getDefaultTestTicket();
 		
 		User user = UserFactoryForTests.getDefaultTestUser();
-		Token token = new Token(ticket.getTokenValue(), user.getUsername(), user.getOrganizationId(), user.getRoleId());
+		Token token = new Token(ticket.getTokenValue(), user.getUsername(), user.getOrganizationId(), user.getRoleId(), TokenTypes.TEMPORAL_TOKEN_TYPE.getTypeNumber());
 		
 		Mockito.when(ticketBusinessMock.tokenWasIssuedByUs((Ticket) Mockito.any())).thenReturn(token);
 		Mockito.when(ticketBusinessMock.userIsAuthorized((Ticket) Mockito.any())).thenReturn(false);

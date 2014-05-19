@@ -1,22 +1,18 @@
 package gp.e3.autheo.authentication.persistence.mappers;
 
+import gp.e3.autheo.authentication.domain.entities.Token;
+import gp.e3.autheo.authentication.persistence.daos.TokenDAO;
+
 import java.sql.ResultSet;
 import java.sql.SQLException;
 
-import gp.e3.autheo.authentication.domain.entities.Token;
-import gp.e3.autheo.authentication.persistence.daos.ITokenDAO;
+public class TokenMapper {
 
-import org.skife.jdbi.v2.StatementContext;
-import org.skife.jdbi.v2.tweak.ResultSetMapper;
-
-public class TokenMapper implements ResultSetMapper<Token> {
-
-	@Override
-	public Token map(int index, ResultSet resultSet, StatementContext context) throws SQLException {
+	public static Token map(ResultSet resultSet) throws SQLException {
 		
-		Token token = new Token(resultSet.getString(ITokenDAO.TOKEN_VALUE_FIELD), resultSet.getString(ITokenDAO.USERNAME_FIELD), 
-				resultSet.getString(ITokenDAO.ORGANIZATION_ID_FIELD), resultSet.getString(ITokenDAO.ROLE_ID_FIELD));
+		Token retrievedToken = new Token(resultSet.getString(TokenDAO.TOKEN_VALUE_FIELD), resultSet.getString(TokenDAO.USERNAME_FIELD), 
+				resultSet.getString(TokenDAO.ORGANIZATION_ID_FIELD), resultSet.getString(TokenDAO.ROLE_ID_FIELD), resultSet.getInt(TokenDAO.TOKEN_TYPE));
 		
-		return token;
+		return retrievedToken;
 	}
 }

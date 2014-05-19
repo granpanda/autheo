@@ -3,6 +3,7 @@ package gp.e3.autheo.authorization.domain.business;
 import static org.junit.Assert.*;
 import gp.e3.autheo.authentication.domain.business.TokenBusiness;
 import gp.e3.autheo.authentication.domain.business.TokenFactory;
+import gp.e3.autheo.authentication.domain.business.constants.TokenTypes;
 import gp.e3.autheo.authentication.domain.entities.Token;
 import gp.e3.autheo.authentication.domain.entities.User;
 import gp.e3.autheo.authentication.domain.exceptions.TokenGenerationException;
@@ -50,7 +51,7 @@ public class TicketBusinessTest {
 		Ticket ticket = TicketFactoryForTests.getDefaultTestTicket();
 
 		User user = UserFactoryForTests.getDefaultTestUser();
-		Token token = new Token(ticket.getTokenValue(), user.getUsername(), user.getOrganizationId(), user.getRoleId());
+		Token token = new Token(ticket.getTokenValue(), user.getUsername(), user.getOrganizationId(), user.getRoleId(), TokenTypes.TEMPORAL_TOKEN_TYPE.getTypeNumber());
 
 		Mockito.when(tokenBusinessMock.getToken(ticket.getTokenValue())).thenReturn(token);
 
@@ -74,7 +75,7 @@ public class TicketBusinessTest {
 		}
 
 		// The token value in the ticket is different than the token value of the token object. 
-		Token token = new Token(tokenValue, user.getUsername(), user.getOrganizationId(), user.getRoleId());
+		Token token = new Token(tokenValue, user.getUsername(), user.getOrganizationId(), user.getRoleId(), TokenTypes.TEMPORAL_TOKEN_TYPE.getTypeNumber());
 
 		Mockito.when(tokenBusinessMock.getToken(ticket.getTokenValue())).thenReturn(token);
 
@@ -105,7 +106,7 @@ public class TicketBusinessTest {
 		Ticket ticket = TicketFactoryForTests.getDefaultTestTicket();
 
 		User user = UserFactoryForTests.getDefaultTestUser();
-		Token token = new Token(ticket.getTokenValue(), user.getUsername(), user.getOrganizationId(), user.getRoleId());
+		Token token = new Token(ticket.getTokenValue(), user.getUsername(), user.getOrganizationId(), user.getRoleId(), TokenTypes.TEMPORAL_TOKEN_TYPE.getTypeNumber());
 
 		String roleName = token.getUserRole();
 
@@ -134,7 +135,7 @@ public class TicketBusinessTest {
 		Ticket ticket = TicketFactoryForTests.getDefaultTestTicket();
 
 		User user = UserFactoryForTests.getDefaultTestUser();
-		Token token = new Token(ticket.getTokenValue(), user.getUsername(), user.getOrganizationId(), user.getRoleId());
+		Token token = new Token(ticket.getTokenValue(), user.getUsername(), user.getOrganizationId(), user.getRoleId(), TokenTypes.TEMPORAL_TOKEN_TYPE.getTypeNumber());
 
 		String roleName = token.getUserRole();
 
@@ -167,7 +168,7 @@ public class TicketBusinessTest {
 		Ticket ticket = TicketFactoryForTests.getDefaultTestTicket();
 
 		User user = UserFactoryForTests.getDefaultTestUser();
-		Token token = new Token(ticket.getTokenValue(), user.getUsername(), user.getOrganizationId(), user.getRoleId());
+		Token token = new Token(ticket.getTokenValue(), user.getUsername(), user.getOrganizationId(), user.getRoleId(), TokenTypes.TEMPORAL_TOKEN_TYPE.getTypeNumber());
 
 		String roleName = token.getUserRole();
 
@@ -188,7 +189,7 @@ public class TicketBusinessTest {
 		Ticket ticket = TicketFactoryForTests.getDefaultTestTicket();
 
 		User user = UserFactoryForTests.getDefaultTestUser();
-		Token token = new Token(ticket.getTokenValue(), user.getUsername(), user.getOrganizationId(), user.getRoleId());
+		Token token = new Token(ticket.getTokenValue(), user.getUsername(), user.getOrganizationId(), user.getRoleId(), TokenTypes.TEMPORAL_TOKEN_TYPE.getTypeNumber());
 
 		String roleName = token.getUserRole();
 

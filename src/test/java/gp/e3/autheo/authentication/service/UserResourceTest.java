@@ -5,6 +5,7 @@ import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.fail;
 import gp.e3.autheo.authentication.domain.business.TokenBusiness;
 import gp.e3.autheo.authentication.domain.business.UserBusiness;
+import gp.e3.autheo.authentication.domain.business.constants.TokenTypes;
 import gp.e3.autheo.authentication.domain.entities.Token;
 import gp.e3.autheo.authentication.domain.entities.User;
 import gp.e3.autheo.authentication.domain.exceptions.TokenGenerationException;
@@ -94,7 +95,7 @@ public class UserResourceTest extends ResourceTest {
 			User user = UserFactoryForTests.getDefaultTestUser();
 
 			String tokenValue = "Hello!123";
-			Token testingToken = new Token(tokenValue, user.getUsername(), user.getOrganizationId(), user.getRoleId());
+			Token testingToken = new Token(tokenValue, user.getUsername(), user.getOrganizationId(), user.getRoleId(), TokenTypes.TEMPORAL_TOKEN_TYPE.getTypeNumber());
 
 			Mockito.when(userBusinessMock.authenticateUser(Mockito.anyString(), Mockito.anyString())).thenReturn(true);
 			Mockito.when(tokenBusinessMock.generateToken((User) Mockito.any())).thenReturn(testingToken);
@@ -126,7 +127,7 @@ public class UserResourceTest extends ResourceTest {
 			User user = UserFactoryForTests.getDefaultTestUser();
 
 			String tokenValue = "Hello!123";
-			Token testingToken = new Token(tokenValue, user.getUsername(), user.getOrganizationId(), user.getRoleId());
+			Token testingToken = new Token(tokenValue, user.getUsername(), user.getOrganizationId(), user.getRoleId(), TokenTypes.TEMPORAL_TOKEN_TYPE.getTypeNumber());
 
 			// The user is not authenticated.
 			Mockito.when(userBusinessMock.authenticateUser(Mockito.anyString(), Mockito.anyString())).thenReturn(false);
@@ -154,7 +155,7 @@ public class UserResourceTest extends ResourceTest {
 			User user = UserFactoryForTests.getDefaultTestUser();
 
 			String tokenValue = "Hello!123";
-			Token testingToken = new Token(tokenValue, user.getUsername(), user.getOrganizationId(), user.getRoleId());
+			Token testingToken = new Token(tokenValue, user.getUsername(), user.getOrganizationId(), user.getRoleId(), TokenTypes.TEMPORAL_TOKEN_TYPE.getTypeNumber());
 
 			// The user is not authenticated.
 			Mockito.when(userBusinessMock.authenticateUser(Mockito.anyString(), Mockito.anyString())).thenReturn(false);

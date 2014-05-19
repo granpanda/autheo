@@ -49,7 +49,8 @@ public class TokenDTO {
 	public static Token buildTokenFromTokenToString(String tokenToString) {
 
 		String[] tokenAttributes = tokenToString.split(ATTRIBUTE_SEPATATOR);
-		return new Token(tokenAttributes[0], tokenAttributes[1], tokenAttributes[2], tokenAttributes[3]);
+		int tokenType = Integer.parseInt(tokenAttributes[4]);
+		return new Token(tokenAttributes[0], tokenAttributes[1], tokenAttributes[2], tokenAttributes[3], tokenType);
 	}
 
 	public static TokenDTO buildTokenDTOFromTokenToString(String tokenToString) {

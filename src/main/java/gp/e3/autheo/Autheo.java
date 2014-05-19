@@ -3,9 +3,9 @@ package gp.e3.autheo;
 import gp.e3.autheo.authentication.domain.business.TokenBusiness;
 import gp.e3.autheo.authentication.domain.business.UserBusiness;
 import gp.e3.autheo.authentication.infrastructure.RedisConfig;
-import gp.e3.autheo.authentication.persistence.daos.ITokenDAO;
 import gp.e3.autheo.authentication.persistence.daos.IUserDAO;
 import gp.e3.autheo.authentication.persistence.daos.TokenCacheDAO;
+import gp.e3.autheo.authentication.persistence.daos.TokenDAO;
 import gp.e3.autheo.authentication.service.resources.UserResource;
 import gp.e3.autheo.authorization.domain.business.PermissionBusiness;
 import gp.e3.autheo.authorization.domain.business.RoleBusiness;
@@ -16,6 +16,7 @@ import gp.e3.autheo.authorization.service.PermissionResource;
 import gp.e3.autheo.authorization.service.RoleResource;
 import gp.e3.autheo.authorization.service.TicketResource;
 
+import org.apache.commons.dbcp2.BasicDataSource;
 import org.eclipse.jetty.servlets.CrossOriginFilter;
 import org.skife.jdbi.v2.DBI;
 
@@ -35,6 +36,7 @@ import com.wordnik.swagger.reader.ClassReaders;
 import com.yammer.dropwizard.Service;
 import com.yammer.dropwizard.config.Bootstrap;
 import com.yammer.dropwizard.config.Environment;
+import com.yammer.dropwizard.db.DatabaseConfiguration;
 import com.yammer.dropwizard.jdbi.DBIFactory;
 import com.yammer.dropwizard.jdbi.bundles.DBIExceptionsBundle;
 
@@ -91,25 +93,41 @@ public class Autheo extends Service<AutheoConfig> {
 
 		return new RoleResource(roleBusiness);
 	}
+	
+	private BasicDataSource getInitializedDataSource(DatabaseConfiguration mySqlConfig) {
+		
+		BasicDataSource basicDataSource = new BasicDataSource();
 
-	private UserResource getUserResource(DBI jdbi, JedisPool jedisPool) 
+		basicDataSource.setDriverClassName(mySqlConfig.getDriverClass());
+		basicDataSource.setUrl(mySqlConfig.getUrl());
+		basicDataSource.setUsername(mySqlConfig.getUser());
+		basicDataSource.setPassword(mySqlConfig.getPassword());
+
+		// int maxValue = 100;
+		// basicDataSource.setMaxIdle(maxValue);
+		// basicDataSource.setMaxTotal(maxValue);
+
+		return basicDataSource;
+	}
+
+	private UserResource getUserResource(BasicDataSource dataSource, DBI jdbi, JedisPool jedisPool) 
 			throws ClassNotFoundException {
 
 		final IUserDAO userDAO = jdbi.onDemand(IUserDAO.class);
 		final UserBusiness userBusiness = new UserBusiness(userDAO);
 
-		ITokenDAO tokenDAO = jdbi.onDemand(ITokenDAO.class);
+		TokenDAO tokenDAO = new TokenDAO();
 		TokenCacheDAO tokenCacheDao = new TokenCacheDAO(jedisPool);
-		TokenBusiness tokenBusiness = new TokenBusiness(tokenDAO, tokenCacheDao);
+		TokenBusiness tokenBusiness = new TokenBusiness(dataSource, tokenDAO, tokenCacheDao);
 
 		return new UserResource(userBusiness, tokenBusiness);
 	}
 
-	private TicketResource getTicketResource(final DBI jdbi, JedisPool jedisPool) {
+	private TicketResource getTicketResource(BasicDataSource dataSource, DBI jdbi, JedisPool jedisPool) {
 
-		ITokenDAO tokenDAO = jdbi.onDemand(ITokenDAO.class);
+		TokenDAO tokenDAO = new TokenDAO();
 		TokenCacheDAO tokenCacheDao = new TokenCacheDAO(jedisPool);
-		TokenBusiness tokenBusiness = new TokenBusiness(tokenDAO, tokenCacheDao);
+		TokenBusiness tokenBusiness = new TokenBusiness(dataSource, tokenDAO, tokenCacheDao);
 
 		IRoleDAO roleDao = jdbi.onDemand(IRoleDAO.class);
 		IPermissionDAO permissionDao = jdbi.onDemand(IPermissionDAO.class);
@@ -159,13 +177,16 @@ public class Autheo extends Service<AutheoConfig> {
 		// Add Role resource to the environment.
 		RoleResource roleResource = getRoleResource(jdbi, jedisPool);
 		environment.addResource(roleResource);
+		
+		// Initialize data source.
+		BasicDataSource dataSource = getInitializedDataSource(autheoConfig.getMySqlConfig());
 
 		// Add user resource to the environment.
-		UserResource userResource = getUserResource(jdbi, jedisPool);
+		UserResource userResource = getUserResource(dataSource, jdbi, jedisPool);
 		environment.addResource(userResource);
 
 		// Add ticket resource to the environment.
-		TicketResource ticketResource = getTicketResource(jdbi, jedisPool);
+		TicketResource ticketResource = getTicketResource(dataSource, jdbi, jedisPool);
 		environment.addResource(ticketResource);
 
 		// Swagger stuff.

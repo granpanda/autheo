@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import gp.e3.autheo.authentication.domain.business.TokenFactory;
+import gp.e3.autheo.authentication.domain.business.constants.TokenTypes;
 import gp.e3.autheo.authentication.domain.entities.Token;
 import gp.e3.autheo.authentication.domain.entities.User;
 import gp.e3.autheo.authentication.domain.exceptions.TokenGenerationException;
@@ -18,7 +19,7 @@ public class TokenFactoryForTests {
 
 			User user = UserFactoryForTests.getDefaultTestUser();
 			String tokenValue = TokenFactory.getToken(user);
-			token = new Token(tokenValue, user.getUsername(), user.getOrganizationId(), user.getRoleId());
+			token = new Token(tokenValue, user.getUsername(), user.getOrganizationId(), user.getRoleId(), TokenTypes.TEMPORAL_TOKEN_TYPE.getTypeNumber());
 
 		} catch (IllegalArgumentException | TokenGenerationException e) {
 
@@ -36,7 +37,7 @@ public class TokenFactoryForTests {
 
 			User user = UserFactoryForTests.getDefaultTestUser(number);
 			String tokenValue = TokenFactory.getToken(user);
-			token = new Token(tokenValue, user.getUsername(), user.getOrganizationId(), user.getRoleId());
+			token = new Token(tokenValue, user.getUsername(), user.getOrganizationId(), user.getRoleId(), TokenTypes.TEMPORAL_TOKEN_TYPE.getTypeNumber());
 
 		} catch (IllegalArgumentException | TokenGenerationException e) {
 

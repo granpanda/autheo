@@ -2,6 +2,7 @@ package gp.e3.autheo.authentication.persistence.daos;
 
 import static org.junit.Assert.*;
 import gp.e3.autheo.authentication.domain.business.TokenFactory;
+import gp.e3.autheo.authentication.domain.business.constants.TokenTypes;
 import gp.e3.autheo.authentication.domain.entities.Token;
 import gp.e3.autheo.authentication.domain.entities.User;
 import gp.e3.autheo.authentication.domain.exceptions.TokenGenerationException;
@@ -53,7 +54,7 @@ public class TokenCacheDAOTest {
 			User user = UserFactoryForTests.getDefaultTestUser();
 			
 			String tokenValue = TokenFactory.getToken(user);
-			Token token = new Token(tokenValue, user.getUsername(), user.getOrganizationId(), user.getRoleId());
+			Token token = new Token(tokenValue, user.getUsername(), user.getOrganizationId(), user.getRoleId(), TokenTypes.TEMPORAL_TOKEN_TYPE.getTypeNumber());
 			String returnValue = "OK";
 			
 			Mockito.when(redisMock.set(token.getTokenValue(), token.toString())).thenReturn(returnValue);
@@ -77,7 +78,7 @@ public class TokenCacheDAOTest {
 			User user = UserFactoryForTests.getDefaultTestUser();
 			
 			String tokenValue = TokenFactory.getToken(user);
-			Token token = new Token(tokenValue, null, user.getOrganizationId(), user.getRoleId());
+			Token token = new Token(tokenValue, null, user.getOrganizationId(), user.getRoleId(), TokenTypes.TEMPORAL_TOKEN_TYPE.getTypeNumber());
 			
 			TokenCacheDAO tokenDao = new TokenCacheDAO(redisPoolMock);
 			assertEquals(false, tokenDao.addTokenUsingTokenValueAsKey(token));
@@ -95,7 +96,7 @@ public class TokenCacheDAOTest {
 			
 			User user = UserFactoryForTests.getDefaultTestUser();
 			String tokenValue = TokenFactory.getToken(user);
-			Token token = new Token(tokenValue, user.getUsername(), user.getOrganizationId(), user.getRoleId());
+			Token token = new Token(tokenValue, user.getUsername(), user.getOrganizationId(), user.getRoleId(), TokenTypes.TEMPORAL_TOKEN_TYPE.getTypeNumber());
 			
 			Mockito.when(redisMock.get(token.getTokenValue())).thenReturn(token.toString());
 			
@@ -117,7 +118,7 @@ public class TokenCacheDAOTest {
 			
 			User user = UserFactoryForTests.getDefaultTestUser();
 			String tokenValue = TokenFactory.getToken(user);
-			Token token = new Token(tokenValue, user.getUsername(), user.getOrganizationId(), user.getRoleId());
+			Token token = new Token(tokenValue, user.getUsername(), user.getOrganizationId(), user.getRoleId(), TokenTypes.TEMPORAL_TOKEN_TYPE.getTypeNumber());
 			
 			Mockito.when(redisMock.get(token.getTokenValue())).thenReturn(token.toString());
 			

@@ -14,16 +14,18 @@ public class Token implements Comparable<Token> {
 	private final String username;
 	private final String userOrganization;
 	private final String userRole; 
+	private final int tokenType;
 
 	@JsonCreator
 	public Token(@JsonProperty("tokenValue") String tokenValue, @JsonProperty("username") String username, 
-				 @JsonProperty("userOrganization") String userOrganization, 
-				 @JsonProperty("userRole") String userRole) {
+				 @JsonProperty("userOrganization") String userOrganization, @JsonProperty("userRole") String userRole,
+				 @JsonProperty("tokenType") int tokenType) {
 		
 		this.tokenValue = tokenValue;
 		this.username = username;
 		this.userOrganization = userOrganization;
 		this.userRole = userRole;
+		this.tokenType = tokenType;
 	}
 
 	public String getTokenValue() {
@@ -42,19 +44,26 @@ public class Token implements Comparable<Token> {
 		return userRole;
 	}
 
+	public int getTokenType() {
+		return tokenType;
+	}
+
 	public static boolean isAValidToken(Token token) {
 
 		return (token != null) && 
 				StringValidator.isValidString(token.getTokenValue()) && 
 				StringValidator.isValidString(token.getUsername()) && 
 				StringValidator.isValidString(token.getUserOrganization()) && 
-				StringValidator.isValidString(token.getUserRole());
+				StringValidator.isValidString(token.getUserRole()) && 
+				(token.getTokenType() > 0);
 	}
 	
 	public static Token buildTokenFromTokenToString(String tokenToString) {
 		
 		String[] tokenAttributes = tokenToString.split(ATTRIBUTE_SEPATATOR);
-		return new Token(tokenAttributes[0], tokenAttributes[1], tokenAttributes[2], tokenAttributes[3]);
+		int tokenType = Integer.parseInt(tokenAttributes[4]);
+		
+		return new Token(tokenAttributes[0], tokenAttributes[1], tokenAttributes[2], tokenAttributes[3], tokenType);
 	}
 
 	@Override
@@ -66,6 +75,7 @@ public class Token implements Comparable<Token> {
 		answer += this.username.compareTo(token.getUsername());
 		answer += this.userOrganization.compareTo(token.getUserOrganization());
 		answer += this.userRole.compareTo(token.getUserRole());
+		answer += (this.tokenType == token.getTokenType()? 0 : 1);
 
 		return answer;
 	}
@@ -74,6 +84,6 @@ public class Token implements Comparable<Token> {
 	public String toString() {
 		
 		return tokenValue + ATTRIBUTE_SEPATATOR + username + ATTRIBUTE_SEPATATOR + userOrganization
-				+ ATTRIBUTE_SEPATATOR + userRole;
+				+ ATTRIBUTE_SEPATATOR + userRole + ATTRIBUTE_SEPATATOR + tokenType;
 	}
 }
