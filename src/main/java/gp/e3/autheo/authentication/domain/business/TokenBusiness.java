@@ -27,7 +27,12 @@ public class TokenBusiness {
 		List<Token> tokens = tokenDAO.getAllTokens(dbConnection);
 
 		for (Token tokenFromDb : tokens) {
-			tokenCacheDao.addTokenUsingOrganizationAsKey(tokenFromDb);
+			
+			tokenCacheDao.addTokenUsingTokenValueAsKey(tokenFromDb);
+				
+			if (tokenFromDb.getTokenType() == TokenTypes.INTERNAL_API_TOKEN_TYPE.getTypeNumber()) {
+				tokenCacheDao.addTokenUsingOrganizationAsKey(tokenFromDb);
+			}
 		}
 	}
 
@@ -87,6 +92,7 @@ public class TokenBusiness {
 					// Generate internal token
 					Token internalToken = generateRandomTokenFromUserInfo(user, INTERNAL_API_CLIENT_ROLE, TokenTypes.INTERNAL_API_TOKEN_TYPE.getTypeNumber());
 					tokenDAO.createToken(dbConnection, internalToken);
+					tokenCacheDao.addTokenUsingTokenValueAsKey(internalToken);
 					tokenCacheDao.addTokenUsingOrganizationAsKey(internalToken);
 					
 					dbConnection.close();
@@ -122,13 +128,13 @@ public class TokenBusiness {
 					Connection dbConnection = dataSource.getConnection();
 					updateTokensCache(dbConnection);
 					dbConnection.close();
+					
+					token = tokenCacheDao.getTokenByTokenValue(tokenValue);
 
 				} catch (SQLException e) {
 
 					e.printStackTrace();
 				}
-
-				token = tokenCacheDao.getTokenByTokenValue(tokenValue);
 			}
 		}
 
