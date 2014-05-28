@@ -4,7 +4,7 @@ import gp.e3.autheo.authentication.infrastructure.validators.StringValidator;
 
 public class HttpVerbValidator {
 
-	private static final String[] VALID_HTTP_VERBS = { "OPTIONS", "GET", "POST", "PUT", "DELETE" };
+	private static final String[] VALID_HTTP_VERBS = { "OPTIONS", "GET", "POST", "PUT", "DELETE", "PATCH", "HEAD"};
 
 	public static boolean isValidHttpVerb(String httpVerb) {
 
