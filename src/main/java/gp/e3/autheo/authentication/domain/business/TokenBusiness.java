@@ -23,7 +23,9 @@ public class TokenBusiness {
 	private final TokenDAO tokenDAO;
 	private final TokenCacheDAO tokenCacheDao;
 
-	private void updateTokensCache(Connection dbConnection) throws SQLException {
+	public void updateTokensCache() throws SQLException {
+
+		Connection dbConnection = dataSource.getConnection();
 
 		List<Token> tokens = tokenDAO.getAllTokens(dbConnection);
 
@@ -35,6 +37,8 @@ public class TokenBusiness {
 				tokenCacheDao.addTokenUsingOrganizationAsKey(tokenFromDb);
 			}
 		}
+
+		dbConnection.close();
 	}
 
 	public TokenBusiness(BasicDataSource basicDataSource, TokenDAO tokenDAO, TokenCacheDAO tokenCacheDao) {
@@ -48,8 +52,8 @@ public class TokenBusiness {
 		try {
 			dbConnection = dataSource.getConnection();
 			this.tokenDAO.createTokensTableIfNotExists(dbConnection);
-			updateTokensCache(dbConnection);
-			
+			updateTokensCache();
+
 		} catch (Exception e) {
 			e.printStackTrace();
 		} finally {
@@ -134,13 +138,13 @@ public class TokenBusiness {
 			token = tokenCacheDao.getTokenByTokenValue(tokenValue);
 
 			if (token == null) {
-				
+
 				Connection dbConnection = null;
 
 				try {
 
 					dbConnection = dataSource.getConnection();
-					updateTokensCache(dbConnection);
+					updateTokensCache();
 					dbConnection.close();
 
 					token = tokenCacheDao.getTokenByTokenValue(tokenValue);
@@ -148,9 +152,9 @@ public class TokenBusiness {
 				} catch (SQLException e) {
 
 					e.printStackTrace();
-					
+
 				} finally {
-					
+
 					SqlUtils.closeDbConnection(dbConnection);
 				}
 			}
