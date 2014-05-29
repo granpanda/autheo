@@ -23,15 +23,9 @@ import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
-import com.wordnik.swagger.annotations.Api;
-import com.wordnik.swagger.annotations.ApiOperation;
-import com.wordnik.swagger.annotations.ApiResponse;
-import com.wordnik.swagger.annotations.ApiResponses;
-
 @Path("/users")
 @Consumes(MediaType.APPLICATION_JSON)
 @Produces(MediaType.APPLICATION_JSON)
-@Api(value = "/users", description = "User related operations")
 public class UserResource {
 
 	private final UserBusiness userBusiness;
@@ -44,11 +38,6 @@ public class UserResource {
 	}
 
 	@POST
-	@ApiOperation(value = "Create a new user.", response = User.class)
-	@ApiResponses(value = {
-			@ApiResponse(code = 401, message = "The user is unauthorized."),
-			@ApiResponse(code = 403, message = "The user is forbidden.")
-	})
 	public Response createUser(User newUser) {
 
 		Response response = null;
@@ -75,8 +64,6 @@ public class UserResource {
 
 	@POST
 	@Path("/token")
-	@ApiOperation(value = "Authenticate a user.", response = String.class)
-	@ApiResponses(@ApiResponse(code = 401, message = "The user is unauthorized."))
 	public Response authenticateUser(User user) {
 
 		Response response = null;
@@ -115,11 +102,6 @@ public class UserResource {
 
 	@GET
 	@Path("/{username}")
-	@ApiOperation(value = "Get a user by username.", response = User.class)
-	@ApiResponses(value = {
-			@ApiResponse(code = 401, message = "The user is unauthorized."),
-			@ApiResponse(code = 403, message = "The user is forbidden.")
-	})
 	public Response getUserByUsername(@PathParam("username") String username) {
 
 		Response response = null;
@@ -146,11 +128,6 @@ public class UserResource {
 
 	@PUT
 	@Path("/{username}")
-	@ApiOperation(value = "Update a user given its username.")
-	@ApiResponses(value = {
-			@ApiResponse(code = 401, message = "The user is unauthorized."),
-			@ApiResponse(code = 403, message = "The user is forbidden.")
-	})
 	public Response updateUser(@PathParam("username") String username, User updatedUser) {
 
 		boolean updatedUserIsValid = (updatedUser != null) && StringValidator.isValidString(updatedUser.getName()) && 
@@ -173,11 +150,6 @@ public class UserResource {
 
 	@DELETE
 	@Path("/{username}")
-	@ApiOperation(value = "Delete a user given its username.")
-	@ApiResponses(value = {
-			@ApiResponse(code = 401, message = "The user is unauthorized."),
-			@ApiResponse(code = 403, message = "The user is forbidden.")
-	})
 	public Response deleteUser(@PathParam("username") String username) {
 		
 		Response response = null;
