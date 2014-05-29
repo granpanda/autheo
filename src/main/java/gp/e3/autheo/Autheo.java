@@ -6,6 +6,7 @@ import gp.e3.autheo.authentication.infrastructure.RedisConfig;
 import gp.e3.autheo.authentication.persistence.daos.IUserDAO;
 import gp.e3.autheo.authentication.persistence.daos.TokenCacheDAO;
 import gp.e3.autheo.authentication.persistence.daos.TokenDAO;
+import gp.e3.autheo.authentication.service.resources.TokenResource;
 import gp.e3.autheo.authentication.service.resources.UserResource;
 import gp.e3.autheo.authorization.domain.business.PermissionBusiness;
 import gp.e3.autheo.authorization.domain.business.RoleBusiness;
@@ -109,6 +110,15 @@ public class Autheo extends Service<AutheoConfig> {
 
 		return basicDataSource;
 	}
+	
+	private TokenResource getTokenResource(BasicDataSource dataSource, JedisPool jedisPool) {
+		
+		TokenDAO tokenDAO = new TokenDAO();
+		TokenCacheDAO tokenCacheDao = new TokenCacheDAO(jedisPool);
+		TokenBusiness tokenBusiness = new TokenBusiness(dataSource, tokenDAO, tokenCacheDao);
+		
+		return new TokenResource(tokenBusiness);
+	}
 
 	private UserResource getUserResource(BasicDataSource dataSource, DBI jdbi, JedisPool jedisPool) 
 			throws ClassNotFoundException {
@@ -181,6 +191,10 @@ public class Autheo extends Service<AutheoConfig> {
 		// Initialize data source.
 		BasicDataSource dataSource = getInitializedDataSource(autheoConfig.getMySqlConfig());
 
+		// Add token resource to the environment.
+		TokenResource tokenResource = getTokenResource(dataSource, jedisPool);
+		environment.addResource(tokenResource);
+		
 		// Add user resource to the environment.
 		UserResource userResource = getUserResource(dataSource, jdbi, jedisPool);
 		environment.addResource(userResource);

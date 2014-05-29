@@ -139,24 +139,13 @@ public class TokenBusiness {
 
 			if (token == null) {
 
-				Connection dbConnection = null;
-
 				try {
-
-					dbConnection = dataSource.getConnection();
 					updateTokensCache();
-					dbConnection.close();
-
-					token = tokenCacheDao.getTokenByTokenValue(tokenValue);
-
 				} catch (SQLException e) {
-
 					e.printStackTrace();
-
-				} finally {
-
-					SqlUtils.closeDbConnection(dbConnection);
 				}
+				
+				token = tokenCacheDao.getTokenByTokenValue(tokenValue);
 			}
 		}
 
