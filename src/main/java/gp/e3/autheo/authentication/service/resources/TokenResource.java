@@ -1,11 +1,11 @@
 package gp.e3.autheo.authentication.service.resources;
 
-import java.sql.SQLException;
-
 import gp.e3.autheo.authentication.domain.business.TokenBusiness;
 
+import java.sql.SQLException;
+
 import javax.ws.rs.Consumes;
-import javax.ws.rs.POST;
+import javax.ws.rs.PUT;
 import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
@@ -22,7 +22,7 @@ public class TokenResource {
 		this.tokenBusiness = tokenBusiness;
 	}
 
-	@POST
+	@PUT
 	public Response updateTokensCache() {
 		
 		Response response = null;

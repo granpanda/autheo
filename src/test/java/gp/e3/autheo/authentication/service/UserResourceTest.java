@@ -22,20 +22,26 @@ import org.junit.Test;
 import org.mockito.Mockito;
 
 import com.sun.jersey.api.client.ClientResponse;
+import com.sun.jersey.api.client.WebResource.Builder;
 import com.yammer.dropwizard.testing.ResourceTest;
 
 public class UserResourceTest extends ResourceTest {
 
-	private UserBusiness userBusinessMock = Mockito.mock(UserBusiness.class);
-	private TokenBusiness tokenBusinessMock = Mockito.mock(TokenBusiness.class);
-
+	private UserBusiness userBusinessMock;
+	private TokenBusiness tokenBusinessMock;
 	private UserResource userResource;
 
 	@Override
 	protected void setUpResources() throws Exception {
 
+		userBusinessMock = Mockito.mock(UserBusiness.class);
+		tokenBusinessMock = Mockito.mock(TokenBusiness.class);
 		userResource = new UserResource(userBusinessMock, tokenBusinessMock);
 		addResource(userResource);
+	}
+	
+	private Builder getDefaultHttpRequest(String url) {
+		return client().resource(url).type(MediaType.APPLICATION_JSON).accept(MediaType.APPLICATION_JSON);
 	}
 
 	@Test
@@ -48,10 +54,7 @@ public class UserResourceTest extends ResourceTest {
 			Mockito.when(userBusinessMock.createUser(user)).thenReturn(user);
 
 			String url = "/users";
-			ClientResponse httpResponse = client().resource(url)
-					.type(MediaType.APPLICATION_JSON)
-					.accept(MediaType.APPLICATION_JSON)
-					.post(ClientResponse.class, user);
+			ClientResponse httpResponse = getDefaultHttpRequest(url).post(ClientResponse.class, user);
 
 			assertEquals(201, httpResponse.getStatus());
 
@@ -74,10 +77,7 @@ public class UserResourceTest extends ResourceTest {
 			Mockito.when(userBusinessMock.createUser(user)).thenReturn(user);
 
 			String url = "/users";
-			ClientResponse httpResponse = client().resource(url)
-					.type(MediaType.APPLICATION_JSON)
-					.accept(MediaType.APPLICATION_JSON)
-					.post(ClientResponse.class, user);
+			ClientResponse httpResponse = getDefaultHttpRequest(url).post(ClientResponse.class, user);
 
 			assertEquals(400, httpResponse.getStatus());
 
@@ -101,10 +101,7 @@ public class UserResourceTest extends ResourceTest {
 			Mockito.when(tokenBusinessMock.generateToken((User) Mockito.any())).thenReturn(testingToken);
 
 			String url = "/users/token";
-			ClientResponse httpResponse = client().resource(url)
-					.type(MediaType.APPLICATION_JSON)
-					.accept(MediaType.APPLICATION_JSON)
-					.post(ClientResponse.class, user);
+			ClientResponse httpResponse = getDefaultHttpRequest(url).post(ClientResponse.class, user);
 
 			assertEquals(201, httpResponse.getStatus());
 
@@ -134,10 +131,7 @@ public class UserResourceTest extends ResourceTest {
 			Mockito.when(tokenBusinessMock.generateToken((User) Mockito.any())).thenReturn(testingToken);
 
 			String url = "/users/token";
-			ClientResponse httpResponse = client().resource(url)
-					.type(MediaType.APPLICATION_JSON)
-					.accept(MediaType.APPLICATION_JSON)
-					.post(ClientResponse.class, user);
+			ClientResponse httpResponse = getDefaultHttpRequest(url).post(ClientResponse.class, user);
 
 			assertEquals(401, httpResponse.getStatus());
 
@@ -162,10 +156,7 @@ public class UserResourceTest extends ResourceTest {
 			Mockito.when(tokenBusinessMock.generateToken((User) Mockito.any())).thenReturn(testingToken);
 
 			String url = "/users/token";
-			ClientResponse httpResponse = client().resource(url)
-					.type(MediaType.APPLICATION_JSON)
-					.accept(MediaType.APPLICATION_JSON)
-					.post(ClientResponse.class, null); // Send a null user.
+			ClientResponse httpResponse = getDefaultHttpRequest(url).post(ClientResponse.class, null); // Send a null user.
 
 			assertEquals(400, httpResponse.getStatus());
 
@@ -184,10 +175,7 @@ public class UserResourceTest extends ResourceTest {
 		
 		String url = "/users/" + user.getUsername();
 		
-		ClientResponse httpResponse = client().resource(url)
-				.type(MediaType.APPLICATION_JSON)
-				.accept(MediaType.APPLICATION_JSON)
-				.get(ClientResponse.class);
+		ClientResponse httpResponse = getDefaultHttpRequest(url).get(ClientResponse.class);
 		
 		assertEquals(200, httpResponse.getStatus());
 		
@@ -205,10 +193,7 @@ public class UserResourceTest extends ResourceTest {
 		String emptyUsername = "";
 		String url = "/users/" + emptyUsername;
 		
-		ClientResponse httpResponse = client().resource(url)
-				.type(MediaType.APPLICATION_JSON)
-				.accept(MediaType.APPLICATION_JSON)
-				.get(ClientResponse.class);
+		ClientResponse httpResponse = getDefaultHttpRequest(url).get(ClientResponse.class);
 		
 		/* 
 		 * The status code should be 200 because we are making the GET request to /users/"", 
@@ -227,10 +212,7 @@ public class UserResourceTest extends ResourceTest {
 		String nullUsername = null;
 		String url = "/users/" + nullUsername;
 		
-		ClientResponse httpResponse = client().resource(url)
-				.type(MediaType.APPLICATION_JSON)
-				.accept(MediaType.APPLICATION_JSON)
-				.get(ClientResponse.class);
+		ClientResponse httpResponse = getDefaultHttpRequest(url).get(ClientResponse.class);
 		
 		/*
 		 * The status code should be 200 because we are making a GET request to /users/null,
@@ -248,10 +230,7 @@ public class UserResourceTest extends ResourceTest {
 		
 		String url = "/users";
 		
-		ClientResponse httpResponse = client().resource(url)
-				.type(MediaType.APPLICATION_JSON)
-				.accept(MediaType.APPLICATION_JSON)
-				.get(ClientResponse.class);
+		ClientResponse httpResponse = getDefaultHttpRequest(url).get(ClientResponse.class);
 		
 		assertEquals(200, httpResponse.getStatus());
 		
@@ -270,10 +249,7 @@ public class UserResourceTest extends ResourceTest {
 		
 		String url = "/users";
 		
-		ClientResponse httpResponse = client().resource(url)
-				.type(MediaType.APPLICATION_JSON)
-				.accept(MediaType.APPLICATION_JSON)
-				.get(ClientResponse.class);
+		ClientResponse httpResponse = getDefaultHttpRequest(url).get(ClientResponse.class);
 		
 		assertEquals(200, httpResponse.getStatus());
 		
@@ -293,10 +269,7 @@ public class UserResourceTest extends ResourceTest {
 		
 		String url = "/users/" + oldUser.getUsername();
 		
-		ClientResponse httpResponse = client().resource(url)
-				.type(MediaType.APPLICATION_JSON)
-				.accept(MediaType.APPLICATION_JSON)
-				.put(ClientResponse.class, updatedUser);
+		ClientResponse httpResponse = getDefaultHttpRequest(url).put(ClientResponse.class, updatedUser);
 		
 		assertEquals(200, httpResponse.getStatus());
 	}
@@ -311,10 +284,7 @@ public class UserResourceTest extends ResourceTest {
 		
 		String url = "/users/" + oldUser.getUsername();
 		
-		ClientResponse httpResponse = client().resource(url)
-				.type(MediaType.APPLICATION_JSON)
-				.accept(MediaType.APPLICATION_JSON)
-				.put(ClientResponse.class, updatedUser);
+		ClientResponse httpResponse = getDefaultHttpRequest(url).put(ClientResponse.class, updatedUser);
 		
 		assertEquals(400, httpResponse.getStatus());
 	}
@@ -328,10 +298,7 @@ public class UserResourceTest extends ResourceTest {
 		
 		String url = "/users/" + user.getUsername();
 		
-		ClientResponse httpResponse = client().resource(url)
-				.type(MediaType.APPLICATION_JSON)
-				.accept(MediaType.APPLICATION_JSON)
-				.delete(ClientResponse.class);
+		ClientResponse httpResponse = getDefaultHttpRequest(url).delete(ClientResponse.class);
 		
 		assertEquals(200, httpResponse.getStatus());
 	}
@@ -346,10 +313,7 @@ public class UserResourceTest extends ResourceTest {
 		String emptyUsername = "";
 		String url = "/users/" + emptyUsername;
 		
-		ClientResponse httpResponse = client().resource(url)
-				.type(MediaType.APPLICATION_JSON)
-				.accept(MediaType.APPLICATION_JSON)
-				.delete(ClientResponse.class);
+		ClientResponse httpResponse = getDefaultHttpRequest(url).delete(ClientResponse.class);
 		
 		/*
 		 * The status code should be 405 because we are making a DELETE request to /users/"",
@@ -369,10 +333,7 @@ public class UserResourceTest extends ResourceTest {
 		String nullUsername = null;
 		String url = "/users/" + nullUsername;
 		
-		ClientResponse httpResponse = client().resource(url)
-				.type(MediaType.APPLICATION_JSON)
-				.accept(MediaType.APPLICATION_JSON)
-				.delete(ClientResponse.class);
+		ClientResponse httpResponse = getDefaultHttpRequest(url).delete(ClientResponse.class);
 		
 		/*
 		 * The status code should be 200 because we are making a DELETE request to /users/null,
