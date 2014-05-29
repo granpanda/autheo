@@ -23,6 +23,12 @@ public class HttpVerbValidatorTest {
 		
 		httpVerb = "DeLeTe";
 		assertTrue(HttpVerbValidator.isValidHttpVerb(httpVerb));
+		
+		httpVerb = "HEAD";
+		assertTrue(HttpVerbValidator.isValidHttpVerb(httpVerb));
+		
+		httpVerb = "PATCH";
+		assertTrue(HttpVerbValidator.isValidHttpVerb(httpVerb));
 	}
 	
 	@Test
@@ -38,9 +44,6 @@ public class HttpVerbValidatorTest {
 		assertFalse(HttpVerbValidator.isValidHttpVerb(httpVerb));
 		
 		httpVerb = "post2";
-		assertFalse(HttpVerbValidator.isValidHttpVerb(httpVerb));
-		
-		httpVerb = "HEAD";
 		assertFalse(HttpVerbValidator.isValidHttpVerb(httpVerb));
 		
 		httpVerb = "DeL";
