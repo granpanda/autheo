@@ -183,12 +183,14 @@ public class PermissionDAOTest {
 	}
 
 	private List<Integer> getPermissionsIdsAsList(List<Permission> permissions) {
+		System.out.println("Size 2: "+permissions.size());
 		List<Integer> permissionsIds = new ArrayList<Integer>();
 
 		for (int i = 0; i < permissions.size(); i++) {
 
 			permissionsIds.add(permissions.get(i).getId());
 		}
+		System.out.println("Size 2: "+permissionsIds.size());
 		return permissionsIds;
 	}
 
@@ -300,6 +302,7 @@ public class PermissionDAOTest {
 
 	private void createMultiplePermissions(List<Permission> permissionList)
 			throws Exception {
+		
 		for (int i = 0; i < permissionList.size(); i++) {
 
 			Permission permission = permissionList.get(i);
@@ -322,7 +325,6 @@ public class PermissionDAOTest {
 		int adminNumberOfPermissions = 5;
 		Role adminRole = RoleFactoryForTests.getDefaultTestRole(adminNumberOfPermissions);
 		List<Integer> adminPermissionsIds = getPermissionsIdsAsList(adminRole.getPermissions());
-		
 		try {
 			
 			createMultiplePermissions(adminRole.getPermissions());

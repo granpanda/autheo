@@ -19,7 +19,7 @@ public class PermissionFactoryForTests {
 	
 	public static final Permission getDefaultTestPermission(int number) {
 		
-		int id = 0 + number;
+		int id = 0 + (number+1);
 		String name = "name" + number;
 		String httpVerb = "GET" + number;
 		String url = "www.google.com" + number;
