@@ -183,14 +183,11 @@ public class PermissionDAOTest {
 	}
 
 	private List<Integer> getPermissionsIdsAsList(List<Permission> permissions) {
-		System.out.println("Size 2: "+permissions.size());
 		List<Integer> permissionsIds = new ArrayList<Integer>();
 
 		for (int i = 0; i < permissions.size(); i++) {
-
 			permissionsIds.add(permissions.get(i).getId());
 		}
-		System.out.println("Size 2: "+permissionsIds.size());
 		return permissionsIds;
 	}
 
@@ -337,6 +334,39 @@ public class PermissionDAOTest {
 		permissionDAO.associateAllPermissionsToRole(adminRole.getName(), adminPermissionsIds);
 		
 		assertEquals(adminNumberOfPermissions, permissionDAO.countRolePermissionsTable());
+		
+		List<Permission> retrievedAdminPermissions = permissionDAO.getAllPermissionsOfAGivenRole(adminRole.getName());
+		assertEquals(adminNumberOfPermissions, retrievedAdminPermissions.size());
+	}
+	
+	@Test
+	public void testGetAllPermissionsOfAGivenRole_OK2() {
+		
+		int adminNumberOfPermissions = 5;
+		int nullNumberOfPermissions = 5;
+		List<Permission> nullPermissions = new ArrayList<Permission>();
+		nullPermissions.add(PermissionFactoryForTests.getDefaultTestPermission(nullNumberOfPermissions));
+		nullNumberOfPermissions++;
+		nullPermissions.add(PermissionFactoryForTests.getDefaultTestPermission(nullNumberOfPermissions));
+		nullNumberOfPermissions++;
+		nullPermissions.add(PermissionFactoryForTests.getDefaultTestPermission(nullNumberOfPermissions));
+		nullNumberOfPermissions++;
+		
+		Role adminRole = RoleFactoryForTests.getDefaultTestRole(adminNumberOfPermissions);
+		List<Integer> adminPermissionsIds = getPermissionsIdsAsList(adminRole.getPermissions());
+		try {
+			createMultiplePermissions(adminRole.getPermissions());
+			createMultiplePermissions(nullPermissions);
+			
+		} catch (Exception e) {
+			
+			showDefaultFailMessage();
+		}
+		
+		permissionDAO.associateAllPermissionsToRole(adminRole.getName(), adminPermissionsIds);
+		
+		assertEquals(adminNumberOfPermissions, permissionDAO.countRolePermissionsTable());
+		assertEquals(nullNumberOfPermissions, permissionDAO.countPermissionsTable());
 		
 		List<Permission> retrievedAdminPermissions = permissionDAO.getAllPermissionsOfAGivenRole(adminRole.getName());
 		assertEquals(adminNumberOfPermissions, retrievedAdminPermissions.size());
