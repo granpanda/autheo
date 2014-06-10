@@ -3,6 +3,7 @@ package gp.e3.autheo;
 import gp.e3.autheo.authentication.domain.business.TokenBusiness;
 import gp.e3.autheo.authentication.domain.business.UserBusiness;
 import gp.e3.autheo.authentication.infrastructure.RedisConfig;
+import gp.e3.autheo.authentication.infrastructure.healthchecks.RedisHealthCheck;
 import gp.e3.autheo.authentication.persistence.daos.IUserDAO;
 import gp.e3.autheo.authentication.persistence.daos.TokenCacheDAO;
 import gp.e3.autheo.authentication.persistence.daos.TokenDAO;
@@ -21,6 +22,7 @@ import org.apache.commons.dbcp2.BasicDataSource;
 import org.eclipse.jetty.servlets.CrossOriginFilter;
 import org.skife.jdbi.v2.DBI;
 
+import redis.clients.jedis.Jedis;
 import redis.clients.jedis.JedisPool;
 import redis.clients.jedis.JedisPoolConfig;
 import redis.clients.jedis.Protocol;
@@ -57,11 +59,10 @@ public class Autheo extends Service<AutheoConfig> {
 		return jedisPool;
 	}
 
-	private DBI getJDBIInstance(AutheoConfig autheoConfig, Environment environment) throws ClassNotFoundException {
+	private DBI getJDBIInstance(DatabaseConfiguration mySqlConfig, Environment environment) throws ClassNotFoundException {
 
 		final DBIFactory dbiFactory = new DBIFactory();
-		final DBI jdbi = dbiFactory.build(environment, 
-				autheoConfig.getMySqlConfig(), "mysql");
+		final DBI jdbi = dbiFactory.build(environment, mySqlConfig, "mysql");
 
 		return jdbi;
 	}
@@ -85,9 +86,9 @@ public class Autheo extends Service<AutheoConfig> {
 
 		return new RoleResource(roleBusiness);
 	}
-	
+
 	private BasicDataSource getInitializedDataSource(DatabaseConfiguration mySqlConfig) {
-		
+
 		BasicDataSource basicDataSource = new BasicDataSource();
 
 		basicDataSource.setDriverClassName(mySqlConfig.getDriverClass());
@@ -101,13 +102,13 @@ public class Autheo extends Service<AutheoConfig> {
 
 		return basicDataSource;
 	}
-	
+
 	private TokenResource getTokenResource(BasicDataSource dataSource, JedisPool jedisPool) {
-		
+
 		TokenDAO tokenDAO = new TokenDAO();
 		TokenCacheDAO tokenCacheDao = new TokenCacheDAO(jedisPool);
 		TokenBusiness tokenBusiness = new TokenBusiness(dataSource, tokenDAO, tokenCacheDao);
-		
+
 		return new TokenResource(tokenBusiness);
 	}
 
@@ -140,6 +141,12 @@ public class Autheo extends Service<AutheoConfig> {
 		return new TicketResource(ticketBusiness);
 	}
 
+	private void addRedisHealthCheck(Environment environment, Jedis redisClient) {
+
+		String healthCheckName = "redis";
+		environment.addHealthCheck(new RedisHealthCheck(healthCheckName, redisClient));
+	}
+
 	@Override
 	public void run(AutheoConfig autheoConfig, Environment environment) throws Exception {
 
@@ -147,15 +154,20 @@ public class Autheo extends Service<AutheoConfig> {
 		environment.addFilter(CrossOriginFilter.class, "/*")
 		// See: http://download.eclipse.org/jetty/stable-9/xref/org/eclipse/jetty/servlets/CrossOriginFilter.html line 154.
 		.setInitParam(CrossOriginFilter.ALLOWED_HEADERS_PARAM, "X-Requested-With,Content-Type,Accept,Origin,Authorization")
-		.setInitParam(CrossOriginFilter.ALLOWED_METHODS_PARAM, "OPTIONS,HEAD,GET,POST,PUT,DELETE,PATCH");
+		.setInitParam(CrossOriginFilter.ALLOWED_METHODS_PARAM, "OPTIONS,HEAD,GET,POST,PUT,DELETE,PATCH"); // Access-Control-Request-Headers
 
-		// Access-Control-Request-Headers
+		// Get Configurations.
+		DatabaseConfiguration mySqlConfig = autheoConfig.getMySqlConfig();
+		RedisConfig redisConfig = autheoConfig.getRedisConfig();
 
 		// Initialize JDBI
-		final DBI jdbi = getJDBIInstance(autheoConfig, environment);
+		final DBI jdbi = getJDBIInstance(mySqlConfig, environment);
 
 		// Initialize Redis
-		JedisPool jedisPool = getRedisPoolInstance(autheoConfig.getRedisConfig());
+		JedisPool jedisPool = getRedisPoolInstance(redisConfig);
+		
+		// Add health checks.
+		addRedisHealthCheck(environment, jedisPool.getResource());
 
 		// Add Permission resource to the environment.
 		PermissionResource permissionResource = getPermissionResource(jdbi);
@@ -164,14 +176,14 @@ public class Autheo extends Service<AutheoConfig> {
 		// Add Role resource to the environment.
 		RoleResource roleResource = getRoleResource(jdbi, jedisPool);
 		environment.addResource(roleResource);
-		
+
 		// Initialize data source.
-		BasicDataSource dataSource = getInitializedDataSource(autheoConfig.getMySqlConfig());
+		BasicDataSource dataSource = getInitializedDataSource(mySqlConfig);
 
 		// Add token resource to the environment.
 		TokenResource tokenResource = getTokenResource(dataSource, jedisPool);
 		environment.addResource(tokenResource);
-		
+
 		// Add user resource to the environment.
 		UserResource userResource = getUserResource(dataSource, jdbi, jedisPool);
 		environment.addResource(userResource);
