@@ -18,7 +18,7 @@ public class RoleFactoryForTests {
 	
 	public static Role getDefaultTestRole(int number) {
 		
-		String name = "name" + number;
+		String name = "name" + (number+1);
 		List<Permission> permissions = PermissionFactoryForTests.getPermissionList(number);
 		
 		return new Role(name, permissions);

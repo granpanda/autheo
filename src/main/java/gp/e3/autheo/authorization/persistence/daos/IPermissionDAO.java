@@ -60,7 +60,7 @@ public interface IPermissionDAO {
 	public static final String GET_ALL_PERMISSIONS = "SELECT * FROM permissions;";
 
 	public static final String GET_ALL_PERMISSIONS_OF_A_GIVEN_ROLE = 
-			"SELECT * FROM permissions LEFT JOIN roles_permissions ON permissions.id = roles_permissions.permission_id AND role_name = :role_name";
+			"SELECT * FROM permissions LEFT JOIN roles_permissions ON permissions.id = roles_permissions.permission_id WHERE role_name = :role_name";
 
 	public static final String DELETE_PERMISSION = "DELETE FROM permissions WHERE id = :id";
 
