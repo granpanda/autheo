@@ -17,15 +17,9 @@ import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
-import com.wordnik.swagger.annotations.Api;
-import com.wordnik.swagger.annotations.ApiOperation;
-import com.wordnik.swagger.annotations.ApiResponse;
-import com.wordnik.swagger.annotations.ApiResponses;
-
 @Path("/permissions")
 @Consumes(MediaType.APPLICATION_JSON)
 @Produces(MediaType.APPLICATION_JSON)
-@Api(value = "/permissions", description = "Role related operations")
 public class PermissionResource {
 	
 	private final PermissionBusiness permissionBusiness;
@@ -36,11 +30,6 @@ public class PermissionResource {
 	}
 	
 	@POST
-	@ApiOperation(value = "Create a new permission.", response = Permission.class)
-	@ApiResponses(value = {
-			@ApiResponse(code = 401, message = "The user is unauthorized."),
-			@ApiResponse(code = 403, message = "The user is forbidden.")
-	})
 	public Response createPermission(Permission permission) {
 		
 		Response response = null;
@@ -67,11 +56,6 @@ public class PermissionResource {
 	
 	@GET
 	@Path("/{permissionId}")
-	@ApiOperation(value = "Get permission by ID.", response = Permission.class)
-	@ApiResponses(value = {
-			@ApiResponse(code = 401, message = "The user is unauthorized."),
-			@ApiResponse(code = 403, message = "The user is forbidden.")
-	})
 	public Response getPermissionById(@PathParam("permissionId") String permissionId) {
 		
 		Response response = null;
@@ -92,11 +76,6 @@ public class PermissionResource {
 	}
 	
 	@GET
-	@ApiOperation(value = "Get all permissions.", response = List.class)
-	@ApiResponses(value = {
-			@ApiResponse(code = 401, message = "The user is unauthorized."),
-			@ApiResponse(code = 403, message = "The user is forbidden.")
-	})
 	public Response getAllPermissions() {
 		
 		List<Permission> permissionsList = permissionBusiness.getAllPermissions();
@@ -105,11 +84,6 @@ public class PermissionResource {
 	
 	@DELETE
 	@Path("/{permissionId}")
-	@ApiOperation(value = "Delete a permission by ID")
-	@ApiResponses(value = {
-			@ApiResponse(code = 401, message = "The user is unauthorized."),
-			@ApiResponse(code = 403, message = "The user is forbidden.")
-	})
 	public Response deletePermission(@PathParam("permissionId") String permissionId) {
 		
 		Response response = null;
