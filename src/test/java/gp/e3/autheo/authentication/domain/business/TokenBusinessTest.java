@@ -11,6 +11,7 @@ import gp.e3.autheo.authentication.domain.business.constants.TokenTypes;
 import gp.e3.autheo.authentication.domain.entities.Token;
 import gp.e3.autheo.authentication.domain.entities.User;
 import gp.e3.autheo.authentication.domain.exceptions.TokenGenerationException;
+import gp.e3.autheo.authentication.domain.exceptions.ValidDataException;
 import gp.e3.autheo.authentication.persistence.daos.TokenDAO;
 import gp.e3.autheo.authentication.persistence.daos.TokenCacheDAO;
 import gp.e3.autheo.util.UserFactoryForTests;
@@ -25,7 +26,7 @@ public class TokenBusinessTest {
 
 	private Connection dbConnectionMock;
 	private BasicDataSource dataSourceMock;
-	
+
 	private TokenDAO tokenDAOMock;
 	private TokenCacheDAO tokenCacheDaoMock;
 	private TokenBusiness tokenBusiness;
@@ -35,13 +36,13 @@ public class TokenBusinessTest {
 
 		dbConnectionMock = Mockito.mock(Connection.class);
 		dataSourceMock = Mockito.mock(BasicDataSource.class);
-		
+
 		try {
 			Mockito.when(dataSourceMock.getConnection()).thenReturn(dbConnectionMock);
 		} catch (SQLException e) {
 			e.printStackTrace();
 		}
-		
+
 		tokenDAOMock = Mockito.mock(TokenDAO.class);
 		tokenCacheDaoMock = Mockito.mock(TokenCacheDAO.class);
 		tokenBusiness = new TokenBusiness(dataSourceMock, tokenDAOMock, tokenCacheDaoMock);
@@ -109,9 +110,9 @@ public class TokenBusinessTest {
 			User user = UserFactoryForTests.getDefaultTestUser();
 			String tokenValue = TokenFactory.getToken(user);
 			Token testToken = new Token(tokenValue, user.getUsername(), user.getOrganizationId(), user.getRoleId(), TokenTypes.TEMPORAL_TOKEN_TYPE.getTypeNumber());
-			
+
 			Mockito.when(tokenCacheDaoMock.getTokenByTokenValue(tokenValue)).thenReturn(testToken);
-			
+
 			Token retrievedToken = tokenBusiness.getToken(testToken.getTokenValue());
 			assertEquals(0, testToken.compareTo(retrievedToken));
 
@@ -120,7 +121,7 @@ public class TokenBusinessTest {
 			fail(e.getMessage());
 		}
 	}
-	
+
 	@Test
 	public void testGetTokenValue_OK_2() {
 
@@ -129,10 +130,10 @@ public class TokenBusinessTest {
 			User user = UserFactoryForTests.getDefaultTestUser();
 			String tokenValue = TokenFactory.getToken(user);
 			Token testToken = new Token(tokenValue, user.getUsername(), user.getOrganizationId(), user.getRoleId(), TokenTypes.TEMPORAL_TOKEN_TYPE.getTypeNumber());
-			
+
 			// First return null then return a valid Token object.
 			Mockito.when(tokenCacheDaoMock.getTokenByTokenValue(tokenValue)).thenReturn(null).thenReturn(testToken);
-			
+
 			Token retrievedToken = tokenBusiness.getToken(testToken.getTokenValue());
 			assertEquals(0, testToken.compareTo(retrievedToken));
 
@@ -141,25 +142,67 @@ public class TokenBusinessTest {
 			fail(e.getMessage());
 		}
 	}
-	
+
 	@Test
 	public void testGetTokenValue_NOK() {
-		
+
 		User user = UserFactoryForTests.getDefaultTestUser();
 
 		String tokenValue = "NULL";
 		Token testToken = new Token(tokenValue, user.getUsername(), user.getOrganizationId(), user.getRoleId(), TokenTypes.TEMPORAL_TOKEN_TYPE.getTypeNumber());
 		Mockito.when(tokenCacheDaoMock.getTokenByTokenValue(Mockito.anyString())).thenReturn(testToken);
-		
+
 		String invalidTokenValue = null;
-		
+
 		try {
-			
+
 			assertNull(tokenBusiness.getToken(invalidTokenValue));
-			
+
 		} catch (Exception e) {
-			
+
 			fail("Unexpected exception: " + e.getMessage());
+		}
+	}
+
+	@Test
+	public void testRemoveUserAccessToken_OK1(){
+
+		boolean tokenRemoved = false;
+
+		String tokenValue = "tokenTest";
+
+		try {
+
+			Mockito.when(tokenCacheDaoMock.removeUserAccessToken(tokenValue)).thenReturn(true);
+
+			tokenRemoved = tokenBusiness.removeUserAccessToken(tokenValue);
+			assertEquals(true, tokenRemoved);
+
+			Mockito.when(tokenCacheDaoMock.removeUserAccessToken(tokenValue)).thenReturn(false);
+
+			tokenRemoved = tokenBusiness.removeUserAccessToken(tokenValue);
+			assertEquals(false, tokenRemoved);
+
+		} catch (ValidDataException e) {
+			fail("Exception Unexpected: " + e.getMessage());
+			e.printStackTrace();
+		}
+	}
+	
+	@Test
+	public void testRemoveUserAccessToken_NOK1(){
+
+		boolean tokenRemoved = false;
+
+		String tokenValue = "";
+
+		try {
+
+			tokenRemoved = tokenBusiness.removeUserAccessToken(tokenValue);
+			fail("Exception Expected");
+			
+		} catch (ValidDataException e) {
+			assertEquals(false, tokenRemoved);
 		}
 	}
 }
