@@ -10,6 +10,7 @@ import org.junit.Test;
 import org.mockito.Mockito;
 
 import gp.e3.autheo.authentication.domain.business.TokenBusiness;
+import gp.e3.autheo.authentication.domain.exceptions.ValidDataException;
 import gp.e3.autheo.authentication.service.resources.TokenResource;
 
 import com.sun.jersey.api.client.ClientResponse;
@@ -65,5 +66,49 @@ public class TokenResourceTest extends ResourceTest {
 			
 			fail("Unexpected exception: " + e.getMessage());
 		}
+	}
+	
+	@Test
+	public void testRemoveUserAccessTokenFromCache_OK1(){
+		
+		String url = "/tokens/test";
+		
+		try {
+			Mockito.when(tokenBusinessMock.removeUserAccessToken("test")).thenReturn(true);
+
+			ClientResponse httpResponse = getDefaultHttpRequest(url).delete(ClientResponse.class);
+			assertEquals(200, httpResponse.getStatus());
+			
+			Mockito.when(tokenBusinessMock.removeUserAccessToken("test")).thenReturn(false);
+
+			httpResponse = getDefaultHttpRequest(url).delete(ClientResponse.class);
+			assertEquals(409, httpResponse.getStatus());
+			
+		} catch (ValidDataException e) {
+			fail("Exception Unexpected: " + e.getMessage());
+			e.printStackTrace();
+		}
+		
+	}
+	
+	@Test
+	public void testRemoveUserAccessTokenFromCache_NOK1(){
+		
+		String url = "/tokens/test";
+		
+		ClientResponse httpResponse = null;
+		
+		try {
+			
+			Mockito.doThrow(ValidDataException.class).when(tokenBusinessMock).removeUserAccessToken(Mockito.anyString());
+
+			httpResponse = getDefaultHttpRequest(url).delete(ClientResponse.class);
+			assertEquals(409, httpResponse.getStatus());
+			
+		} catch (ValidDataException e) {
+			fail("Exception Unexpected: " + e.getMessage());
+			e.printStackTrace();
+		}
+		
 	}
 }

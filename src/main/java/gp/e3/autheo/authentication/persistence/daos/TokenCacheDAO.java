@@ -93,4 +93,18 @@ public class TokenCacheDAO {
 
 		return token;
 	}
+	
+	public boolean removeUserAccessToken(String tokenValue){
+		
+		long keysRemoved = 0;
+		
+		if(StringValidator.isValidString(tokenValue)){
+			Jedis redisClient = getRedisClient();
+			keysRemoved = redisClient.del(tokenValue);
+			
+			returnResource(redisClient);
+		}
+		
+		return (keysRemoved == 1);
+	}
 }
