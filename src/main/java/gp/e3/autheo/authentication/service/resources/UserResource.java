@@ -5,13 +5,12 @@ import gp.e3.autheo.authentication.domain.business.UserBusiness;
 import gp.e3.autheo.authentication.domain.entities.Token;
 import gp.e3.autheo.authentication.domain.entities.User;
 import gp.e3.autheo.authentication.domain.exceptions.TokenGenerationException;
+import gp.e3.autheo.authentication.infrastructure.datastructures.Tuple;
 import gp.e3.autheo.authentication.infrastructure.validators.StringValidator;
-import gp.e3.autheo.authentication.persistence.exceptions.DuplicateIdException;
 import gp.e3.autheo.authentication.service.resources.commons.HttpCommonResponses;
 
 import java.util.List;
 
-import javax.security.sasl.AuthenticationException;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.DELETE;
 import javax.ws.rs.GET;
@@ -44,14 +43,16 @@ public class UserResource {
 
 		if (User.isAValidUser(newUser)) {
 
-			try {
-
-				User createdUser = userBusiness.createUser(newUser);
-				response = Response.status(201).entity(createdUser).build();
-
-			} catch (DuplicateIdException e) {
-
-				response = Response.status(500).entity(e.getMessage()).build();
+			Tuple createUserAnswer = userBusiness.createUser(newUser);
+			
+			if (createUserAnswer.isExpectedResult()) {
+				
+				String message = "The user with username: " + newUser.getUsername();
+				response = Response.status(201).entity(message).build();
+				
+			} else {
+				
+				response = Response.status(500).entity(createUserAnswer.getErrorMessage()).build();
 			}
 
 		} else {
@@ -87,7 +88,7 @@ public class UserResource {
 					response = Response.status(401).entity(errorMessage).build();
 				}
 
-			} catch (AuthenticationException | TokenGenerationException | IllegalArgumentException e) {
+			} catch (TokenGenerationException | IllegalArgumentException e) {
 
 				response = Response.status(401).entity(e.getMessage()).build();
 			}

@@ -4,9 +4,9 @@ import gp.e3.autheo.authentication.domain.business.TokenBusiness;
 import gp.e3.autheo.authentication.domain.business.UserBusiness;
 import gp.e3.autheo.authentication.infrastructure.RedisConfig;
 import gp.e3.autheo.authentication.infrastructure.healthchecks.RedisHealthCheck;
-import gp.e3.autheo.authentication.persistence.daos.IUserDAO;
 import gp.e3.autheo.authentication.persistence.daos.TokenCacheDAO;
 import gp.e3.autheo.authentication.persistence.daos.TokenDAO;
+import gp.e3.autheo.authentication.persistence.daos.UserDAO;
 import gp.e3.autheo.authentication.service.resources.TokenResource;
 import gp.e3.autheo.authentication.service.resources.UserResource;
 import gp.e3.autheo.authorization.domain.business.PermissionBusiness;
@@ -115,8 +115,8 @@ public class Autheo extends Service<AutheoConfig> {
 	private UserResource getUserResource(BasicDataSource dataSource, DBI jdbi, JedisPool jedisPool) 
 			throws ClassNotFoundException {
 
-		final IUserDAO userDAO = jdbi.onDemand(IUserDAO.class);
-		final UserBusiness userBusiness = new UserBusiness(userDAO);
+		final UserDAO userDAO = new UserDAO();
+		final UserBusiness userBusiness = new UserBusiness(dataSource, userDAO);
 
 		TokenDAO tokenDAO = new TokenDAO();
 		TokenCacheDAO tokenCacheDao = new TokenCacheDAO(jedisPool);

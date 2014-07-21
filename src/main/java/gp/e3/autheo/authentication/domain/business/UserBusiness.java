@@ -1,89 +1,169 @@
 package gp.e3.autheo.authentication.domain.business;
 
 import gp.e3.autheo.authentication.domain.entities.User;
-import gp.e3.autheo.authentication.persistence.daos.IUserDAO;
-import gp.e3.autheo.authentication.persistence.exceptions.DuplicateIdException;
+import gp.e3.autheo.authentication.infrastructure.datastructures.Tuple;
+import gp.e3.autheo.authentication.infrastructure.utils.SqlUtils;
+import gp.e3.autheo.authentication.persistence.daos.UserDAO;
 
-import java.security.NoSuchAlgorithmException;
-import java.security.spec.InvalidKeySpecException;
+import java.sql.Connection;
+import java.util.ArrayList;
 import java.util.List;
 
-import javax.security.sasl.AuthenticationException;
+import org.apache.commons.dbcp2.BasicDataSource;
 
 public class UserBusiness {
-	
-	private final IUserDAO userDao;
 
-	public UserBusiness(IUserDAO userDao) {
-		
+	private final UserDAO userDao;
+	private final BasicDataSource dataSource;
+
+	public UserBusiness(BasicDataSource dataSource, UserDAO userDao) {
+
+		this.dataSource = dataSource;
 		this.userDao = userDao;
-		this.userDao.createUsersTableIfNotExists();
 	}
-	
-	public User createUser(User newUser) throws DuplicateIdException {
-		
+
+	public Tuple createUser(User newUser) {
+
+		Tuple answerTuple = null;
+		Connection dbConnection = null;
+
 		try {
-			
+
+			dbConnection = dataSource.getConnection();
+
 			String originalPassword = newUser.getPassword();
 			String passwordHash = PasswordHandler.getPasswordHash(originalPassword);
 			String passwordSalt = PasswordHandler.getSaltFromHashedAndSaltedPassword(passwordHash);
+
+			answerTuple = userDao.createUser(dbConnection, newUser, passwordHash, passwordSalt);
+
+		} catch (Exception e) {
+
+			e.printStackTrace();
+			answerTuple = new Tuple(e.getMessage());
+
+		} finally {
+
+			SqlUtils.closeDbConnection(dbConnection);
+		}
+
+		return answerTuple;
+	}
+
+	public boolean authenticateUser(String username, String password) {
+
+		boolean isAuthenticated = false;
+		Connection dbConnection = null;
+
+		try {
+
+			dbConnection = dataSource.getConnection();
+			String passwordHashFromDb = userDao.getPasswordByUsername(dbConnection, username);
+
+			if (passwordHashFromDb != null) {
+				isAuthenticated = PasswordHandler.validatePassword(password, passwordHashFromDb);
+
+			}
+
+		} catch (Exception e) {
+
+			e.printStackTrace();
+
+		} finally {
+
+			SqlUtils.closeDbConnection(dbConnection);
+		}
+
+		return isAuthenticated;
+	}
+
+	public User getUserByUsername(String username) {
+		
+		User user = null;
+		Connection dbConnection = null;
+		
+		try {
 			
-			userDao.createUser(newUser.getName(), newUser.getUsername(), passwordHash, passwordSalt, newUser.isApiClient(), 
-					newUser.getOrganizationId(), newUser.getRoleId());
+			dbConnection = dataSource.getConnection();
+			user = userDao.getUserByUsername(dbConnection, username);
 			
 		} catch (Exception e) {
 			
-			String errorMessage = "The user with username: " + newUser.getUsername() + " is already registered.";
-			throw new DuplicateIdException(errorMessage);
+			e.printStackTrace();
+			
+		} finally {
+			
+			SqlUtils.closeDbConnection(dbConnection);
 		}
-		
-		return newUser;
+
+		return user;
 	}
-	
-	public boolean authenticateUser(String username, String password) throws AuthenticationException {
-		
-		boolean isAuthenticated = false;
-		String errorMessage = "The user credentials are not valid.";
-		
-		String passwordHashFromDb = userDao.getPasswordByUsername(username);
-		
-		if (passwordHashFromDb != null) {
-			
-			try {
-				
-				isAuthenticated = PasswordHandler.validatePassword(password, passwordHashFromDb);
-				
-			} catch (NoSuchAlgorithmException e) {
-				throw new AuthenticationException(errorMessage);
-			} catch (InvalidKeySpecException e) {
-				throw new AuthenticationException(errorMessage);
-			}
-			
-		} else {
-			
-			throw new AuthenticationException(errorMessage);
-		}
-		
-		return isAuthenticated;
-	}
-	
-	public User getUserByUsername(String username) {
-		
-		return userDao.getUserByUsername(username);
-	}
-	
+
 	public List<User> getAllUsers() {
+
+		List<User> usersList = new ArrayList<User>();
+		Connection dbConnection = null;
 		
-		return userDao.getAllUsers();
+		try {
+			
+			dbConnection = dataSource.getConnection();
+			usersList = userDao.getAllUsers(dbConnection);
+			
+		} catch (Exception e) {
+			
+			e.printStackTrace();
+			
+		} finally {
+			
+			SqlUtils.closeDbConnection(dbConnection);
+		}
+		
+		return usersList;
 	}
-	
-	public void updateUser(String username, User updatedUser) {
+
+	public boolean updateUser(String username, User updatedUser) {
+
+		boolean userWasUpdated = false;
+		Connection dbConnection = null;
 		
-		userDao.updateUser(username, updatedUser.getName(), updatedUser.getPassword());
+		try {
+			
+			dbConnection = dataSource.getConnection();
+			int rowsAffected = userDao.updateUser(dbConnection, username, updatedUser.getName(), updatedUser.getPassword());
+			userWasUpdated = (rowsAffected == 1);
+			
+		} catch (Exception e) {
+			
+			e.printStackTrace();
+			
+		} finally {
+			
+			SqlUtils.closeDbConnection(dbConnection);
+		}
+		
+		return userWasUpdated;
 	}
-	
-	public void deleteUser(String username) {
+
+	public boolean deleteUser(String username) {
+
+		boolean userWasDeleted = false;
+		Connection dbConnection = null;
 		
-		userDao.deleteUser(username);
+		try {
+			
+			dbConnection = dataSource.getConnection();
+			int affectedRows = userDao.deleteUser(dbConnection, username);
+			userWasDeleted = (affectedRows == 1);
+			
+		} catch (Exception e) {
+			
+			e.printStackTrace();
+			
+		} finally {
+			
+			SqlUtils.closeDbConnection(dbConnection);
+		}
+		
+		return userWasDeleted;
 	}
 }
