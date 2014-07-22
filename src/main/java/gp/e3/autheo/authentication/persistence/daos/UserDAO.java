@@ -90,12 +90,12 @@ public class UserDAO {
 			prepareStatement.setString(4, passwordSalt);
 			prepareStatement.setBoolean(5, user.isApiClient());
 			prepareStatement.setString(6, user.getOrganizationId());
-			prepareStatement.setString(6, user.getRoleId());
+			prepareStatement.setString(7, user.getRoleId());
 			
 			int affectedRows = prepareStatement.executeUpdate();
 			prepareStatement.close();
 			
-			boolean userWasCreated = affectedRows == 1;
+			boolean userWasCreated = (affectedRows == 1);
 			
 			if (userWasCreated) {
 				

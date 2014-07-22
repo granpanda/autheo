@@ -9,6 +9,7 @@ import gp.e3.autheo.authentication.domain.business.constants.TokenTypes;
 import gp.e3.autheo.authentication.domain.entities.Token;
 import gp.e3.autheo.authentication.domain.entities.User;
 import gp.e3.autheo.authentication.domain.exceptions.TokenGenerationException;
+import gp.e3.autheo.authentication.infrastructure.datastructures.Tuple;
 import gp.e3.autheo.authentication.persistence.exceptions.DuplicateIdException;
 import gp.e3.autheo.authentication.service.resources.UserResource;
 import gp.e3.autheo.util.UserFactoryForTests;
@@ -47,44 +48,51 @@ public class UserResourceTest extends ResourceTest {
 	@Test
 	public void testCreateUser_OK() {
 
-		try {
+		User user = UserFactoryForTests.getDefaultTestUser();
 
-			User user = UserFactoryForTests.getDefaultTestUser();
+		Tuple createUserResult = new Tuple(true);
+		Mockito.when(userBusinessMock.createUser(Mockito.any(User.class))).thenReturn(createUserResult);
 
-			Mockito.when(userBusinessMock.createUser(user)).thenReturn(user);
+		String url = "/users";
+		ClientResponse httpResponse = getDefaultHttpRequest(url).post(ClientResponse.class, user);
 
-			String url = "/users";
-			ClientResponse httpResponse = getDefaultHttpRequest(url).post(ClientResponse.class, user);
+		assertEquals(201, httpResponse.getStatus());
 
-			assertEquals(201, httpResponse.getStatus());
+		Tuple tupleFromResponse = httpResponse.getEntity(Tuple.class);
+		assertEquals(true, tupleFromResponse.isExpectedResult());
+	}
+	
+	@Test
+	public void testCreateUser_NOK_1() {
 
-			User userFromResponse = httpResponse.getEntity(User.class);
-			assertEquals(0, user.compareTo(userFromResponse));
+		User user = UserFactoryForTests.getDefaultTestUser();
 
-		} catch (DuplicateIdException e) {
+		String errorMessage = "There was an error creating the user.";
+		Tuple createUserResult = new Tuple(errorMessage);
+		Mockito.when(userBusinessMock.createUser(Mockito.any(User.class))).thenReturn(createUserResult);
 
-			fail(e.getMessage());
-		}
+		String url = "/users";
+		ClientResponse httpResponse = getDefaultHttpRequest(url).post(ClientResponse.class, user);
+
+		assertEquals(500, httpResponse.getStatus());
+
+		Tuple tupleFromResponse = httpResponse.getEntity(Tuple.class);
+		assertEquals(false, tupleFromResponse.isExpectedResult());
 	}
 
 	@Test
-	public void testCreateUser_NOK() {
+	public void testCreateUser_NOK_2() {
 
-		try {
+		User user = null;
 
-			User user = null;
+		String errorMessage = "There was an error creating the user.";
+		Tuple createUserResult = new Tuple(errorMessage);
+		Mockito.when(userBusinessMock.createUser(Mockito.any(User.class))).thenReturn(createUserResult);
 
-			Mockito.when(userBusinessMock.createUser(user)).thenReturn(user);
+		String url = "/users";
+		ClientResponse httpResponse = getDefaultHttpRequest(url).post(ClientResponse.class, user);
 
-			String url = "/users";
-			ClientResponse httpResponse = getDefaultHttpRequest(url).post(ClientResponse.class, user);
-
-			assertEquals(400, httpResponse.getStatus());
-
-		} catch (DuplicateIdException e) {
-
-			fail(e.getMessage());
-		}
+		assertEquals(400, httpResponse.getStatus());
 	}
 
 	@Test
@@ -110,7 +118,7 @@ public class UserResourceTest extends ResourceTest {
 			assertNotNull(generatedToken);
 			assertEquals(0, testingToken.compareTo(generatedToken));
 
-		} catch (AuthenticationException | IllegalArgumentException | TokenGenerationException e) {
+		} catch (IllegalArgumentException | TokenGenerationException e) {
 
 			fail(e.getMessage());
 		}
@@ -135,7 +143,7 @@ public class UserResourceTest extends ResourceTest {
 
 			assertEquals(401, httpResponse.getStatus());
 
-		} catch (AuthenticationException | IllegalArgumentException | TokenGenerationException e) {
+		} catch (IllegalArgumentException | TokenGenerationException e) {
 
 			fail(e.getMessage());
 		}
@@ -160,7 +168,7 @@ public class UserResourceTest extends ResourceTest {
 
 			assertEquals(400, httpResponse.getStatus());
 
-		} catch (AuthenticationException | IllegalArgumentException | TokenGenerationException e) {
+		} catch (IllegalArgumentException | TokenGenerationException e) {
 
 			fail(e.getMessage());
 		}
@@ -265,27 +273,36 @@ public class UserResourceTest extends ResourceTest {
 		User oldUser = UserFactoryForTests.getDefaultTestUser();
 		User updatedUser = UserFactoryForTests.getDefaultTestUser(1);
 		
-		Mockito.doNothing().when(userBusinessMock).updateUser(oldUser.getUsername(), updatedUser);
+		boolean expectedResult = true;
+		Mockito.when(userBusinessMock.updateUser(Mockito.anyString(), Mockito.any(User.class))).thenReturn(expectedResult);
 		
 		String url = "/users/" + oldUser.getUsername();
-		
 		ClientResponse httpResponse = getDefaultHttpRequest(url).put(ClientResponse.class, updatedUser);
-		
 		assertEquals(200, httpResponse.getStatus());
 	}
 	
 	@Test
-	public void testUpdateUser_NOK() {
+	public void testUpdateUser_NOK_1() {
+		
+		User oldUser = UserFactoryForTests.getDefaultTestUser();
+		User updatedUser = UserFactoryForTests.getDefaultTestUser(1);
+		
+		boolean expectedResult = false;
+		Mockito.when(userBusinessMock.updateUser(Mockito.anyString(), Mockito.any(User.class))).thenReturn(expectedResult);
+		
+		String url = "/users/" + oldUser.getUsername();
+		ClientResponse httpResponse = getDefaultHttpRequest(url).put(ClientResponse.class, updatedUser);
+		assertEquals(500, httpResponse.getStatus());
+	}
+	
+	@Test
+	public void testUpdateUser_NOK_2() {
 		
 		User oldUser = UserFactoryForTests.getDefaultTestUser();
 		User updatedUser = null;
 		
-		Mockito.doNothing().when(userBusinessMock).updateUser(oldUser.getUsername(), updatedUser);
-		
 		String url = "/users/" + oldUser.getUsername();
-		
 		ClientResponse httpResponse = getDefaultHttpRequest(url).put(ClientResponse.class, updatedUser);
-		
 		assertEquals(400, httpResponse.getStatus());
 	}
 	
@@ -294,10 +311,10 @@ public class UserResourceTest extends ResourceTest {
 		
 		User user = UserFactoryForTests.getDefaultTestUser();
 		
-		Mockito.doNothing().when(userBusinessMock).deleteUser(user.getUsername());
+		boolean expectedResult = true;
+		Mockito.when(userBusinessMock.deleteUser(Mockito.anyString())).thenReturn(expectedResult);
 		
 		String url = "/users/" + user.getUsername();
-		
 		ClientResponse httpResponse = getDefaultHttpRequest(url).delete(ClientResponse.class);
 		
 		assertEquals(200, httpResponse.getStatus());
@@ -308,7 +325,17 @@ public class UserResourceTest extends ResourceTest {
 		
 		User user = UserFactoryForTests.getDefaultTestUser();
 		
-		Mockito.doNothing().when(userBusinessMock).deleteUser(user.getUsername());
+		boolean expectedResult = false;
+		Mockito.when(userBusinessMock.deleteUser(Mockito.anyString())).thenReturn(expectedResult);
+		
+		String url = "/users/" + user.getUsername();
+		ClientResponse httpResponse = getDefaultHttpRequest(url).delete(ClientResponse.class);
+		
+		assertEquals(500, httpResponse.getStatus());
+	}
+	
+	@Test
+	public void testDeleteUser_NOK_2() {
 		
 		String emptyUsername = "";
 		String url = "/users/" + emptyUsername;
@@ -324,11 +351,10 @@ public class UserResourceTest extends ResourceTest {
 	}
 	
 	@Test
-	public void testDeleteUser_NOK_2() {
+	public void testDeleteUser_NOK_3() {
 		
-		User user = UserFactoryForTests.getDefaultTestUser();
-		
-		Mockito.doNothing().when(userBusinessMock).deleteUser(user.getUsername());
+		boolean expectedResult = true;
+		Mockito.when(userBusinessMock.deleteUser(Mockito.anyString())).thenReturn(expectedResult);
 		
 		String nullUsername = null;
 		String url = "/users/" + nullUsername;

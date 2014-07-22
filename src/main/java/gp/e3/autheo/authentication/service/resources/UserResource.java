@@ -47,12 +47,11 @@ public class UserResource {
 			
 			if (createUserAnswer.isExpectedResult()) {
 				
-				String message = "The user with username: " + newUser.getUsername();
-				response = Response.status(201).entity(message).build();
+				response = Response.status(201).entity(createUserAnswer).build();
 				
 			} else {
 				
-				response = Response.status(500).entity(createUserAnswer.getErrorMessage()).build();
+				response = Response.status(500).entity(createUserAnswer).build();
 			}
 
 		} else {
@@ -138,8 +137,16 @@ public class UserResource {
 		
 		if (StringValidator.isValidString(username) && updatedUserIsValid) {
 
-			userBusiness.updateUser(username, updatedUser);
-			response = Response.status(200).build();
+			boolean userWasUpdated = userBusiness.updateUser(username, updatedUser);
+			
+			if (userWasUpdated) {
+				
+				response = Response.status(200).build();
+				
+			} else {
+				
+				response = Response.status(500).build();
+			}
 
 		} else {
 			
@@ -157,8 +164,16 @@ public class UserResource {
 		
 		if (StringValidator.isValidString(username)) {
 			
-			userBusiness.deleteUser(username);
-			response = Response.status(200).build();
+			boolean userWasDeleted = userBusiness.deleteUser(username);
+			
+			if (userWasDeleted) {
+				
+				response = Response.status(200).build();
+				
+			} else {
+				
+				response = Response.status(500).build();
+			}
 			
 		} else {
 			
