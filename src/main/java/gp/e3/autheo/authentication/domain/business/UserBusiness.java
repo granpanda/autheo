@@ -13,8 +13,8 @@ import org.apache.commons.dbcp2.BasicDataSource;
 
 public class UserBusiness {
 
-	private final UserDAO userDao;
 	private final BasicDataSource dataSource;
+	private final UserDAO userDao;
 
 	public UserBusiness(BasicDataSource dataSource, UserDAO userDao) {
 

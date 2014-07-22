@@ -4,6 +4,7 @@ import gp.e3.autheo.authentication.domain.business.TokenBusiness;
 import gp.e3.autheo.authentication.domain.business.UserBusiness;
 import gp.e3.autheo.authentication.infrastructure.RedisConfig;
 import gp.e3.autheo.authentication.infrastructure.healthchecks.RedisHealthCheck;
+import gp.e3.autheo.authentication.infrastructure.utils.SqlUtils;
 import gp.e3.autheo.authentication.persistence.daos.TokenCacheDAO;
 import gp.e3.autheo.authentication.persistence.daos.TokenDAO;
 import gp.e3.autheo.authentication.persistence.daos.UserDAO;
@@ -12,11 +13,14 @@ import gp.e3.autheo.authentication.service.resources.UserResource;
 import gp.e3.autheo.authorization.domain.business.PermissionBusiness;
 import gp.e3.autheo.authorization.domain.business.RoleBusiness;
 import gp.e3.autheo.authorization.domain.business.TicketBusiness;
-import gp.e3.autheo.authorization.persistence.daos.IPermissionDAO;
 import gp.e3.autheo.authorization.persistence.daos.IRoleDAO;
+import gp.e3.autheo.authorization.persistence.daos.PermissionDAO;
 import gp.e3.autheo.authorization.service.PermissionResource;
 import gp.e3.autheo.authorization.service.RoleResource;
 import gp.e3.autheo.authorization.service.TicketResource;
+
+import java.sql.Connection;
+import java.sql.SQLException;
 
 import org.apache.commons.dbcp2.BasicDataSource;
 import org.eclipse.jetty.servlets.CrossOriginFilter;
@@ -67,19 +71,19 @@ public class Autheo extends Service<AutheoConfig> {
 		return jdbi;
 	}
 
-	private PermissionResource getPermissionResource(final DBI jdbi) {
+	private PermissionResource getPermissionResource(BasicDataSource dataSource) {
 
-		final IPermissionDAO permissionDao = jdbi.onDemand(IPermissionDAO.class);
-		final PermissionBusiness permissionBusiness = new PermissionBusiness(permissionDao);
+		final PermissionDAO permissionDao = new PermissionDAO();
+		final PermissionBusiness permissionBusiness = new PermissionBusiness(dataSource, permissionDao);
 		PermissionResource permissionResource = new PermissionResource(permissionBusiness);
 
 		return permissionResource;
 	}
 
-	private RoleResource getRoleResource(final DBI jdbi, JedisPool jedisPool) {
+	private RoleResource getRoleResource(final DBI jdbi, BasicDataSource dataSource, JedisPool jedisPool) {
 
-		final IPermissionDAO permissionDao = jdbi.onDemand(IPermissionDAO.class);
-		final PermissionBusiness permissionBusiness = new PermissionBusiness(permissionDao);
+		final PermissionDAO permissionDao = new PermissionDAO();
+		final PermissionBusiness permissionBusiness = new PermissionBusiness(dataSource, permissionDao);
 
 		final IRoleDAO roleDao = jdbi.onDemand(IRoleDAO.class);
 		final RoleBusiness roleBusiness = new RoleBusiness(roleDao, permissionBusiness, jedisPool);
@@ -101,6 +105,34 @@ public class Autheo extends Service<AutheoConfig> {
 		// basicDataSource.setMaxTotal(maxValue);
 
 		return basicDataSource;
+	}
+
+	private void initializeTablesIfNeeded(BasicDataSource dataSource) {
+
+		Connection dbConnection = null;
+		
+		try {
+			
+			dbConnection = dataSource.getConnection();
+			
+			TokenDAO tokenDAO = new TokenDAO();
+			tokenDAO.createTokensTableIfNotExists(dbConnection);
+
+			UserDAO userDAO = new UserDAO();
+			userDAO.createUsersTableIfNotExists(dbConnection);
+
+			PermissionDAO permissionDAO = new PermissionDAO();
+			permissionDAO.createPermissionsTable(dbConnection);
+			permissionDAO.createPermissionsUniqueIndex(dbConnection);
+			
+		} catch (SQLException e) {
+			
+			e.printStackTrace();
+			
+		} finally {
+			
+			SqlUtils.closeDbConnection(dbConnection);
+		}
 	}
 
 	private TokenResource getTokenResource(BasicDataSource dataSource, JedisPool jedisPool) {
@@ -132,8 +164,8 @@ public class Autheo extends Service<AutheoConfig> {
 		TokenBusiness tokenBusiness = new TokenBusiness(dataSource, tokenDAO, tokenCacheDao);
 
 		IRoleDAO roleDao = jdbi.onDemand(IRoleDAO.class);
-		IPermissionDAO permissionDao = jdbi.onDemand(IPermissionDAO.class);
-		PermissionBusiness permissionBusiness = new PermissionBusiness(permissionDao);
+		PermissionDAO permissionDao = new PermissionDAO();
+		PermissionBusiness permissionBusiness = new PermissionBusiness(dataSource, permissionDao);
 		RoleBusiness roleBusiness = new RoleBusiness(roleDao, permissionBusiness, jedisPool);
 
 		TicketBusiness ticketBusiness = new TicketBusiness(tokenBusiness, roleBusiness);
@@ -165,20 +197,21 @@ public class Autheo extends Service<AutheoConfig> {
 
 		// Initialize Redis
 		JedisPool jedisPool = getRedisPoolInstance(redisConfig);
-		
+
 		// Add health checks.
 		addRedisHealthCheck(environment, jedisPool.getResource());
 
+		// Initialize data source.
+		BasicDataSource dataSource = getInitializedDataSource(mySqlConfig);
+		initializeTablesIfNeeded(dataSource);
+
 		// Add Permission resource to the environment.
-		PermissionResource permissionResource = getPermissionResource(jdbi);
+		PermissionResource permissionResource = getPermissionResource(dataSource);
 		environment.addResource(permissionResource);
 
 		// Add Role resource to the environment.
-		RoleResource roleResource = getRoleResource(jdbi, jedisPool);
+		RoleResource roleResource = getRoleResource(jdbi, dataSource, jedisPool);
 		environment.addResource(roleResource);
-
-		// Initialize data source.
-		BasicDataSource dataSource = getInitializedDataSource(mySqlConfig);
 
 		// Add token resource to the environment.
 		TokenResource tokenResource = getTokenResource(dataSource, jedisPool);

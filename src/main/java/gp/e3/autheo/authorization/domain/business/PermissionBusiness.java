@@ -1,88 +1,237 @@
 package gp.e3.autheo.authorization.domain.business;
 
-import gp.e3.autheo.authentication.persistence.exceptions.DuplicateIdException;
+import gp.e3.autheo.authentication.infrastructure.utils.SqlUtils;
 import gp.e3.autheo.authorization.domain.entities.Permission;
-import gp.e3.autheo.authorization.persistence.daos.IPermissionDAO;
+import gp.e3.autheo.authorization.persistence.daos.PermissionDAO;
 
+import java.sql.Connection;
+import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.apache.commons.dbcp2.BasicDataSource;
+
 public class PermissionBusiness {
 
-	private final IPermissionDAO permissionDao;
+	private final BasicDataSource dataSource;
+	private final PermissionDAO permissionDao;
 
-	public PermissionBusiness(IPermissionDAO permissionDao) {
+	public PermissionBusiness(BasicDataSource dataSource, PermissionDAO permissionDao) {
 
+		this.dataSource = dataSource;
 		this.permissionDao = permissionDao;
-		
-		if (this.permissionDao.createPermissionsTable() != 0) {
-			
-			this.permissionDao.createPermissionsUniqueIndex();
-		}
 	}
 
-	public Permission createPermission(Permission permission) throws DuplicateIdException {
+	public long createPermission(Permission permission) {
+
+		long permissionId = 0;
+		Connection dbConnection = null;
 
 		try {
-
-			permissionDao.createPermission(permission.getName(), permission.getHttpVerb(), permission.getUrl());
-
-		} catch (Exception e) {
-
-			String errorMessage = "The permission with http verb: " + permission.getHttpVerb() +
-					" and url: " + permission.getUrl() + " is alredy registered.";
-			throw new DuplicateIdException(errorMessage);
+			
+			dbConnection = dataSource.getConnection();
+			permissionId = permissionDao.createPermission(dbConnection, permission);
+			
+		} catch (SQLException e) {
+			
+			e.printStackTrace();
+			
+		} finally {
+			
+			SqlUtils.closeDbConnection(dbConnection);
 		}
 
-		return permission;
+		return permissionId;
 	}
 
-	public void overwritePermissionsToRole(String roleName, List<Permission> permissions) {
+	public boolean overwritePermissionsToRole(String roleName, List<Permission> permissions) {
 		
-		List<Integer> permissionsIds = new ArrayList<Integer>();
+		boolean permissionsWereOverwritten = false;
+		Connection dbConnection = null;
+		
+		try {
+			
+			dbConnection = dataSource.getConnection();
+			
+			List<Integer> permissionsIds = new ArrayList<Integer>();
 
-		for (Permission permission : permissions) {
+			for (Permission permission : permissions) {
+				permissionsIds.add(permission.getId());
+			}
 
-			permissionsIds.add(permission.getId());
+			permissionDao.disassociateAllPermissionsFromRole(dbConnection, roleName);
+			int associatedPermissions = permissionDao.associateAllPermissionsToRole(dbConnection, roleName, permissionsIds);
+			permissionsWereOverwritten = (associatedPermissions == permissions.size());
+			
+		} catch (SQLException e) {
+			
+			e.printStackTrace();
+			
+		} finally {
+			
+			SqlUtils.closeDbConnection(dbConnection);
 		}
 
-		permissionDao.disassociateAllPermissionsFromRole(roleName);
-		permissionDao.associateAllPermissionsToRole(roleName, permissionsIds);
+		return permissionsWereOverwritten;
 	}
 
-	public void disassociatePermissionFromAllRoles(int permissionId) {
+	public boolean disassociatePermissionFromAllRoles(int permissionId) {
 
-		permissionDao.disassociatePermissionFromAllRoles(permissionId);
+		boolean permissionWasDisassociated = false;
+		Connection dbConnection = null;
+		
+		try {
+			
+			dbConnection = dataSource.getConnection();
+			int result = permissionDao.disassociatePermissionFromAllRoles(dbConnection, permissionId);
+			permissionWasDisassociated = (result != 0);
+			
+		} catch (SQLException e) {
+			
+			e.printStackTrace();
+			
+		} finally {
+			
+			SqlUtils.closeDbConnection(dbConnection);
+		}
+		
+		return permissionWasDisassociated;
 	}
 
-	public void disassociateAllPermissionsFromRole(String roleName) {
-
-		permissionDao.disassociateAllPermissionsFromRole(roleName);
+	public boolean disassociateAllPermissionsFromRole(String roleName) {
+		
+		boolean permissionsWereDisassociatedFromRole = false;
+		Connection dbConnection = null;
+		
+		try {
+			
+			dbConnection = dataSource.getConnection();
+			int result = permissionDao.disassociateAllPermissionsFromRole(dbConnection, roleName);
+			permissionsWereDisassociatedFromRole = (result != 0);
+			
+		} catch (SQLException e) {
+			
+			e.printStackTrace();
+			
+		} finally {
+			
+			SqlUtils.closeDbConnection(dbConnection);
+		}
+		
+		return permissionsWereDisassociatedFromRole;
 	}
 
 	public Permission getPermissionById(int permissionId) {
 
-		return permissionDao.getPermissionById(permissionId);
+		Permission permission = null;
+		Connection dbConnection = null;
+		
+		try {
+			
+			dbConnection = dataSource.getConnection();
+			permission = permissionDao.getPermissionById(dbConnection, permissionId);
+			
+		} catch (SQLException e) {
+			
+			e.printStackTrace();
+			
+		} finally {
+			
+			SqlUtils.closeDbConnection(dbConnection);
+		}
+		
+		return permission;
 	}
 
 	public Permission getPermissionByHttpVerbAndUrl(String httpVerb, String url) {
 
-		return permissionDao.getPermissionByHttpVerbAndUrl(httpVerb, url);
+		Permission permission = null;
+		Connection dbConnection = null;
+		
+		try {
+			
+			dbConnection = dataSource.getConnection();
+			permission = permissionDao.getPermissionByHttpVerbAndUrl(dbConnection, httpVerb, url);
+			
+		} catch (SQLException e) {
+			
+			e.printStackTrace();
+			
+		} finally {
+			
+			SqlUtils.closeDbConnection(dbConnection);
+		}
+		
+		return permission;
 	}
 
 	public List<Permission> getAllPermissions() {
 
-		return permissionDao.getAllPermissions();
+		List<Permission> permissions = new ArrayList<Permission>();
+		Connection dbConnection = null;
+		
+		try {
+			
+			dbConnection = dataSource.getConnection();
+			permissions = permissionDao.getAllPermissions(dbConnection);
+			
+		} catch (SQLException e) {
+			
+			e.printStackTrace();
+			
+		} finally {
+			
+			SqlUtils.closeDbConnection(dbConnection);
+		}
+		
+		return permissions;
 	}
 
 	public List<Permission> getAllPermissionsOfAGivenRole(String roleName) {
 
-		return permissionDao.getAllPermissionsOfAGivenRole(roleName);
+		List<Permission> allPermissions = new ArrayList<Permission>();
+		
+		Connection dbConnection = null;
+		
+		try {
+			
+			dbConnection = dataSource.getConnection();
+			allPermissions = permissionDao.getAllPermissionsOfAGivenRole(dbConnection, roleName);
+			
+		} catch (SQLException e) {
+			
+			e.printStackTrace();
+			
+		} finally {
+			
+			SqlUtils.closeDbConnection(dbConnection);
+		}
+		
+		return allPermissions;
 	}
 
-	public int deletePermission(int permissionId) {
-
-		permissionDao.disassociatePermissionFromAllRoles(permissionId);
-		return permissionDao.deletePermission(permissionId);
+	public boolean deletePermission(int permissionId) {
+		
+		boolean permissionWasDeleted = false;
+		Connection dbConnection = null;
+		
+		try {
+			
+			dbConnection = dataSource.getConnection();
+			permissionDao.disassociatePermissionFromAllRoles(dbConnection, permissionId);
+			int affectedRows = permissionDao.deletePermission(dbConnection, permissionId);
+			
+			permissionWasDeleted = (affectedRows == 1);
+			
+		} catch (SQLException e) {
+			
+			e.printStackTrace();
+			
+		} finally {
+			
+			SqlUtils.closeDbConnection(dbConnection);
+		}
+		
+		return permissionWasDeleted;
 	}
 }
