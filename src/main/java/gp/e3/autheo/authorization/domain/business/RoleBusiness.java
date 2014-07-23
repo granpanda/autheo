@@ -41,18 +41,25 @@ public class RoleBusiness {
 
 	public Role createRole(Role role) {
 
+		Role createdRole = null;
 		String roleName = role.getName();
+		List<Permission> rolePermissions = role.getPermissions();
 		Connection dbConnection = null;
 
 		try {
 
 			dbConnection = dataSource.getConnection();
-			roleDAO.createRole(dbConnection, roleName);
-			List<Permission> rolePermissions = role.getPermissions();
+			int affectedRows = roleDAO.createRole(dbConnection, roleName);
+			boolean roleWasCreated = (affectedRows == 1);
+			
+			if (roleWasCreated) {
+				
+				if (rolePermissions.size() > 0) {
 
-			if (rolePermissions.size() > 0) {
-
-				permissionBusiness.overwritePermissionsToRole(roleName, rolePermissions);
+					permissionBusiness.overwritePermissionsToRole(roleName, rolePermissions);
+				}
+				
+				createdRole = role;
 			}
 
 		} catch (Exception e) {
@@ -64,7 +71,7 @@ public class RoleBusiness {
 			SqlUtils.closeDbConnection(dbConnection);
 		}
 
-		return role;
+		return createdRole;
 	}
 
 	public Role getRoleByName(String roleName) {

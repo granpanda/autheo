@@ -3,18 +3,20 @@ package gp.e3.autheo.authorization.domain.business;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
-import gp.e3.autheo.authentication.persistence.exceptions.DuplicateIdException;
 import gp.e3.autheo.authorization.domain.entities.Permission;
 import gp.e3.autheo.authorization.domain.entities.Role;
 import gp.e3.autheo.authorization.infrastructure.dtos.PermissionTuple;
-import gp.e3.autheo.authorization.persistence.daos.IRoleDAO;
+import gp.e3.autheo.authorization.persistence.daos.RoleDAO;
 import gp.e3.autheo.util.RoleFactoryForTests;
 
+import java.sql.Connection;
+import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.apache.commons.dbcp2.BasicDataSource;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -25,31 +27,50 @@ import redis.clients.jedis.JedisPool;
 
 public class RoleBusinessTest {
 
-	private IRoleDAO roleDaoMock;
-	private PermissionBusiness permissionBusinessMock;
-	private JedisPool redisPoolMock;
+	private Connection dbConnectionMock;
+	private BasicDataSource dataSourceMock;
+
 	private Jedis redisMock;
+	private JedisPool redisPoolMock;
+
+	private RoleDAO roleDaoMock;
+	private PermissionBusiness permissionBusinessMock;
 
 	private RoleBusiness roleBusiness;
 
 	@Before
 	public void setUp() {
 
-		roleDaoMock = Mockito.mock(IRoleDAO.class);
-		permissionBusinessMock =  Mockito.mock(PermissionBusiness.class);
-		redisPoolMock = Mockito.mock(JedisPool.class);
+		dbConnectionMock = Mockito.mock(Connection.class);
+		dataSourceMock = Mockito.mock(BasicDataSource.class);
+
+		try {
+			Mockito.when(dataSourceMock.getConnection()).thenReturn(dbConnectionMock);
+		} catch (SQLException e) {
+			e.printStackTrace();
+		}
+
 		redisMock = Mockito.mock(Jedis.class);
+		redisPoolMock = Mockito.mock(JedisPool.class);
 		Mockito.when(redisPoolMock.getResource()).thenReturn(redisMock);
-		
-		roleBusiness = new RoleBusiness(roleDaoMock, permissionBusinessMock, redisPoolMock);
+
+		roleDaoMock = Mockito.mock(RoleDAO.class);
+		permissionBusinessMock =  Mockito.mock(PermissionBusiness.class);
+
+		roleBusiness = new RoleBusiness(dataSourceMock, redisPoolMock, roleDaoMock, permissionBusinessMock);
 	}
 
 	@After
 	public void tearDown() {
-		roleDaoMock = null;
-		permissionBusinessMock = null;
+
+		dbConnectionMock = null;
+		dataSourceMock = null;
+
 		redisMock = null;
 		redisPoolMock = null;
+
+		roleDaoMock = null;
+		permissionBusinessMock = null;
 
 		roleBusiness = null;
 	}
@@ -58,46 +79,21 @@ public class RoleBusinessTest {
 	public void testCreateRole_OK() {
 
 		Role role = RoleFactoryForTests.getDefaultTestRole();
+		Mockito.when(roleDaoMock.createRole(dbConnectionMock, role.getName())).thenReturn(1);
+		Role createdRole = roleBusiness.createRole(role);
 
-		try {
-
-			Role createdRole = roleBusiness.createRole(role);
-
-			assertNotNull(createdRole);
-			assertEquals(role.getName(), createdRole.getName());
-
-		} catch (DuplicateIdException e) {
-
-			fail("The method should not throw an exception because the role was not into the database.");
-		}
+		assertNotNull(createdRole);
+		assertEquals(role.getName(), createdRole.getName());
 	}
 
 	@Test
 	public void testCreateRole_NOK() {
 
 		Role role = RoleFactoryForTests.getDefaultTestRole();
+		Mockito.when(roleDaoMock.createRole(dbConnectionMock, role.getName())).thenReturn(0);
 
-		try {
-
-			String errorMessage = "Duplicated primary key: " + role.getName();
-			Mockito.doNothing().doThrow(new DuplicateIdException(errorMessage)).when(roleDaoMock).createRole(role.getName());
-
-			Role createdRole = roleBusiness.createRole(role);
-
-			assertNotNull(createdRole);
-			assertEquals(role.getName(), createdRole.getName());
-
-			roleBusiness.createRole(role);
-			fail("The method should throw an exception because the role was into the database.");
-
-		} catch (DuplicateIdException e) {
-
-			assertNotNull(e);
-
-		} catch (Exception e) {
-
-			assertNotNull(e);
-		}
+		Role createdRole = roleBusiness.createRole(role);
+		assertNull(createdRole);
 	}
 
 	@Test
@@ -142,7 +138,7 @@ public class RoleBusinessTest {
 		rolesNamesList.add("admin");
 		rolesNamesList.add("tester");
 
-		Mockito.when(roleDaoMock.getAllRolesNames()).thenReturn(rolesNamesList);
+		Mockito.when(roleDaoMock.getAllRolesNames(dbConnectionMock)).thenReturn(rolesNamesList);
 
 		List<String> allRolesNames = roleBusiness.getAllRolesNames();
 
@@ -155,7 +151,7 @@ public class RoleBusinessTest {
 
 		List<String> rolesNamesList = new ArrayList<String>();
 
-		Mockito.when(roleDaoMock.getAllRolesNames()).thenReturn(rolesNamesList);
+		Mockito.when(roleDaoMock.getAllRolesNames(dbConnectionMock)).thenReturn(rolesNamesList);
 
 		List<String> allRolesNames = roleBusiness.getAllRolesNames();
 
@@ -197,7 +193,7 @@ public class RoleBusinessTest {
 		int listSize = 5;
 		Role role = RoleFactoryForTests.getDefaultTestRole(listSize);
 		String rolePermissionsToString = role.getPermissions().toString();
-		
+
 		Mockito.when(redisMock.get(role.getName())).thenReturn(rolePermissionsToString);
 
 		assertTrue(roleBusiness.rolePermissionsAreInRedis(role.getName()));
@@ -225,7 +221,7 @@ public class RoleBusinessTest {
 
 		return permissionsString;
 	}
-	
+
 	@Test
 	public void testAddRolePermissionsToRedis_OK() {
 
