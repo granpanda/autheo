@@ -4,6 +4,7 @@ import gp.e3.autheo.authentication.domain.business.TokenBusiness;
 import gp.e3.autheo.authentication.domain.business.UserBusiness;
 import gp.e3.autheo.authentication.infrastructure.config.MySQLConfig;
 import gp.e3.autheo.authentication.infrastructure.config.RedisConfig;
+import gp.e3.autheo.authentication.infrastructure.healthchecks.MySQLHealthCheck;
 import gp.e3.autheo.authentication.infrastructure.healthchecks.RedisHealthCheck;
 import gp.e3.autheo.authentication.infrastructure.utils.SqlUtils;
 import gp.e3.autheo.authentication.persistence.daos.TokenCacheDAO;
@@ -48,7 +49,7 @@ public class Autheo extends Service<AutheoConfig> {
 
 	@Override
 	public void initialize(Bootstrap<AutheoConfig> bootstrap) {
-		
+
 	}
 
 	private JedisPool getRedisPoolInstance(RedisConfig redisConfig) {
@@ -98,11 +99,11 @@ public class Autheo extends Service<AutheoConfig> {
 	private void initializeTablesIfNeeded(BasicDataSource dataSource) {
 
 		Connection dbConnection = null;
-		
+
 		try {
-			
+
 			dbConnection = dataSource.getConnection();
-			
+
 			TokenDAO tokenDAO = new TokenDAO();
 			tokenDAO.createTokensTableIfNotExists(dbConnection);
 
@@ -112,18 +113,18 @@ public class Autheo extends Service<AutheoConfig> {
 			PermissionDAO permissionDAO = new PermissionDAO();
 			permissionDAO.createPermissionsTable(dbConnection);
 			permissionDAO.createPermissionsUniqueIndex(dbConnection);
-			
+
 			RoleDAO roleDAO = new RoleDAO();
 			roleDAO.createRolesTable(dbConnection);
 			roleDAO.createRolesAndPermissionsTable(dbConnection);
 			roleDAO.createRolesAndUsersTable(dbConnection);
-			
+
 		} catch (SQLException e) {
-			
+
 			e.printStackTrace();
-			
+
 		} finally {
-			
+
 			SqlUtils.closeDbConnection(dbConnection);
 		}
 	}
@@ -166,6 +167,12 @@ public class Autheo extends Service<AutheoConfig> {
 		return new TicketResource(ticketBusiness);
 	}
 
+	private void addMySQLHealthCheck(Environment environment, Connection dbConnection) {
+
+		String healthCheckName = "mysql";
+		environment.addHealthCheck(new MySQLHealthCheck(healthCheckName, dbConnection));
+	}
+
 	private void addRedisHealthCheck(Environment environment, Jedis redisClient) {
 
 		String healthCheckName = "redis";
@@ -185,15 +192,16 @@ public class Autheo extends Service<AutheoConfig> {
 		MySQLConfig mySqlConfig = autheoConfig.getMySqlConfig();
 		RedisConfig redisConfig = autheoConfig.getRedisConfig();
 
+		// Initialize data source.
+		BasicDataSource dataSource = getInitializedDataSource(mySqlConfig);
+		initializeTablesIfNeeded(dataSource);
+
 		// Initialize Redis
 		JedisPool jedisPool = getRedisPoolInstance(redisConfig);
 
 		// Add health checks.
+		addMySQLHealthCheck(environment, dataSource.getConnection());
 		addRedisHealthCheck(environment, jedisPool.getResource());
-
-		// Initialize data source.
-		BasicDataSource dataSource = getInitializedDataSource(mySqlConfig);
-		initializeTablesIfNeeded(dataSource);
 
 		// Add Permission resource to the environment.
 		PermissionResource permissionResource = getPermissionResource(dataSource);
