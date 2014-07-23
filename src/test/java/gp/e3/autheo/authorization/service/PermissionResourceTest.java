@@ -2,8 +2,6 @@ package gp.e3.autheo.authorization.service;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNull;
-import static org.junit.Assert.fail;
-import gp.e3.autheo.authentication.persistence.exceptions.DuplicateIdException;
 import gp.e3.autheo.authorization.domain.business.PermissionBusiness;
 import gp.e3.autheo.authorization.domain.entities.Permission;
 import gp.e3.autheo.util.PermissionFactoryForTests;
@@ -12,6 +10,7 @@ import java.util.List;
 
 import javax.ws.rs.core.MediaType;
 
+import org.apache.commons.lang3.StringUtils;
 import org.junit.Test;
 import org.mockito.Mockito;
 
@@ -42,46 +41,32 @@ public class PermissionResourceTest extends ResourceTest {
 	@Test
 	public void testCreatePermission_OK() {
 		
+		long expectedPermissionId = 1;
 		Permission permission = PermissionFactoryForTests.getDefaultTestPermission();
-		
-		try {
-			Mockito.when(permissionBusinessMock.createPermission((Permission) Mockito.any())).thenReturn(permission);
-		} catch (DuplicateIdException e) {
-			fail(e.getMessage());
-		}
+		Mockito.when(permissionBusinessMock.createPermission((Permission) Mockito.any())).thenReturn(expectedPermissionId);
 		
 		String url = "/permissions";
 		ClientResponse response = getDefaultHttpRequest(url).post(ClientResponse.class, permission);
 		
 		assertEquals(201, response.getStatus());
-		assertEquals(0, permission.compareTo(response.getEntity(Permission.class)));
+		
+		long permissionId = response.getEntity(Long.class);
+		assertEquals(expectedPermissionId, permissionId);
 	}
 	
 	@Test
 	public void testCreatePermission_NOK_1() {
 		
+		long expectedPermissionId = 0;
 		Permission permission = PermissionFactoryForTests.getDefaultTestPermission();
-		
-		try {
-			
-			String errorMessage = "The given permission already exists into the db.";
-			
-			Mockito.when(permissionBusinessMock.createPermission((Permission) Mockito.any())).thenReturn(permission)
-			.thenThrow(new DuplicateIdException(errorMessage));
-			
-		} catch (DuplicateIdException e) {
-			fail(e.getMessage());
-		}
+		Mockito.when(permissionBusinessMock.createPermission((Permission) Mockito.any())).thenReturn(expectedPermissionId);
 		
 		String url = "/permissions";
 		ClientResponse response = getDefaultHttpRequest(url).post(ClientResponse.class, permission);
 		
-		assertEquals(201, response.getStatus());
-		assertEquals(0, permission.compareTo(response.getEntity(Permission.class)));
-		
-		ClientResponse secondResponse = getDefaultHttpRequest(url).post(ClientResponse.class, permission);
-		
-		assertEquals(500, secondResponse.getStatus());
+		assertEquals(500, response.getStatus());
+		String errorMessage = response.getEntity(String.class);
+		assertEquals(false,	StringUtils.isBlank(errorMessage));
 	}
 	
 	@Test
