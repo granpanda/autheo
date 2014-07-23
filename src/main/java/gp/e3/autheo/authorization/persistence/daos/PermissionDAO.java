@@ -11,8 +11,6 @@ import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.skife.jdbi.v2.sqlobject.SqlQuery;
-
 public class PermissionDAO {
 
 	//------------------------------------------------------------------------------------------------------
@@ -282,8 +280,7 @@ public class PermissionDAO {
 		
 		return permission;
 	}
-
-	@SqlQuery(GET_PERMISSION_BY_HTTP_VERB_AND_URL)
+	
 	public Permission getPermissionByHttpVerbAndUrl(Connection dbConnection, String httpVerb, String url) {
 		
 		Permission permission = null;

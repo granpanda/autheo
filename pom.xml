@@ -19,12 +19,6 @@
 
 		<dependency>
 			<groupId>com.yammer.dropwizard</groupId>
-			<artifactId>dropwizard-jdbi</artifactId>
-			<version>0.6.2</version>
-		</dependency>
-
-		<dependency>
-			<groupId>com.yammer.dropwizard</groupId>
 			<artifactId>dropwizard-testing</artifactId>
 			<version>0.6.2</version>
 		</dependency>

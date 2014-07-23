@@ -10,8 +10,6 @@ import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.skife.jdbi.v2.exceptions.UnableToExecuteStatementException;
-
 public class TokenDAO {
 	
 	public static final String TOKEN_VALUE_FIELD = "token_value";
@@ -49,7 +47,7 @@ public class TokenDAO {
 		return count;
 	}
 	
-	public int createToken(Connection dbConnection, Token token) throws UnableToExecuteStatementException, SQLException {
+	public int createToken(Connection dbConnection, Token token) throws SQLException {
 		
 		String createTokenSQL = "INSERT INTO tokens (token_value, username, organization_id, role_id, token_type) VALUES (?, ?, ?, ?, ?);";
 		

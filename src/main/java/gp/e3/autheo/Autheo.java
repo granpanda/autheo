@@ -2,7 +2,8 @@ package gp.e3.autheo;
 
 import gp.e3.autheo.authentication.domain.business.TokenBusiness;
 import gp.e3.autheo.authentication.domain.business.UserBusiness;
-import gp.e3.autheo.authentication.infrastructure.RedisConfig;
+import gp.e3.autheo.authentication.infrastructure.config.MySQLConfig;
+import gp.e3.autheo.authentication.infrastructure.config.RedisConfig;
 import gp.e3.autheo.authentication.infrastructure.healthchecks.RedisHealthCheck;
 import gp.e3.autheo.authentication.infrastructure.utils.SqlUtils;
 import gp.e3.autheo.authentication.persistence.daos.TokenCacheDAO;
@@ -24,7 +25,6 @@ import java.sql.SQLException;
 
 import org.apache.commons.dbcp2.BasicDataSource;
 import org.eclipse.jetty.servlets.CrossOriginFilter;
-import org.skife.jdbi.v2.DBI;
 
 import redis.clients.jedis.Jedis;
 import redis.clients.jedis.JedisPool;
@@ -34,9 +34,6 @@ import redis.clients.jedis.Protocol;
 import com.yammer.dropwizard.Service;
 import com.yammer.dropwizard.config.Bootstrap;
 import com.yammer.dropwizard.config.Environment;
-import com.yammer.dropwizard.db.DatabaseConfiguration;
-import com.yammer.dropwizard.jdbi.DBIFactory;
-import com.yammer.dropwizard.jdbi.bundles.DBIExceptionsBundle;
 
 /**
  * Autheo main class
@@ -51,8 +48,7 @@ public class Autheo extends Service<AutheoConfig> {
 
 	@Override
 	public void initialize(Bootstrap<AutheoConfig> bootstrap) {
-
-		bootstrap.addBundle(new DBIExceptionsBundle());
+		
 	}
 
 	private JedisPool getRedisPoolInstance(RedisConfig redisConfig) {
@@ -61,14 +57,6 @@ public class Autheo extends Service<AutheoConfig> {
 				Protocol.DEFAULT_TIMEOUT, null, redisConfig.getDatabase());
 
 		return jedisPool;
-	}
-
-	private DBI getJDBIInstance(DatabaseConfiguration mySqlConfig, Environment environment) throws ClassNotFoundException {
-
-		final DBIFactory dbiFactory = new DBIFactory();
-		final DBI jdbi = dbiFactory.build(environment, mySqlConfig, "mysql");
-
-		return jdbi;
 	}
 
 	private PermissionResource getPermissionResource(BasicDataSource dataSource) {
@@ -91,13 +79,13 @@ public class Autheo extends Service<AutheoConfig> {
 		return new RoleResource(roleBusiness);
 	}
 
-	private BasicDataSource getInitializedDataSource(DatabaseConfiguration mySqlConfig) {
+	private BasicDataSource getInitializedDataSource(MySQLConfig mySqlConfig) {
 
 		BasicDataSource basicDataSource = new BasicDataSource();
 
 		basicDataSource.setDriverClassName(mySqlConfig.getDriverClass());
 		basicDataSource.setUrl(mySqlConfig.getUrl());
-		basicDataSource.setUsername(mySqlConfig.getUser());
+		basicDataSource.setUsername(mySqlConfig.getUsername());
 		basicDataSource.setPassword(mySqlConfig.getPassword());
 
 		// int maxValue = 100;
@@ -149,7 +137,7 @@ public class Autheo extends Service<AutheoConfig> {
 		return new TokenResource(tokenBusiness);
 	}
 
-	private UserResource getUserResource(BasicDataSource dataSource, DBI jdbi, JedisPool jedisPool) 
+	private UserResource getUserResource(BasicDataSource dataSource, JedisPool jedisPool) 
 			throws ClassNotFoundException {
 
 		final UserDAO userDAO = new UserDAO();
@@ -194,11 +182,8 @@ public class Autheo extends Service<AutheoConfig> {
 		.setInitParam(CrossOriginFilter.ALLOWED_METHODS_PARAM, "OPTIONS,HEAD,GET,POST,PUT,DELETE,PATCH"); // Access-Control-Request-Headers
 
 		// Get Configurations.
-		DatabaseConfiguration mySqlConfig = autheoConfig.getMySqlConfig();
+		MySQLConfig mySqlConfig = autheoConfig.getMySqlConfig();
 		RedisConfig redisConfig = autheoConfig.getRedisConfig();
-
-		// Initialize JDBI
-		final DBI jdbi = getJDBIInstance(mySqlConfig, environment);
 
 		// Initialize Redis
 		JedisPool jedisPool = getRedisPoolInstance(redisConfig);
@@ -223,7 +208,7 @@ public class Autheo extends Service<AutheoConfig> {
 		environment.addResource(tokenResource);
 
 		// Add user resource to the environment.
-		UserResource userResource = getUserResource(dataSource, jdbi, jedisPool);
+		UserResource userResource = getUserResource(dataSource, jedisPool);
 		environment.addResource(userResource);
 
 		// Add ticket resource to the environment.

@@ -1,4 +1,4 @@
-package gp.e3.autheo.authentication.infrastructure;
+package gp.e3.autheo.authentication.infrastructure.config;
 
 import javax.validation.constraints.NotNull;
 

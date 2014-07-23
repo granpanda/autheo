@@ -6,8 +6,6 @@ import java.sql.ResultSet;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.skife.jdbi.v2.sqlobject.SqlUpdate;
-
 public class RoleDAO {
 
 	//------------------------------------------------------------------------------------------------------
@@ -72,8 +70,7 @@ public class RoleDAO {
 
 		return rolesTableWasCreated;
 	}
-
-	@SqlUpdate(CREATE_ROLES_AND_PERMISSIONS_TABLE_IF_NOT_EXISTS)
+	
 	public boolean createRolesAndPermissionsTable(Connection dbConnection) {
 
 		boolean rolesAndPermissionsTableWasCreated = false;
