@@ -112,7 +112,6 @@ public class Autheo extends Service<AutheoConfig> {
 
 			PermissionDAO permissionDAO = new PermissionDAO();
 			permissionDAO.createPermissionsTable(dbConnection);
-			permissionDAO.createPermissionsUniqueIndex(dbConnection);
 
 			RoleDAO roleDAO = new RoleDAO();
 			roleDAO.createRolesTable(dbConnection);

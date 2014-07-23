@@ -66,26 +66,8 @@ public class PermissionDAO {
 	//------------------------------------------------------------------------------------------------------
 	// Database operations
 	//------------------------------------------------------------------------------------------------------
-
-	public int createPermissionsTable(Connection dbConnection) {
-
-		int affectedRows = 0;
-
-		try {
-
-			PreparedStatement prepareStatement = dbConnection.prepareStatement(CREATE_PERMISSIONS_TABLE_IF_NOT_EXISTS);
-			affectedRows = prepareStatement.executeUpdate();
-			prepareStatement.close();
-
-		} catch (SQLException e) {
-
-			e.printStackTrace();
-		}
-
-		return affectedRows;
-	}
-
-	public boolean createPermissionsUniqueIndex(Connection dbConnection) {
+	
+	private boolean createPermissionsUniqueIndex(Connection dbConnection) {
 
 		boolean indexWasCreated = false;
 
@@ -102,6 +84,29 @@ public class PermissionDAO {
 		}
 
 		return indexWasCreated;
+	}
+
+	public int createPermissionsTable(Connection dbConnection) {
+
+		int affectedRows = 0;
+
+		try {
+
+			PreparedStatement prepareStatement = dbConnection.prepareStatement(CREATE_PERMISSIONS_TABLE_IF_NOT_EXISTS);
+			affectedRows = prepareStatement.executeUpdate();
+			
+			if (affectedRows != 0) {
+				createPermissionsUniqueIndex(dbConnection);
+			}
+			
+			prepareStatement.close();
+
+		} catch (SQLException e) {
+
+			e.printStackTrace();
+		}
+
+		return affectedRows;
 	}
 
 	public int countPermissionsTable(Connection dbConnection) {

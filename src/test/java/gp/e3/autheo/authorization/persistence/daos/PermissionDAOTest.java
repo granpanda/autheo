@@ -62,7 +62,6 @@ public class PermissionDAOTest {
 
 		roleDAO.createRolesAndPermissionsTable(dbConnection);
 		permissionDAO.createPermissionsTable(dbConnection);
-		permissionDAO.createPermissionsUniqueIndex(dbConnection);
 	}
 
 	@After
