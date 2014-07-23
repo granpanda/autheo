@@ -13,8 +13,8 @@ import gp.e3.autheo.authentication.service.resources.UserResource;
 import gp.e3.autheo.authorization.domain.business.PermissionBusiness;
 import gp.e3.autheo.authorization.domain.business.RoleBusiness;
 import gp.e3.autheo.authorization.domain.business.TicketBusiness;
-import gp.e3.autheo.authorization.persistence.daos.IRoleDAO;
 import gp.e3.autheo.authorization.persistence.daos.PermissionDAO;
+import gp.e3.autheo.authorization.persistence.daos.RoleDAO;
 import gp.e3.autheo.authorization.service.PermissionResource;
 import gp.e3.autheo.authorization.service.RoleResource;
 import gp.e3.autheo.authorization.service.TicketResource;
@@ -80,13 +80,13 @@ public class Autheo extends Service<AutheoConfig> {
 		return permissionResource;
 	}
 
-	private RoleResource getRoleResource(final DBI jdbi, BasicDataSource dataSource, JedisPool jedisPool) {
+	private RoleResource getRoleResource(BasicDataSource dataSource, JedisPool jedisPool) {
 
 		final PermissionDAO permissionDao = new PermissionDAO();
 		final PermissionBusiness permissionBusiness = new PermissionBusiness(dataSource, permissionDao);
 
-		final IRoleDAO roleDao = jdbi.onDemand(IRoleDAO.class);
-		final RoleBusiness roleBusiness = new RoleBusiness(roleDao, permissionBusiness, jedisPool);
+		final RoleDAO roleDao = new RoleDAO();
+		final RoleBusiness roleBusiness = new RoleBusiness(dataSource, jedisPool, roleDao, permissionBusiness);
 
 		return new RoleResource(roleBusiness);
 	}
@@ -125,6 +125,11 @@ public class Autheo extends Service<AutheoConfig> {
 			permissionDAO.createPermissionsTable(dbConnection);
 			permissionDAO.createPermissionsUniqueIndex(dbConnection);
 			
+			RoleDAO roleDAO = new RoleDAO();
+			roleDAO.createRolesTable(dbConnection);
+			roleDAO.createRolesAndPermissionsTable(dbConnection);
+			roleDAO.createRolesAndUsersTable(dbConnection);
+			
 		} catch (SQLException e) {
 			
 			e.printStackTrace();
@@ -157,16 +162,16 @@ public class Autheo extends Service<AutheoConfig> {
 		return new UserResource(userBusiness, tokenBusiness);
 	}
 
-	private TicketResource getTicketResource(BasicDataSource dataSource, DBI jdbi, JedisPool jedisPool) {
+	private TicketResource getTicketResource(BasicDataSource dataSource, JedisPool jedisPool) {
 
 		TokenDAO tokenDAO = new TokenDAO();
 		TokenCacheDAO tokenCacheDao = new TokenCacheDAO(jedisPool);
 		TokenBusiness tokenBusiness = new TokenBusiness(dataSource, tokenDAO, tokenCacheDao);
 
-		IRoleDAO roleDao = jdbi.onDemand(IRoleDAO.class);
+		RoleDAO roleDao = new RoleDAO();
 		PermissionDAO permissionDao = new PermissionDAO();
 		PermissionBusiness permissionBusiness = new PermissionBusiness(dataSource, permissionDao);
-		RoleBusiness roleBusiness = new RoleBusiness(roleDao, permissionBusiness, jedisPool);
+		RoleBusiness roleBusiness = new RoleBusiness(dataSource, jedisPool, roleDao, permissionBusiness);
 
 		TicketBusiness ticketBusiness = new TicketBusiness(tokenBusiness, roleBusiness);
 
@@ -210,7 +215,7 @@ public class Autheo extends Service<AutheoConfig> {
 		environment.addResource(permissionResource);
 
 		// Add Role resource to the environment.
-		RoleResource roleResource = getRoleResource(jdbi, dataSource, jedisPool);
+		RoleResource roleResource = getRoleResource(dataSource, jedisPool);
 		environment.addResource(roleResource);
 
 		// Add token resource to the environment.
@@ -222,7 +227,7 @@ public class Autheo extends Service<AutheoConfig> {
 		environment.addResource(userResource);
 
 		// Add ticket resource to the environment.
-		TicketResource ticketResource = getTicketResource(dataSource, jdbi, jedisPool);
+		TicketResource ticketResource = getTicketResource(dataSource, jedisPool);
 		environment.addResource(ticketResource);
 	}
 }

@@ -1,36 +1,34 @@
 package gp.e3.autheo.authorization.domain.business;
 
+import gp.e3.autheo.authentication.infrastructure.utils.SqlUtils;
 import gp.e3.autheo.authentication.infrastructure.validators.StringValidator;
-import gp.e3.autheo.authentication.persistence.exceptions.DuplicateIdException;
 import gp.e3.autheo.authorization.domain.entities.Permission;
 import gp.e3.autheo.authorization.domain.entities.Role;
 import gp.e3.autheo.authorization.infrastructure.dtos.PermissionTuple;
-import gp.e3.autheo.authorization.persistence.daos.IRoleDAO;
+import gp.e3.autheo.authorization.persistence.daos.RoleDAO;
 
+import java.sql.Connection;
 import java.util.ArrayList;
 import java.util.List;
+
+import org.apache.commons.dbcp2.BasicDataSource;
 
 import redis.clients.jedis.Jedis;
 import redis.clients.jedis.JedisPool;
 
 public class RoleBusiness {
 
-	private final IRoleDAO roleDao;
-	private final PermissionBusiness permissionBusiness;
-
+	private BasicDataSource dataSource;
 	private JedisPool redisPool;
-
-	public RoleBusiness(IRoleDAO roleDao, PermissionBusiness permissionBusiness, JedisPool redisPool) {
-
-		this.roleDao = roleDao;
-		this.permissionBusiness = permissionBusiness;
-
-		this.roleDao.createRolesTable();
-		this.roleDao.createRolesAndPermissionsTable();
-		this.roleDao.createRolesAndUsersTable();
-
-
+	private final RoleDAO roleDAO;
+	private final PermissionBusiness permissionBusiness;
+	
+	public RoleBusiness(BasicDataSource dataSource, JedisPool redisPool, RoleDAO roleDAO, PermissionBusiness permissionBusiness) {
+		
+		this.dataSource = dataSource;
 		this.redisPool = redisPool;
+		this.roleDAO = roleDAO;
+		this.permissionBusiness = permissionBusiness;
 	}
 
 	private Jedis getRedisClient(){
@@ -41,14 +39,15 @@ public class RoleBusiness {
 		redisPool.returnResource(jedis);
 	}
 
-
-	public Role createRole(Role role) throws DuplicateIdException {
+	public Role createRole(Role role) {
 
 		String roleName = role.getName();
+		Connection dbConnection = null;
 
 		try {
 
-			roleDao.createRole(roleName);
+			dbConnection = dataSource.getConnection();
+			roleDAO.createRole(dbConnection, roleName);
 			List<Permission> rolePermissions = role.getPermissions();
 
 			if (rolePermissions.size() > 0) {
@@ -58,8 +57,11 @@ public class RoleBusiness {
 
 		} catch (Exception e) {
 
-			String errorMessage = "The role with name: " + roleName + " is already registered.";
-			throw new DuplicateIdException(errorMessage);
+			e.printStackTrace();
+			
+		} finally {
+			
+			SqlUtils.closeDbConnection(dbConnection);
 		}
 
 		return role;
@@ -73,33 +75,107 @@ public class RoleBusiness {
 
 	public List<String> getAllRolesNames() {
 
-		return roleDao.getAllRolesNames();
+		Connection dbConnection = null;
+		List<String> rolesNames = new ArrayList<String>();
+		
+		try {
+			
+			dbConnection = dataSource.getConnection();
+			rolesNames = roleDAO.getAllRolesNames(dbConnection);
+			
+		} catch (Exception e) {
+			
+			e.printStackTrace();
+			
+		} finally {
+			
+			SqlUtils.closeDbConnection(dbConnection);
+		}
+		
+		return rolesNames;
 	}
 
-	public void updateRole(String roleName, List<Permission> updatedPermissions) {
+	public boolean updateRole(String roleName, List<Permission> updatedPermissions) {
 
 		permissionBusiness.overwritePermissionsToRole(roleName, updatedPermissions);
-		addRolePermissionsToRedis(roleName); // Update role in Redis.
+		return addRolePermissionsToRedis(roleName); // Update role in Redis.
 	}
 
-	public void deleteRole(String roleName) {
-
-		Jedis redisClient = getRedisClient();
-		permissionBusiness.disassociateAllPermissionsFromRole(roleName);
-		roleDao.removeAllUsersFromRole(roleName);
-		roleDao.deleteRole(roleName);
-		redisClient.del(roleName);
-		returnResource(redisClient);
+	public boolean deleteRole(String roleName) {
+		
+		boolean roleWasDeleted = false;
+		Connection dbConnection = null;
+		Jedis redisClient = null;
+		
+		try {
+			
+			dbConnection = dataSource.getConnection();
+			redisClient = getRedisClient();
+			
+			permissionBusiness.disassociateAllPermissionsFromRole(roleName);
+			roleDAO.removeAllUsersFromRole(dbConnection, roleName);
+			roleDAO.deleteRole(dbConnection, roleName);
+			
+			long keysRemoved = redisClient.del(roleName);
+			roleWasDeleted = (keysRemoved > 0);
+			
+		} catch (Exception e) {
+			
+			e.printStackTrace();
+			
+		} finally {
+			
+			returnResource(redisClient);
+			SqlUtils.closeDbConnection(dbConnection);
+		}
+		
+		return roleWasDeleted;
 	}
 
-	public void addUserToRole(String username, String roleName) {
+	public boolean addUserToRole(String username, String roleName) {
 
-		roleDao.addUserToRole(username, roleName);
+		boolean userWasAddedToRole = false;
+		Connection dbConnection = null;
+		
+		try {
+			
+			dbConnection = dataSource.getConnection();
+			int affectedRows = roleDAO.addUserToRole(dbConnection, username, roleName);
+			userWasAddedToRole = (affectedRows == 1);
+			
+		} catch (Exception e) {
+			
+			e.printStackTrace();
+			
+		} finally {
+			
+			SqlUtils.closeDbConnection(dbConnection);
+		}
+		
+		return userWasAddedToRole;
 	}
 
-	public void removeUserFromRole(String username, String roleName) {
+	public boolean removeUserFromRole(String username, String roleName) {
 
-		roleDao.removeUserFromRole(username);
+		boolean userWasRemovedFromRole = false;
+		Connection dbConnection = null;
+		
+		try {
+			
+			dbConnection = dataSource.getConnection();
+			int affectedRows = roleDAO.removeUserFromRole(dbConnection, username);
+			userWasRemovedFromRole = (affectedRows > 0);
+			
+		} catch (Exception e) {
+			
+			e.printStackTrace();
+			
+		} finally {
+			
+			SqlUtils.closeDbConnection(dbConnection);
+		}
+		
+		return userWasRemovedFromRole;
 	}
 
 	public List<Permission> getAllPermissionsOfAGivenRole(String roleName) {

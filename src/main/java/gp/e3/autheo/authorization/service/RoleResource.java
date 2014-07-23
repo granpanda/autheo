@@ -2,7 +2,6 @@ package gp.e3.autheo.authorization.service;
 
 import gp.e3.autheo.authentication.domain.entities.User;
 import gp.e3.autheo.authentication.infrastructure.validators.StringValidator;
-import gp.e3.autheo.authentication.persistence.exceptions.DuplicateIdException;
 import gp.e3.autheo.authentication.service.resources.commons.HttpCommonResponses;
 import gp.e3.autheo.authorization.domain.business.RoleBusiness;
 import gp.e3.autheo.authorization.domain.entities.Permission;
@@ -40,15 +39,8 @@ public class RoleResource {
 		
 		if (Role.isValidRole(role)) {
 			
-			try {
-				
-				Role createdRole = roleBusiness.createRole(role);
-				response = Response.status(201).entity(createdRole).build();
-				
-			} catch (DuplicateIdException e) {
-				
-				response = Response.status(500).entity(e.getMessage()).build();
-			}
+			Role createdRole = roleBusiness.createRole(role);
+			response = Response.status(201).entity(createdRole).build();
 			
 		} else {
 			
