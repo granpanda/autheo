@@ -4,6 +4,7 @@ import gp.e3.autheo.authentication.domain.business.constants.TokenTypes;
 import gp.e3.autheo.authentication.domain.entities.Token;
 import gp.e3.autheo.authentication.domain.entities.User;
 import gp.e3.autheo.authentication.domain.exceptions.TokenGenerationException;
+import gp.e3.autheo.authentication.domain.exceptions.ValidDataException;
 import gp.e3.autheo.authentication.infrastructure.utils.SqlUtils;
 import gp.e3.autheo.authentication.infrastructure.validators.StringValidator;
 import gp.e3.autheo.authentication.persistence.daos.TokenCacheDAO;
@@ -144,11 +145,23 @@ public class TokenBusiness {
 				} catch (SQLException e) {
 					e.printStackTrace();
 				}
-				
+
 				token = tokenCacheDao.getTokenByTokenValue(tokenValue);
 			}
 		}
 
 		return token;
+	}
+
+	public boolean removeUserAccessToken(String tokenValue) throws ValidDataException{
+		boolean tokenWasRemoved = false;
+
+		if(StringValidator.isValidString(tokenValue)){
+			tokenWasRemoved = tokenCacheDao.removeUserAccessToken(tokenValue);
+		} else {
+			throw new ValidDataException("Invalid token value");
+		}
+
+		return tokenWasRemoved;
 	}
 }
