@@ -32,7 +32,7 @@ public class PermissionDAO {
 	public static final String CREATE_PERMISSIONS_TABLE_IF_NOT_EXISTS = 
 			"CREATE TABLE IF NOT EXISTS permissions (id INT AUTO_INCREMENT, name VARCHAR(32), http_verb VARCHAR(32), url VARCHAR(256), PRIMARY KEY (id));";
 
-	public static final String CREATE_PERMISSIONS_UNIQUE_INDEX = 
+	public static final String CREATE_PERMISSIONS_UNIQUE_INDEX =  
 			"ALTER TABLE permissions ADD UNIQUE INDEX(http_verb, url);";
 
 	public static final String COUNT_PERMISSIONS_TABLE = "SELECT COUNT(*) FROM permissions;";
@@ -67,15 +67,14 @@ public class PermissionDAO {
 	// Database operations
 	//------------------------------------------------------------------------------------------------------
 	
-	private boolean createPermissionsUniqueIndex(Connection dbConnection) {
+	private int createPermissionsUniqueIndex(Connection dbConnection) {
 
-		boolean indexWasCreated = false;
+		int result = 0;
 
 		try {
 
 			PreparedStatement prepareStatement = dbConnection.prepareStatement(CREATE_PERMISSIONS_UNIQUE_INDEX);
-			int affectedRows = prepareStatement.executeUpdate();
-			indexWasCreated = (affectedRows != 0);
+			result = prepareStatement.executeUpdate();
 			prepareStatement.close();
 
 		} catch (SQLException e) {
@@ -83,7 +82,7 @@ public class PermissionDAO {
 			e.printStackTrace();
 		}
 
-		return indexWasCreated;
+		return result;
 	}
 
 	public int createPermissionsTable(Connection dbConnection) {
@@ -94,12 +93,9 @@ public class PermissionDAO {
 
 			PreparedStatement prepareStatement = dbConnection.prepareStatement(CREATE_PERMISSIONS_TABLE_IF_NOT_EXISTS);
 			affectedRows = prepareStatement.executeUpdate();
-			
-			if (affectedRows != 0) {
-				createPermissionsUniqueIndex(dbConnection);
-			}
-			
 			prepareStatement.close();
+			
+			affectedRows = createPermissionsUniqueIndex(dbConnection);
 
 		} catch (SQLException e) {
 
@@ -169,8 +165,12 @@ public class PermissionDAO {
 			prepareStatement.setString(2, permission.getHttpVerb());
 			prepareStatement.setString(3, permission.getUrl());
 
-			prepareStatement.executeUpdate();
-			permissionId = SqlUtils.getGeneratedIdFromResultSet(prepareStatement.getGeneratedKeys());
+			int affectedRows = prepareStatement.executeUpdate();
+			
+			if (affectedRows > 0) {
+				permissionId = SqlUtils.getGeneratedIdFromResultSet(prepareStatement.getGeneratedKeys());
+			}
+			
 			prepareStatement.close();
 
 		} catch (SQLException e) {

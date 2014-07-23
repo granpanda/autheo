@@ -72,11 +72,13 @@ public class PermissionDAOTest {
 			String dropRolesAndPermissionsTable = "DROP TABLE roles_permissions";
 			PreparedStatement prepareStatement = dbConnection.prepareStatement(dropRolesAndPermissionsTable);
 			prepareStatement.executeUpdate();
+			prepareStatement.close();
 			prepareStatement = null;
 
 			String dropPermissionsTable = "DROP TABLE permissions";
 			PreparedStatement prepareStatement2 = dbConnection.prepareStatement(dropPermissionsTable);
 			prepareStatement2.executeUpdate();
+			prepareStatement2.close();
 			prepareStatement2 = null;
 
 		} catch (SQLException e) {
@@ -119,8 +121,8 @@ public class PermissionDAOTest {
 			assertNotEquals(0, firstPermissionId);
 
 			long secondPermissionId = permissionDAO.createPermission(dbConnection, permission);
-			assertEquals(1, permissionDAO.countPermissionsTable(dbConnection));
 			assertEquals(0, secondPermissionId);
+			assertEquals(1, permissionDAO.countPermissionsTable(dbConnection));
 
 		} catch (Exception e) {
 
