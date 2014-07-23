@@ -259,7 +259,7 @@ public class PermissionDAO {
 		return affectedRows;
 	}
 	
-	public Permission getPermissionById(Connection dbConnection, int permissionId) {
+	public Permission getPermissionById(Connection dbConnection, long permissionId) {
 		
 		Permission permission = null;
 		String getPermissionByIdSQL = "SELECT * FROM permissions WHERE id = ?;";
@@ -267,7 +267,7 @@ public class PermissionDAO {
 		try {
 			
 			PreparedStatement prepareStatement = dbConnection.prepareStatement(getPermissionByIdSQL);
-			prepareStatement.setInt(1, permissionId);
+			prepareStatement.setLong(1, permissionId);
 			
 			ResultSet resultSet = prepareStatement.executeQuery();
 			permission = PermissionMapper.getSinglePermission(resultSet);
@@ -355,7 +355,7 @@ public class PermissionDAO {
 		return permissionsOfARole;
 	}
 	
-	public int deletePermission(Connection dbConnection, int permissionId) {
+	public int deletePermission(Connection dbConnection, long permissionId) {
 		
 		int affectedRows = 0;
 		String deletePermissionSQL = "DELETE FROM permissions WHERE id = ?;";
@@ -363,7 +363,7 @@ public class PermissionDAO {
 		try {
 			
 			PreparedStatement prepareStatement = dbConnection.prepareStatement(deletePermissionSQL);
-			prepareStatement.setInt(1, permissionId);
+			prepareStatement.setLong(1, permissionId);
 			
 			affectedRows = prepareStatement.executeUpdate();
 			prepareStatement.close();
