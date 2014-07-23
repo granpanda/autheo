@@ -40,7 +40,16 @@ public class RoleResource {
 		if (Role.isValidRole(role)) {
 			
 			Role createdRole = roleBusiness.createRole(role);
-			response = Response.status(201).entity(createdRole).build();
+			
+			if (createdRole != null) {
+				
+				response = Response.status(201).entity(createdRole).build();
+				
+			} else {
+				
+				String errorMessage = "The role with name: " + role.getName() + " could not be created.";
+				response = Response.status(500).entity(errorMessage).build();
+			}
 			
 		} else {
 			

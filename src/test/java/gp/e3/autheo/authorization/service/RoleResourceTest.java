@@ -1,21 +1,21 @@
 package gp.e3.autheo.authorization.service;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNull;
+import gp.e3.autheo.authentication.domain.entities.User;
+import gp.e3.autheo.authorization.domain.business.RoleBusiness;
+import gp.e3.autheo.authorization.domain.entities.Role;
+import gp.e3.autheo.util.RoleFactoryForTests;
+import gp.e3.autheo.util.UserFactoryForTests;
 
 import java.util.ArrayList;
 import java.util.List;
 
 import javax.ws.rs.core.MediaType;
 
+import org.apache.commons.lang3.StringUtils;
 import org.junit.Test;
 import org.mockito.Mockito;
-
-import gp.e3.autheo.authentication.domain.entities.User;
-import gp.e3.autheo.authentication.persistence.exceptions.DuplicateIdException;
-import gp.e3.autheo.authorization.domain.business.RoleBusiness;
-import gp.e3.autheo.authorization.domain.entities.Role;
-import gp.e3.autheo.util.RoleFactoryForTests;
-import gp.e3.autheo.util.UserFactoryForTests;
 
 import com.sun.jersey.api.client.ClientResponse;
 import com.sun.jersey.api.client.WebResource.Builder;
@@ -45,12 +45,7 @@ public class RoleResourceTest extends ResourceTest {
 	public void testCreateRole_OK() {
 
 		Role role = RoleFactoryForTests.getDefaultTestRole();
-
-		try {
-			Mockito.when(roleBusinessMock.createRole((Role) Mockito.any())).thenReturn(role);
-		} catch (DuplicateIdException e) {
-			fail(e.getMessage());
-		}
+		Mockito.when(roleBusinessMock.createRole((Role) Mockito.any())).thenReturn(role);
 
 		String url = "/roles";
 		ClientResponse response = getDefaultHttpRequest(url).post(ClientResponse.class, role);
@@ -63,27 +58,15 @@ public class RoleResourceTest extends ResourceTest {
 	public void testCreateRole_NOK_1() {
 
 		Role role = RoleFactoryForTests.getDefaultTestRole();
-
-		try {
-
-			String errorMessage = "The given role already exists into the db.";
-
-			Mockito.when(roleBusinessMock.createRole((Role) Mockito.any())).thenReturn(role)
-			.thenThrow(new DuplicateIdException(errorMessage));
-
-		} catch (DuplicateIdException e) {
-			fail(e.getMessage());
-		}
+		Mockito.when(roleBusinessMock.createRole((Role) Mockito.any())).thenReturn(null);
 
 		String url = "/roles";
 		ClientResponse response = getDefaultHttpRequest(url).post(ClientResponse.class, role);
 
-		assertEquals(201, response.getStatus());
-		assertEquals(role.getName(), response.getEntity(Role.class).getName());
-
-		ClientResponse secondResponse = getDefaultHttpRequest(url).post(ClientResponse.class, role);
-
-		assertEquals(500, secondResponse.getStatus());
+		assertEquals(500, response.getStatus());
+		
+		String errorMessage = response.getEntity(String.class);
+		assertEquals(false, StringUtils.isBlank(errorMessage));
 	}
 
 	@Test
