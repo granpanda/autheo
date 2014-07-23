@@ -1,18 +1,20 @@
 package gp.e3.autheo.authorization.domain.business;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
-import static org.junit.Assert.fail;
-import gp.e3.autheo.authentication.persistence.exceptions.DuplicateIdException;
 import gp.e3.autheo.authorization.domain.entities.Permission;
 import gp.e3.autheo.authorization.domain.entities.Role;
-import gp.e3.autheo.authorization.persistence.daos.IPermissionDAO;
+import gp.e3.autheo.authorization.persistence.daos.PermissionDAO;
 import gp.e3.autheo.util.PermissionFactoryForTests;
 import gp.e3.autheo.util.RoleFactoryForTests;
 
+import java.sql.Connection;
+import java.sql.SQLException;
 import java.util.List;
 
+import org.apache.commons.dbcp2.BasicDataSource;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -20,18 +22,33 @@ import org.mockito.Mockito;
 
 public class PermissionBusinessTest {
 
-	private IPermissionDAO permissionDaoMock;
+	private Connection dbConnectionMock;
+	private BasicDataSource dataSourceMock;
+	private PermissionDAO permissionDaoMock;
+
 	private PermissionBusiness permissionBusiness;
 
 	@Before
 	public void setUp() {
 
-		permissionDaoMock = Mockito.mock(IPermissionDAO.class);
-		permissionBusiness = new PermissionBusiness(permissionDaoMock);
+		dbConnectionMock = Mockito.mock(Connection.class);
+		dataSourceMock = Mockito.mock(BasicDataSource.class);
+		
+		try {
+			Mockito.when(dataSourceMock.getConnection()).thenReturn(dbConnectionMock);
+		} catch (SQLException e) {
+			e.printStackTrace();
+		}
+
+		permissionDaoMock = Mockito.mock(PermissionDAO.class);
+		permissionBusiness = new PermissionBusiness(dataSourceMock, permissionDaoMock);
 	}
 
 	@After
 	public void tearDown() {
+
+		dbConnectionMock = null;
+		dataSourceMock = null;
 
 		permissionDaoMock = null;
 		permissionBusiness = null;
@@ -42,15 +59,12 @@ public class PermissionBusinessTest {
 
 		Permission permission = PermissionFactoryForTests.getDefaultTestPermission();
 
-		try {
+		long expectedPermissionId = 1;
+		Mockito.when(permissionDaoMock.createPermission(dbConnectionMock, permission)).thenReturn(expectedPermissionId);
+		long permissionId = permissionBusiness.createPermission(permission);
 
-			Permission createdPermission = permissionBusiness.createPermission(permission);
-			assertEquals(0, permission.compareTo(createdPermission));
-
-		} catch (DuplicateIdException e) {
-
-			fail("The method should not throw an exception");
-		}
+		assertNotEquals(0, permissionId);
+		assertEquals(expectedPermissionId, permissionId);
 	}
 
 	@Test
@@ -58,28 +72,11 @@ public class PermissionBusinessTest {
 
 		Permission permission = PermissionFactoryForTests.getDefaultTestPermission();
 
-		try {
+		long expectedPermissionId = 0;
+		Mockito.when(permissionDaoMock.createPermission(dbConnectionMock, permission)).thenReturn(expectedPermissionId);
+		long permissionId = permissionBusiness.createPermission(permission);
 
-			String errorMessage = "The permission was already created into the db.";
-
-			Mockito.doNothing().doThrow(new DuplicateIdException(errorMessage)).when(permissionDaoMock)
-			.createPermission(permission.getName(), permission.getHttpVerb(), permission.getUrl());
-
-			Permission createdPermission = permissionBusiness.createPermission(permission);
-			assertEquals(0, permission.compareTo(createdPermission));
-
-			permissionBusiness.createPermission(permission);
-
-			fail("The method should throw an exception");
-
-		} catch (DuplicateIdException e) {
-
-			assertNotNull(e);
-
-		} catch (Exception e) {
-
-			assertNotNull(e);
-		}
+		assertEquals(0, permissionId);
 	}
 
 	@Test
@@ -87,171 +84,124 @@ public class PermissionBusinessTest {
 
 		Permission permission = PermissionFactoryForTests.getDefaultTestPermission();
 
-		try {
+		Mockito.when(permissionDaoMock.getPermissionById(dbConnectionMock, permission.getId())).thenReturn(permission);
+		Permission retrievedPermission = permissionBusiness.getPermissionById(permission.getId());
 
-			Permission createdPermission = permissionBusiness.createPermission(permission);
-			assertEquals(0, permission.compareTo(createdPermission));
-
-			Mockito.when(permissionDaoMock.getPermissionById(permission.getId())).thenReturn(permission);
-			
-			Permission retrievedPermission = permissionBusiness.getPermissionById(permission.getId());
-			assertEquals(0, permission.compareTo(retrievedPermission));
-
-		} catch (DuplicateIdException e) {
-
-			fail("The method should not throw an exception");
-		}
+		assertNotNull(retrievedPermission);
+		assertEquals(0, permission.compareTo(retrievedPermission));
 	}
-	
+
 	@Test
 	public void testGetPermissionById_NOK() {
 
 		Permission permission = PermissionFactoryForTests.getDefaultTestPermission();
 
-		try {
+		Mockito.when(permissionDaoMock.getPermissionById(dbConnectionMock, permission.getId())).thenReturn(null);
+		Permission retrievedPermission = permissionBusiness.getPermissionById(permission.getId());
 
-			Permission createdPermission = permissionBusiness.createPermission(permission);
-			assertEquals(0, permission.compareTo(createdPermission));
-
-			int fakePermissionId = -1;
-			Mockito.when(permissionDaoMock.getPermissionById(fakePermissionId)).thenReturn(null);
-			
-			Permission retrievedPermission = permissionBusiness.getPermissionById(permission.getId());
-			assertNull(retrievedPermission);
-
-		} catch (DuplicateIdException e) {
-
-			fail("The method should not throw an exception");
-		}
+		assertNull(retrievedPermission);
 	}
-	
+
 	@Test
 	public void testGetPermissionByHttpVerbAndUrl_OK() {
-		
+
 		Permission permission = PermissionFactoryForTests.getDefaultTestPermission();
 
-		try {
+		Mockito.when(permissionDaoMock.getPermissionByHttpVerbAndUrl(dbConnectionMock, permission.getHttpVerb(), permission.getUrl())).thenReturn(permission);
+		Permission retrievedPermission = permissionBusiness.getPermissionByHttpVerbAndUrl(permission.getHttpVerb(), permission.getUrl());
 
-			Permission createdPermission = permissionBusiness.createPermission(permission);
-			assertEquals(0, permission.compareTo(createdPermission));
-
-			Mockito.when(permissionDaoMock.getPermissionByHttpVerbAndUrl(permission.getHttpVerb(), permission.getUrl()))
-				.thenReturn(permission);
-			
-			Permission retrievedPermission = permissionBusiness.getPermissionByHttpVerbAndUrl(permission.getHttpVerb(), 
-					permission.getUrl());
-			
-			assertEquals(0, permission.compareTo(retrievedPermission));
-
-		} catch (DuplicateIdException e) {
-
-			fail("The method should not throw an exception");
-		}
+		assertNotNull(retrievedPermission);
+		assertEquals(0, permission.compareTo(retrievedPermission));
 	}
-	
+
 	@Test
 	public void testGetPermissionByHttpVerbAndUrl_NOK() {
-		
+
 		Permission permission = PermissionFactoryForTests.getDefaultTestPermission();
 
-		try {
+		Mockito.when(permissionDaoMock.getPermissionByHttpVerbAndUrl(dbConnectionMock, permission.getHttpVerb(), permission.getUrl())).thenReturn(null);
+		Permission retrievedPermission = permissionBusiness.getPermissionByHttpVerbAndUrl(permission.getHttpVerb(), permission.getUrl());
 
-			Permission createdPermission = permissionBusiness.createPermission(permission);
-			assertEquals(0, permission.compareTo(createdPermission));
-
-			String fakeHttpVerb = "FAKE";
-			String fakeUrl = "www.fake.com";
-			Mockito.when(permissionDaoMock.getPermissionByHttpVerbAndUrl(fakeHttpVerb, fakeUrl)).thenReturn(null);
-			
-			Permission retrievedPermission = permissionBusiness.getPermissionByHttpVerbAndUrl(fakeHttpVerb, fakeUrl);
-			
-			assertNull(retrievedPermission);
-
-		} catch (DuplicateIdException e) {
-
-			fail("The method should not throw an exception");
-		}
+		assertNull(retrievedPermission);
 	}
-	
+
 	@Test
 	public void testGetAllPermissions_OK() {
-		
+
 		int listSize = 5;
 		List<Permission> permissionList = PermissionFactoryForTests.getPermissionList(listSize);
-		Mockito.when(permissionDaoMock.getAllPermissions()).thenReturn(permissionList);
-		
+		Mockito.when(permissionDaoMock.getAllPermissions(dbConnectionMock)).thenReturn(permissionList);
+
 		List<Permission> allPermissions = permissionBusiness.getAllPermissions();
-		
+
 		assertNotNull(allPermissions);
 		assertEquals(listSize, allPermissions.size());
 	}
-	
+
 	@Test
 	public void testGetAllPermissions_NOK() {
-		
+
 		int listSize = 0;
 		List<Permission> permissionList = PermissionFactoryForTests.getPermissionList(listSize);
-		Mockito.when(permissionDaoMock.getAllPermissions()).thenReturn(permissionList);
-		
+		Mockito.when(permissionDaoMock.getAllPermissions(dbConnectionMock)).thenReturn(permissionList);
+
 		List<Permission> allPermissions = permissionBusiness.getAllPermissions();
-		
+
 		assertNotNull(allPermissions);
 		assertEquals(listSize, allPermissions.size());
 	}
-	
+
 	@Test
 	public void testGetAllPermissionsOfAGivenRole_OK() {
-		
+
 		int listSize = 5;
 		Role role = RoleFactoryForTests.getDefaultTestRole(listSize);
-		
+
 		String roleName = role.getName();
-		Mockito.when(permissionDaoMock.getAllPermissionsOfAGivenRole(roleName)).thenReturn(role.getPermissions());
-		
+		Mockito.when(permissionDaoMock.getAllPermissionsOfAGivenRole(dbConnectionMock, roleName)).thenReturn(role.getPermissions());
+
 		List<Permission> rolePermissions = permissionBusiness.getAllPermissionsOfAGivenRole(roleName);
-		
+
 		assertNotNull(rolePermissions);
 		assertEquals(listSize, rolePermissions.size());
 	}
-	
+
 	@Test
 	public void testGetAllPermissionsOfAGivenRole_NOK() {
-		
+
 		int listSize = 5;
 		Role role = RoleFactoryForTests.getDefaultTestRole(listSize);
-		
+
 		String roleName = role.getName();
-		Mockito.when(permissionDaoMock.getAllPermissionsOfAGivenRole(roleName)).thenReturn(role.getPermissions());
-		
+		Mockito.when(permissionDaoMock.getAllPermissionsOfAGivenRole(dbConnectionMock, roleName)).thenReturn(role.getPermissions());
+
 		List<Permission> rolePermissions = permissionBusiness.getAllPermissionsOfAGivenRole(roleName);
-		
+
 		assertNotNull(rolePermissions);
 		assertEquals(listSize, rolePermissions.size());
 	}
-	
+
 	@Test
 	public void testDeletePermission_OK() {
-		
+
 		Permission permission = PermissionFactoryForTests.getDefaultTestPermission();
-		
+
 		int updatedRows = 1;
-		int permissionId = permission.getId();
-		Mockito.when(permissionDaoMock.deletePermission(permissionId)).thenReturn(updatedRows);
-		
-		int answer = permissionBusiness.deletePermission(permissionId);
-		
-		assertEquals(updatedRows, answer);
+		long permissionId = permission.getId();
+		Mockito.when(permissionDaoMock.deletePermission(dbConnectionMock, permissionId)).thenReturn(updatedRows);
+
+		boolean permissionWasDeleted = permissionBusiness.deletePermission(permissionId);
+		assertEquals(true, permissionWasDeleted);
 	}
-	
+
 	@Test
 	public void testDeletePermission_NOK() {
-		
+
 		int updatedRows = 0;
-		int fakePermissionId = -1;
-		Mockito.when(permissionDaoMock.deletePermission(fakePermissionId)).thenReturn(updatedRows);
-		
-		int answer = permissionBusiness.deletePermission(fakePermissionId);
-		
-		assertEquals(updatedRows, answer);
+		long fakePermissionId = -1;
+		Mockito.when(permissionDaoMock.deletePermission(dbConnectionMock, fakePermissionId)).thenReturn(updatedRows);
+
+		boolean permissionWasDeleted = permissionBusiness.deletePermission(fakePermissionId);
+		assertEquals(false, permissionWasDeleted);
 	}
 }

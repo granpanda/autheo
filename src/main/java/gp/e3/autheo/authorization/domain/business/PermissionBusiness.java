@@ -210,7 +210,7 @@ public class PermissionBusiness {
 		return allPermissions;
 	}
 
-	public boolean deletePermission(int permissionId) {
+	public boolean deletePermission(long permissionId) {
 		
 		boolean permissionWasDeleted = false;
 		Connection dbConnection = null;

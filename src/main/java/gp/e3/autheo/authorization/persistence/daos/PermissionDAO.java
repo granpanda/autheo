@@ -238,7 +238,7 @@ public class PermissionDAO {
 		return affectedRows;
 	}
 	
-	public int disassociatePermissionFromAllRoles(Connection dbConnection, int permissionId) {
+	public int disassociatePermissionFromAllRoles(Connection dbConnection, long permissionId) {
 		
 		int affectedRows = 0;
 		String disassociatePermissionFromAllRolesSQL = "DELETE FROM roles_permissions WHERE permission_id = ?;";
@@ -246,7 +246,7 @@ public class PermissionDAO {
 		try {
 			
 			PreparedStatement prepareStatement = dbConnection.prepareStatement(disassociatePermissionFromAllRolesSQL);
-			prepareStatement.setInt(1, permissionId);
+			prepareStatement.setLong(1, permissionId);
 			
 			affectedRows = prepareStatement.executeUpdate();
 			prepareStatement.close();
