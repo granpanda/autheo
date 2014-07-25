@@ -132,7 +132,7 @@ public class TokenBusiness {
 
 		boolean tokensWereGeneratedAndSaved = false;
 
-		if (user.isApiClient()) {
+		if (User.isAValidUser(user) && user.isApiClient()) {
 
 			Token apiToken = getAndSaveAPIToken(dataSource, user);
 			Token internalAPIToken = getAndSaveInternalAPIToken(dataSource, user);

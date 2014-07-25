@@ -55,6 +55,24 @@ public class TokenBusinessTest {
 		tokenCacheDaoMock = null;
 		tokenBusiness = null;
 	}
+	
+	@Test
+	public void testGenerateAndSaveTokensForAnAPIUser_OK() {
+		
+		User user = UserFactoryForTests.getDefaultTestUser();
+		boolean tokensWereGeneratedAndSaved = tokenBusiness.generateAndSaveTokensForAnAPIUser(user);
+		
+		assertEquals(true, tokensWereGeneratedAndSaved);
+	}
+	
+	@Test
+	public void testGenerateAndSaveTokensForAnAPIUser_NOK() {
+		
+		User user = null;
+		boolean tokensWereGeneratedAndSaved = tokenBusiness.generateAndSaveTokensForAnAPIUser(user);
+		
+		assertEquals(false, tokensWereGeneratedAndSaved);
+	}
 
 	@Test
 	public void testGenerateToken_OK() {
