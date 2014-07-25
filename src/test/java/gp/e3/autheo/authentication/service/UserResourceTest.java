@@ -54,6 +54,7 @@ public class UserResourceTest extends ResourceTest {
 
 		Tuple createUserResult = new Tuple(true);
 		Mockito.when(userBusinessMock.createUser(Mockito.any(User.class))).thenReturn(createUserResult);
+		Mockito.when(tokenBusinessMock.generateAndSaveTokensForAnAPIUser(Mockito.any(User.class))).thenReturn(true);
 		Mockito.when(roleBusinessMock.addUserToRole(Mockito.anyString(), Mockito.anyString())).thenReturn(true);
 
 		String url = "/users";
@@ -73,6 +74,7 @@ public class UserResourceTest extends ResourceTest {
 		String errorMessage = "There was an error creating the user.";
 		Tuple createUserResult = new Tuple(errorMessage);
 		Mockito.when(userBusinessMock.createUser(Mockito.any(User.class))).thenReturn(createUserResult);
+		Mockito.when(tokenBusinessMock.generateAndSaveTokensForAnAPIUser(Mockito.any(User.class))).thenReturn(true);
 		Mockito.when(roleBusinessMock.addUserToRole(Mockito.anyString(), Mockito.anyString())).thenReturn(true);
 
 		String url = "/users";
@@ -92,6 +94,7 @@ public class UserResourceTest extends ResourceTest {
 		String errorMessage = "There was an error creating the user.";
 		Tuple createUserResult = new Tuple(errorMessage);
 		Mockito.when(userBusinessMock.createUser(Mockito.any(User.class))).thenReturn(createUserResult);
+		Mockito.when(tokenBusinessMock.generateAndSaveTokensForAnAPIUser(Mockito.any(User.class))).thenReturn(true);
 		Mockito.when(roleBusinessMock.addUserToRole(Mockito.anyString(), Mockito.anyString())).thenReturn(true);
 
 		String url = "/users";
