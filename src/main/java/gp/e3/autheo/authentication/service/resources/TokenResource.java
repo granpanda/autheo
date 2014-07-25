@@ -65,7 +65,6 @@ public class TokenResource {
 			response = Response.status(409).entity(msj).build();
 		}
 		
-		
 		return response;
 	}
 }

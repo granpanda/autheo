@@ -79,6 +79,69 @@ public class TokenBusiness {
 		return token;
 	}
 
+	private Token getAndSaveAPIToken(BasicDataSource dataSource, User user) {
+
+		Token apiToken = null;
+		Connection dbConnection = null;
+
+		try {
+
+			dbConnection = dataSource.getConnection();
+			apiToken = generateRandomTokenFromUserInfo(user, TokenTypes.API_KEY_TOKEN_TYPE.getTypeNumber());
+			tokenDAO.createToken(dbConnection, apiToken);
+			tokenCacheDao.addTokenUsingTokenValueAsKey(apiToken);
+
+		} catch (TokenGenerationException | SQLException e) {
+
+			e.printStackTrace();
+
+		} finally {
+
+			SqlUtils.closeDbConnection(dbConnection);
+		}
+
+		return apiToken;
+	}
+
+	private Token getAndSaveInternalAPIToken(BasicDataSource dataSource, User user) {
+
+		Token internalAPIToken = null;
+		Connection dbConnection = null;
+
+		try {
+
+			dbConnection = dataSource.getConnection();
+			internalAPIToken = generateRandomTokenFromUserInfo(user, INTERNAL_API_CLIENT_ROLE, TokenTypes.INTERNAL_API_TOKEN_TYPE.getTypeNumber());
+			tokenDAO.createToken(dbConnection, internalAPIToken);
+			tokenCacheDao.addTokenUsingTokenValueAsKey(internalAPIToken);
+			tokenCacheDao.addTokenUsingOrganizationAsKey(internalAPIToken);
+
+		} catch (TokenGenerationException | SQLException e) {
+
+			e.printStackTrace();
+
+		} finally {
+
+			SqlUtils.closeDbConnection(dbConnection);
+		}
+
+		return internalAPIToken;
+	}
+	
+	public boolean generateAndSaveTokensForAnAPIUser(User user) {
+
+		boolean tokensWereGeneratedAndSaved = false;
+
+		if (user.isApiClient()) {
+
+			Token apiToken = getAndSaveAPIToken(dataSource, user);
+			Token internalAPIToken = getAndSaveInternalAPIToken(dataSource, user);
+			tokensWereGeneratedAndSaved = (apiToken != null && internalAPIToken != null);
+		}
+
+		return tokensWereGeneratedAndSaved;
+	}
+
 	public Token generateToken(User user) throws TokenGenerationException, IllegalArgumentException {
 
 		Token temporalToken = null;
@@ -88,38 +151,7 @@ public class TokenBusiness {
 			// Generate temporal token
 			temporalToken = generateRandomTokenFromUserInfo(user, TokenTypes.TEMPORAL_TOKEN_TYPE.getTypeNumber());
 			tokenCacheDao.addTokenUsingTokenValueAsKey(temporalToken);
-
-			if (user.isApiClient()) {
-
-				Connection dbConnection = null;
-
-				try {
-
-					dbConnection = dataSource.getConnection();
-
-					// Generate api token
-					Token apiToken = generateRandomTokenFromUserInfo(user, TokenTypes.API_KEY_TOKEN_TYPE.getTypeNumber());
-					tokenDAO.createToken(dbConnection, apiToken);
-					tokenCacheDao.addTokenUsingTokenValueAsKey(apiToken);
-
-					// Generate internal token
-					Token internalToken = generateRandomTokenFromUserInfo(user, INTERNAL_API_CLIENT_ROLE, TokenTypes.INTERNAL_API_TOKEN_TYPE.getTypeNumber());
-					tokenDAO.createToken(dbConnection, internalToken);
-					tokenCacheDao.addTokenUsingTokenValueAsKey(internalToken);
-					tokenCacheDao.addTokenUsingOrganizationAsKey(internalToken);
-
-					dbConnection.close();
-
-				} catch (Exception e) {
-
-					// Enters here if the organization already has a token into the db.
-					e.printStackTrace();
-
-				} finally {
-
-					SqlUtils.closeDbConnection(dbConnection);
-				}
-			}
+			generateAndSaveTokensForAnAPIUser(user);
 
 		} else {
 

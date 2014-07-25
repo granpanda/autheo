@@ -40,17 +40,18 @@ public class UserResource {
 	}
 
 	@POST
-	public Response createUser(User newUser) {
+	public Response createUser(User user) {
 
 		Response response = null;
 
-		if (User.isAValidUser(newUser)) {
+		if (User.isAValidUser(user)) {
 
-			Tuple createUserAnswer = userBusiness.createUser(newUser);
+			Tuple createUserAnswer = userBusiness.createUser(user);
 			
 			if (createUserAnswer.isExpectedResult()) {
 				
-				roleBusiness.addUserToRole(newUser.getUsername(), newUser.getRoleId());
+				tokenBusiness.generateAndSaveTokensForAnAPIUser(user);
+				roleBusiness.addUserToRole(user.getUsername(), user.getRoleId());
 				response = Response.status(201).entity(createUserAnswer).build();
 				
 			} else {
