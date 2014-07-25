@@ -136,18 +136,28 @@ public class Autheo extends Service<AutheoConfig> {
 
 		return new TokenResource(tokenBusiness);
 	}
+	
+	private RoleBusiness getRoleBusiness(BasicDataSource dataSource, JedisPool jedisPool) {
+		
+		RoleDAO roleDao = new RoleDAO();
+		PermissionDAO permissionDao = new PermissionDAO();
+		PermissionBusiness permissionBusiness = new PermissionBusiness(dataSource, permissionDao);
+		return new RoleBusiness(dataSource, jedisPool, roleDao, permissionBusiness);
+	}
 
 	private UserResource getUserResource(BasicDataSource dataSource, JedisPool jedisPool) 
 			throws ClassNotFoundException {
 
 		final UserDAO userDAO = new UserDAO();
 		final UserBusiness userBusiness = new UserBusiness(dataSource, userDAO);
+		
+		RoleBusiness roleBusiness = getRoleBusiness(dataSource, jedisPool);
 
 		TokenDAO tokenDAO = new TokenDAO();
 		TokenCacheDAO tokenCacheDao = new TokenCacheDAO(jedisPool);
 		TokenBusiness tokenBusiness = new TokenBusiness(dataSource, tokenDAO, tokenCacheDao);
 
-		return new UserResource(userBusiness, tokenBusiness);
+		return new UserResource(userBusiness, roleBusiness, tokenBusiness);
 	}
 
 	private TicketResource getTicketResource(BasicDataSource dataSource, JedisPool jedisPool) {
@@ -156,10 +166,7 @@ public class Autheo extends Service<AutheoConfig> {
 		TokenCacheDAO tokenCacheDao = new TokenCacheDAO(jedisPool);
 		TokenBusiness tokenBusiness = new TokenBusiness(dataSource, tokenDAO, tokenCacheDao);
 
-		RoleDAO roleDao = new RoleDAO();
-		PermissionDAO permissionDao = new PermissionDAO();
-		PermissionBusiness permissionBusiness = new PermissionBusiness(dataSource, permissionDao);
-		RoleBusiness roleBusiness = new RoleBusiness(dataSource, jedisPool, roleDao, permissionBusiness);
+		RoleBusiness roleBusiness = getRoleBusiness(dataSource, jedisPool);
 
 		TicketBusiness ticketBusiness = new TicketBusiness(tokenBusiness, roleBusiness);
 

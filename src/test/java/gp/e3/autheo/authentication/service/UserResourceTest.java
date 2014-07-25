@@ -10,13 +10,12 @@ import gp.e3.autheo.authentication.domain.entities.Token;
 import gp.e3.autheo.authentication.domain.entities.User;
 import gp.e3.autheo.authentication.domain.exceptions.TokenGenerationException;
 import gp.e3.autheo.authentication.infrastructure.datastructures.Tuple;
-import gp.e3.autheo.authentication.persistence.exceptions.DuplicateIdException;
 import gp.e3.autheo.authentication.service.resources.UserResource;
+import gp.e3.autheo.authorization.domain.business.RoleBusiness;
 import gp.e3.autheo.util.UserFactoryForTests;
 
 import java.util.List;
 
-import javax.security.sasl.AuthenticationException;
 import javax.ws.rs.core.MediaType;
 
 import org.junit.Test;
@@ -29,6 +28,7 @@ import com.yammer.dropwizard.testing.ResourceTest;
 public class UserResourceTest extends ResourceTest {
 
 	private UserBusiness userBusinessMock;
+	private RoleBusiness roleBusinessMock;
 	private TokenBusiness tokenBusinessMock;
 	private UserResource userResource;
 
@@ -36,8 +36,10 @@ public class UserResourceTest extends ResourceTest {
 	protected void setUpResources() throws Exception {
 
 		userBusinessMock = Mockito.mock(UserBusiness.class);
+		roleBusinessMock = Mockito.mock(RoleBusiness.class);
 		tokenBusinessMock = Mockito.mock(TokenBusiness.class);
-		userResource = new UserResource(userBusinessMock, tokenBusinessMock);
+		
+		userResource = new UserResource(userBusinessMock, roleBusinessMock, tokenBusinessMock);
 		addResource(userResource);
 	}
 	

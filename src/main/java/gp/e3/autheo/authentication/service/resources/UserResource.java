@@ -8,6 +8,7 @@ import gp.e3.autheo.authentication.domain.exceptions.TokenGenerationException;
 import gp.e3.autheo.authentication.infrastructure.datastructures.Tuple;
 import gp.e3.autheo.authentication.infrastructure.validators.StringValidator;
 import gp.e3.autheo.authentication.service.resources.commons.HttpCommonResponses;
+import gp.e3.autheo.authorization.domain.business.RoleBusiness;
 
 import java.util.List;
 
@@ -28,11 +29,13 @@ import javax.ws.rs.core.Response;
 public class UserResource {
 
 	private final UserBusiness userBusiness;
+	private final RoleBusiness roleBusiness;
 	private final TokenBusiness tokenBusiness;
 
-	public UserResource(UserBusiness userBusiness, TokenBusiness tokenBusiness) {
-
+	public UserResource(UserBusiness userBusiness, RoleBusiness roleBusiness, TokenBusiness tokenBusiness) {
+		
 		this.userBusiness = userBusiness;
+		this.roleBusiness = roleBusiness;
 		this.tokenBusiness = tokenBusiness;
 	}
 
@@ -47,6 +50,7 @@ public class UserResource {
 			
 			if (createUserAnswer.isExpectedResult()) {
 				
+				roleBusiness.addUserToRole(newUser.getUsername(), newUser.getRoleId());
 				response = Response.status(201).entity(createUserAnswer).build();
 				
 			} else {
