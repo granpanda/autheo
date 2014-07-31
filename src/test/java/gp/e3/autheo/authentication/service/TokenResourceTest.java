@@ -71,7 +71,7 @@ public class TokenResourceTest extends ResourceTest {
 	@Test
 	public void testRemoveUserAccessTokenFromCache_OK1(){
 		
-		String url = "/tokens/test";
+		String url = "/tokens/test/cache";
 		
 		try {
 			Mockito.when(tokenBusinessMock.removeUserAccessToken("test")).thenReturn(true);
@@ -94,7 +94,7 @@ public class TokenResourceTest extends ResourceTest {
 	@Test
 	public void testRemoveUserAccessTokenFromCache_NOK1(){
 		
-		String url = "/tokens/test";
+		String url = "/tokens/test/cache";
 		
 		ClientResponse httpResponse = null;
 		

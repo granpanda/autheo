@@ -47,7 +47,7 @@ public class TokenResource {
 	}
 	
 	@DELETE
-	@Path("/{tokenValue}")
+	@Path("/{tokenValue}/cache")
 	public Response removeUserAccessTokenFromCache(@PathParam("tokenValue") String tokenValue){
 		Response response = null;
 		String msj = "";
