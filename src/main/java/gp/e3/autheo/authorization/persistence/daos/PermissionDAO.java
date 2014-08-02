@@ -192,7 +192,7 @@ public class PermissionDAO {
 		return totalBatchResult;
 	}
 	
-	public int associateAllPermissionsToRole(Connection dbConnection, String roleName, List<Integer> permissionIdList) {
+	public int associateAllPermissionsToRole(Connection dbConnection, String roleName, List<Long> permissionIdList) {
 
 		int affectedRows = 0;
 		String associateAllPermissionsToRoleSQL = "INSERT INTO roles_permissions (role_name, permission_id) VALUES (?, ?);";
@@ -201,10 +201,10 @@ public class PermissionDAO {
 
 			PreparedStatement prepareStatement = dbConnection.prepareStatement(associateAllPermissionsToRoleSQL);
 
-			for (Integer permissionId : permissionIdList) {
+			for (Long permissionId : permissionIdList) {
 
 				prepareStatement.setString(1, roleName);
-				prepareStatement.setInt(2, permissionId);
+				prepareStatement.setLong(2, permissionId);
 				prepareStatement.addBatch();
 			}
 

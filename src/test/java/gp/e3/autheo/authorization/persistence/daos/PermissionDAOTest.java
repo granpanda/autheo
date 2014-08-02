@@ -136,7 +136,7 @@ public class PermissionDAOTest {
 		Role role = RoleFactoryForTests.getDefaultTestRole();
 
 		List<Permission> permissions = PermissionFactoryForTests.getPermissionList(5);
-		List<Integer> permissionsIds = getPermissionsIdsAsList(permissions);
+		List<Long> permissionsIds = getPermissionsIdsAsList(permissions);
 
 		assertEquals(0, permissionDAO.countRolePermissionsTable(dbConnection));
 		permissionDAO.associateAllPermissionsToRole(dbConnection, role.getName(), permissionsIds);
@@ -147,7 +147,7 @@ public class PermissionDAOTest {
 	public void testAssociateAllPermissionsToRole_NOK() {
 
 		Role role = RoleFactoryForTests.getDefaultTestRole();
-		List<Integer> permissionsIds = new ArrayList<Integer>();
+		List<Long> permissionsIds = new ArrayList<Long>();
 
 		assertEquals(0, permissionDAO.countRolePermissionsTable(dbConnection));
 		permissionDAO.associateAllPermissionsToRole(dbConnection, role.getName(), permissionsIds);
@@ -160,7 +160,7 @@ public class PermissionDAOTest {
 		Role role = RoleFactoryForTests.getDefaultTestRole();
 
 		List<Permission> permissions = PermissionFactoryForTests.getPermissionList(5);
-		List<Integer> permissionsIds = getPermissionsIdsAsList(permissions);
+		List<Long> permissionsIds = getPermissionsIdsAsList(permissions);
 
 		assertEquals(0, permissionDAO.countRolePermissionsTable(dbConnection));
 		permissionDAO.associateAllPermissionsToRole(dbConnection, role.getName(), permissionsIds);
@@ -174,7 +174,7 @@ public class PermissionDAOTest {
 	public void testDisassociateAllPermissionsFromRole_NOK() {
 
 		Role role = RoleFactoryForTests.getDefaultTestRole();
-		List<Integer> permissionsIds = new ArrayList<Integer>();
+		List<Long> permissionsIds = new ArrayList<Long>();
 
 		assertEquals(0, permissionDAO.countRolePermissionsTable(dbConnection));
 		permissionDAO.associateAllPermissionsToRole(dbConnection, role.getName(), permissionsIds);
@@ -190,7 +190,7 @@ public class PermissionDAOTest {
 		Role role = RoleFactoryForTests.getDefaultTestRole();
 
 		List<Permission> permissions = PermissionFactoryForTests.getPermissionList(5);
-		List<Integer> permissionsIds = getPermissionsIdsAsList(permissions);
+		List<Long> permissionsIds = getPermissionsIdsAsList(permissions);
 
 		assertEquals(0, permissionDAO.countRolePermissionsTable(dbConnection));
 		permissionDAO.associateAllPermissionsToRole(dbConnection, role.getName(), permissionsIds);
@@ -203,8 +203,9 @@ public class PermissionDAOTest {
 		assertEquals(permissionsIds.size() - 2, permissionDAO.countRolePermissionsTable(dbConnection));
 	}
 
-	private List<Integer> getPermissionsIdsAsList(List<Permission> permissions) {
-		List<Integer> permissionsIds = new ArrayList<Integer>();
+	private List<Long> getPermissionsIdsAsList(List<Permission> permissions) {
+		
+		List<Long> permissionsIds = new ArrayList<Long>();
 
 		for (int i = 0; i < permissions.size(); i++) {
 			permissionsIds.add(permissions.get(i).getId());
@@ -216,7 +217,7 @@ public class PermissionDAOTest {
 	public void testDisassociatePermissionFromAllRoles_NOK() {
 
 		Role role = RoleFactoryForTests.getDefaultTestRole();
-		List<Integer> permissionsIds = new ArrayList<Integer>();
+		List<Long> permissionsIds = new ArrayList<Long>();
 
 		assertEquals(0, permissionDAO.countRolePermissionsTable(dbConnection));
 		permissionDAO.associateAllPermissionsToRole(dbConnection, role.getName(), permissionsIds);
@@ -342,7 +343,8 @@ public class PermissionDAOTest {
 
 		int adminNumberOfPermissions = 5;
 		Role adminRole = RoleFactoryForTests.getDefaultTestRole(adminNumberOfPermissions);
-		List<Integer> adminPermissionsIds = getPermissionsIdsAsList(adminRole.getPermissions());
+		List<Long> adminPermissionsIds = getPermissionsIdsAsList(adminRole.getPermissions());
+		
 		try {
 
 			createMultiplePermissions(adminRole.getPermissions());
@@ -374,7 +376,8 @@ public class PermissionDAOTest {
 		nullNumberOfPermissions++;
 
 		Role adminRole = RoleFactoryForTests.getDefaultTestRole(adminNumberOfPermissions);
-		List<Integer> adminPermissionsIds = getPermissionsIdsAsList(adminRole.getPermissions());
+		List<Long> adminPermissionsIds = getPermissionsIdsAsList(adminRole.getPermissions());
+		
 		try {
 			createMultiplePermissions(adminRole.getPermissions());
 			createMultiplePermissions(nullPermissions);
@@ -398,7 +401,7 @@ public class PermissionDAOTest {
 
 		int adminNumberOfPermissions = 5;
 		Role adminRole = RoleFactoryForTests.getDefaultTestRole(adminNumberOfPermissions);
-		List<Integer> adminPermissionsIds = getPermissionsIdsAsList(adminRole.getPermissions());
+		List<Long> adminPermissionsIds = getPermissionsIdsAsList(adminRole.getPermissions());
 
 		permissionDAO.associateAllPermissionsToRole(dbConnection, adminRole.getName(), adminPermissionsIds);
 

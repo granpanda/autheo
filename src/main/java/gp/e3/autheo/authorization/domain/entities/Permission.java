@@ -11,7 +11,7 @@ public class Permission implements Comparable<Permission> {
 	public static final String ATTRIBUTE_SPLIT = ":";
 	public static final String PERMISSION_SPLIT = ";";
 	
-	private int id;
+	private long id;
 	private final String name;
 	private final String httpVerb;
 	private final String url;
@@ -25,7 +25,7 @@ public class Permission implements Comparable<Permission> {
 	}
 	
 	@JsonCreator
-	public Permission(@JsonProperty("id") int id, @JsonProperty("name") String name, 
+	public Permission(@JsonProperty("id") long id, @JsonProperty("name") String name, 
 			@JsonProperty("httpVerb") String httpVerb, @JsonProperty("url") String url) {
 		
 		this.id = id;
@@ -34,7 +34,7 @@ public class Permission implements Comparable<Permission> {
 		this.url = url;
 	}
 
-	public int getId() {
+	public long getId() {
 		return id;
 	}
 
