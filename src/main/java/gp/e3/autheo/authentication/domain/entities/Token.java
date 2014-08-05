@@ -2,13 +2,11 @@ package gp.e3.autheo.authentication.domain.entities;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.google.gson.Gson;
 
 import gp.e3.autheo.authentication.infrastructure.validators.StringValidator;
 
 public class Token implements Comparable<Token> {
-	
-	public static final String ATTRIBUTE_SEPATATOR = ":";
-	public static final String TOKEN_SEPATATOR = ";";
 
 	private final String tokenValue;
 	private final String username;
@@ -60,10 +58,8 @@ public class Token implements Comparable<Token> {
 	
 	public static Token buildTokenFromTokenToString(String tokenToString) {
 		
-		String[] tokenAttributes = tokenToString.split(ATTRIBUTE_SEPATATOR);
-		int tokenType = Integer.parseInt(tokenAttributes[4]);
-		
-		return new Token(tokenAttributes[0], tokenAttributes[1], tokenAttributes[2], tokenAttributes[3], tokenType);
+		Gson gson = new Gson();
+		return gson.fromJson(tokenToString, Token.class);
 	}
 
 	@Override
@@ -83,7 +79,7 @@ public class Token implements Comparable<Token> {
 	@Override
 	public String toString() {
 		
-		return tokenValue + ATTRIBUTE_SEPATATOR + username + ATTRIBUTE_SEPATATOR + userOrganization
-				+ ATTRIBUTE_SEPATATOR + userRole + ATTRIBUTE_SEPATATOR + tokenType;
+		Gson gson = new Gson();
+		return gson.toJson(this);
 	}
 }

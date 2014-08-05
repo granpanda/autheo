@@ -22,6 +22,8 @@ import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mockito;
 
+import com.google.gson.Gson;
+
 import redis.clients.jedis.Jedis;
 import redis.clients.jedis.JedisPool;
 
@@ -211,15 +213,9 @@ public class RoleBusinessTest {
 	}
 
 	private String getRolePermissionsAsStringToRedis(List<Permission> rolePermissions) {
-
-		String permissionsString = "";
-
-		for (Permission permission : rolePermissions) {
-
-			permissionsString += permission.toString() + Permission.PERMISSION_SPLIT;
-		}
-
-		return permissionsString;
+		
+		Gson gson = new Gson();
+		return gson.toJson(rolePermissions);
 	}
 
 	@Test

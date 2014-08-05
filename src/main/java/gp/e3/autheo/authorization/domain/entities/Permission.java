@@ -2,14 +2,12 @@ package gp.e3.autheo.authorization.domain.entities;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.google.gson.Gson;
 
 import gp.e3.autheo.authentication.infrastructure.validators.StringValidator;
 import gp.e3.autheo.authorization.infrastructure.validators.HttpVerbValidator;
 
 public class Permission implements Comparable<Permission> {
-	
-	public static final String ATTRIBUTE_SPLIT = ":";
-	public static final String PERMISSION_SPLIT = ";";
 	
 	private long id;
 	private final String name;
@@ -61,7 +59,8 @@ public class Permission implements Comparable<Permission> {
 	@Override
 	public String toString() {
 		
-		return id + ATTRIBUTE_SPLIT + name + ATTRIBUTE_SPLIT + httpVerb + ATTRIBUTE_SPLIT + url;
+		Gson gson = new Gson();
+		return gson.toJson(this);
 	}
 
 	@Override

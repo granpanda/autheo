@@ -5,11 +5,9 @@ import gp.e3.autheo.authorization.infrastructure.validators.HttpVerbValidator;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.google.gson.Gson;
 
 public class Ticket {
-	
-	public static final String ATTRIBUTE_SPLIT = ":";
-	public static final String PERMISSION_SPLIT = ";";
 	
 	private final String tokenValue;
 	private final String httpVerb;
@@ -39,7 +37,8 @@ public class Ticket {
 	@Override
 	public String toString() {
 		
-		return tokenValue + ATTRIBUTE_SPLIT + httpVerb + ATTRIBUTE_SPLIT + requestedUrl;
+		Gson gson = new Gson();
+		return gson.toJson(this);
 	}
 
 	public static boolean isValidTicket(Ticket ticket) {

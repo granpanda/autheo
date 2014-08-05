@@ -42,6 +42,11 @@ public class TicketResource {
 			
 			if (retrievedToken != null) {
 				
+				System.out.println("************************************************ 1");;
+				System.out.println(ticket.getTokenValue());
+				System.out.println(ticket.getHttpVerb());
+				System.out.println(ticket.getRequestedUrl());
+				
 				if (ticketBusiness.userIsAuthorized(ticket)) {
 					
 					response = Response.status(200).entity(retrievedToken).build();

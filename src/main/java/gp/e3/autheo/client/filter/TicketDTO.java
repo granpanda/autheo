@@ -1,9 +1,8 @@
 package gp.e3.autheo.client.filter;
 
+import com.google.gson.Gson;
+
 public class TicketDTO {
-	
-	public static final String ATTRIBUTE_SPLIT = ":";
-	public static final String PERMISSION_SPLIT = ";";
 	
 	private final String tokenValue;
 	private final String httpVerb;
@@ -31,6 +30,7 @@ public class TicketDTO {
 	@Override
 	public String toString() {
 		
-		return tokenValue + ATTRIBUTE_SPLIT + httpVerb + ATTRIBUTE_SPLIT + requestedUrl;
+		Gson gson = new Gson();
+		return gson.toJson(this);
 	}
 }

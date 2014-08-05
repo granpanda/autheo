@@ -13,6 +13,9 @@ import java.util.List;
 
 import org.apache.commons.dbcp2.BasicDataSource;
 
+import com.google.gson.Gson;
+import com.google.gson.reflect.TypeToken;
+
 import redis.clients.jedis.Jedis;
 import redis.clients.jedis.JedisPool;
 
@@ -196,34 +199,22 @@ public class RoleBusiness {
 		String getResult = redisClient.get(roleName);
 		returnResource(redisClient);
 
-		System.out.println("areRolePermissionsInRedis()");
-		System.out.println(getResult);
-
 		return StringValidator.isValidString(getResult);
 	}
 
 	public boolean addRolePermissionsToRedis(String roleName) {
 
-		Jedis redisClient = getRedisClient();
-
 		boolean answer = false;
-
+		Jedis redisClient = getRedisClient();
 		List<Permission> rolePermissions = permissionBusiness.getAllPermissionsOfAGivenRole(roleName);
 
 		if (rolePermissions != null && rolePermissions.size() > 0) {
 
-			String permissionsString = "";
-
-			for (Permission permission : rolePermissions) {
-
-				permissionsString += permission.toString() + Permission.PERMISSION_SPLIT;
-			}
-
-			String setResult = redisClient.set(roleName, permissionsString);
+			Gson gson = new Gson();
+			String rolePermissionsAsJson = gson.toJson(rolePermissions);
+			
+			String setResult = redisClient.set(roleName, rolePermissionsAsJson);
 			returnResource(redisClient);
-
-			System.out.println("addRolePermissionsToRedis");
-			System.out.println(setResult);
 
 			answer = (setResult.equals("OK"));
 		}
@@ -234,24 +225,23 @@ public class RoleBusiness {
 
 	public List<PermissionTuple> getRolePermissionsFromRedis(String roleName) {
 
+		List<PermissionTuple> rolePermissions = new ArrayList<PermissionTuple>();
+		
 		Jedis redisClient = getRedisClient();
-
 		String rolePermissionsString = redisClient.get(roleName);
 		returnResource(redisClient);
 
-		List<PermissionTuple> rolePermissions = new ArrayList<PermissionTuple>();
-
 		if (StringValidator.isValidString(rolePermissionsString)) {
 
-			String[] permissionsArray = rolePermissionsString.split(Permission.PERMISSION_SPLIT);
+			Gson gson = new Gson();
+			List<Permission> listOfPermissions = gson.fromJson(rolePermissionsString, new TypeToken<List<Permission>>(){}.getType());
 
-			if (permissionsArray.length > 0) {
+			if (listOfPermissions.size() > 0) {
 
-				for (int i = 0; i < permissionsArray.length; i++) {
+				for (int i = 0; i < listOfPermissions.size(); i++) {
 
-					String permissionString = permissionsArray[i];
-					String[] permissionAttributes = permissionString.split(Permission.ATTRIBUTE_SPLIT);
-					rolePermissions.add(new PermissionTuple(permissionAttributes[2], permissionAttributes[3]));
+					Permission permission = listOfPermissions.get(i);
+					rolePermissions.add(new PermissionTuple(permission.getHttpVerb(), permission.getUrl()));
 				}
 			}
 		}

@@ -1,12 +1,11 @@
 package gp.e3.autheo.client.filter;
 
+import com.google.gson.Gson;
+
 import gp.e3.autheo.authentication.domain.entities.Token;
 import gp.e3.autheo.authentication.infrastructure.validators.StringValidator;
 
 public class TokenDTO {
-
-	public static final String ATTRIBUTE_SEPATATOR = ":";
-	public static final String TOKEN_SEPATATOR = ";";
 
 	private final String tokenValue;
 	private final String username;
@@ -48,21 +47,20 @@ public class TokenDTO {
 
 	public static Token buildTokenFromTokenToString(String tokenToString) {
 
-		String[] tokenAttributes = tokenToString.split(ATTRIBUTE_SEPATATOR);
-		int tokenType = Integer.parseInt(tokenAttributes[4]);
-		return new Token(tokenAttributes[0], tokenAttributes[1], tokenAttributes[2], tokenAttributes[3], tokenType);
+		Gson gson = new Gson();
+		return gson.fromJson(tokenToString, Token.class);
 	}
 
 	public static TokenDTO buildTokenDTOFromTokenToString(String tokenToString) {
 
-		String[] tokenAttributes = tokenToString.split(ATTRIBUTE_SEPATATOR);
-		return new TokenDTO(tokenAttributes[0], tokenAttributes[1], tokenAttributes[2], tokenAttributes[3]);
+		Gson gson = new Gson();
+		return gson.fromJson(tokenToString, TokenDTO.class);
 	}
 
 	@Override
 	public String toString() {
 
-		return tokenValue + ATTRIBUTE_SEPATATOR + username + ATTRIBUTE_SEPATATOR + userOrganization
-				+ ATTRIBUTE_SEPATATOR + userRole;
+		Gson gson = new Gson();
+		return gson.toJson(this);
 	}
 }
