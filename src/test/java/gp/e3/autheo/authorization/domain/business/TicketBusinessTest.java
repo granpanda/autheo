@@ -8,6 +8,7 @@ import gp.e3.autheo.authentication.domain.entities.Token;
 import gp.e3.autheo.authentication.domain.entities.User;
 import gp.e3.autheo.authentication.domain.exceptions.TokenGenerationException;
 import gp.e3.autheo.authorization.domain.entities.Ticket;
+import gp.e3.autheo.authorization.infrastructure.constants.EnumRoleConstants;
 import gp.e3.autheo.authorization.infrastructure.dtos.PermissionTuple;
 import gp.e3.autheo.util.TicketFactoryForTests;
 import gp.e3.autheo.util.UserFactoryForTests;
@@ -210,5 +211,75 @@ public class TicketBusinessTest {
 		Mockito.when(roleBusinessMock.addRolePermissionsToRedis(roleName)).thenReturn(false);
 
 		assertFalse(ticketBusiness.userIsAuthorized(ticket));
+	}
+	
+	@Test
+	public void testIsPublicPermission_OK_1() {
+		
+		Ticket ticket = TicketFactoryForTests.getDefaultTestTicket();
+		String httpVerb = ticket.getHttpVerb();
+		String requestedUrl = ticket.getRequestedUrl();
+		
+		String publicRole = EnumRoleConstants.PUBLIC_ROLE.getRoleName();
+		Mockito.when(roleBusinessMock.rolePermissionsAreInRedis(publicRole)).thenReturn(true);
+		
+		List<PermissionTuple> permissionsFromRedis = new ArrayList<PermissionTuple>();
+		permissionsFromRedis.add(new PermissionTuple(httpVerb, requestedUrl));
+		Mockito.when(roleBusinessMock.getRolePermissionsFromRedis(publicRole)).thenReturn(permissionsFromRedis);
+		
+		boolean isPublicPermission = ticketBusiness.isPublicPermission(httpVerb, requestedUrl);
+		assertEquals(true, isPublicPermission);
+	}
+	
+	@Test
+	public void testIsPublicPermission_OK_2() {
+		
+		Ticket ticket = TicketFactoryForTests.getDefaultTestTicket();
+		String httpVerb = ticket.getHttpVerb();
+		String requestedUrl = ticket.getRequestedUrl();
+		
+		String publicRole = EnumRoleConstants.PUBLIC_ROLE.getRoleName();
+		Mockito.when(roleBusinessMock.rolePermissionsAreInRedis(publicRole)).thenReturn(false).thenReturn(true);
+		Mockito.when(roleBusinessMock.addRolePermissionsToRedis(publicRole)).thenReturn(true);
+		
+		List<PermissionTuple> permissionsFromRedis = new ArrayList<PermissionTuple>();
+		permissionsFromRedis.add(new PermissionTuple(httpVerb, requestedUrl));
+		Mockito.when(roleBusinessMock.getRolePermissionsFromRedis(publicRole)).thenReturn(permissionsFromRedis);
+		
+		boolean isPublicPermission = ticketBusiness.isPublicPermission(httpVerb, requestedUrl);
+		assertEquals(true, isPublicPermission);
+	}
+	
+	@Test
+	public void testIsPublicPermission_NOK_1() {
+		
+		Ticket ticket = TicketFactoryForTests.getDefaultTestTicket();
+		String httpVerb = ticket.getHttpVerb();
+		String requestedUrl = ticket.getRequestedUrl();
+		
+		String publicRole = EnumRoleConstants.PUBLIC_ROLE.getRoleName();
+		Mockito.when(roleBusinessMock.rolePermissionsAreInRedis(publicRole)).thenReturn(true);
+		
+		List<PermissionTuple> permissionsFromRedis = new ArrayList<PermissionTuple>();
+		permissionsFromRedis.add(new PermissionTuple(httpVerb, "unknownUrl"));
+		Mockito.when(roleBusinessMock.getRolePermissionsFromRedis(publicRole)).thenReturn(permissionsFromRedis);
+		
+		boolean isPublicPermission = ticketBusiness.isPublicPermission(httpVerb, requestedUrl);
+		assertEquals(false, isPublicPermission);
+	}
+	
+	@Test
+	public void testIsPublicPermission_NOK_2() {
+		
+		Ticket ticket = TicketFactoryForTests.getDefaultTestTicket();
+		String httpVerb = ticket.getHttpVerb();
+		String requestedUrl = ticket.getRequestedUrl();
+		
+		String publicRole = EnumRoleConstants.PUBLIC_ROLE.getRoleName();
+		Mockito.when(roleBusinessMock.rolePermissionsAreInRedis(publicRole)).thenReturn(false);
+		Mockito.when(roleBusinessMock.addRolePermissionsToRedis(publicRole)).thenReturn(false);
+		
+		boolean isPublicPermission = ticketBusiness.isPublicPermission(httpVerb, requestedUrl);
+		assertEquals(false, isPublicPermission);
 	}
 }

@@ -39,13 +39,27 @@ public class TicketResourceTest extends ResourceTest {
 	}
 	
 	@Test
-	public void testIsAuthorized_OK() {
+	public void testIsAuthorized_OK_1() {
+		
+		Ticket ticket = TicketFactoryForTests.getDefaultTestTicket();
+		
+		Mockito.when(ticketBusinessMock.isPublicPermission(Mockito.anyString(), Mockito.anyString())).thenReturn(true);
+		
+		String url = "/auth";
+		ClientResponse response = getDefaultHttpRequest(url).put(ClientResponse.class, ticket);
+		
+		assertEquals(200, response.getStatus());
+	}
+	
+	@Test
+	public void testIsAuthorized_OK_2() {
 		
 		Ticket ticket = TicketFactoryForTests.getDefaultTestTicket();
 		
 		User user = UserFactoryForTests.getDefaultTestUser();
 		Token token = new Token(ticket.getTokenValue(), user.getUsername(), user.getOrganizationId(), user.getRoleId(), TokenTypes.TEMPORAL_TOKEN_TYPE.getTypeNumber());
 		
+		Mockito.when(ticketBusinessMock.isPublicPermission(Mockito.anyString(), Mockito.anyString())).thenReturn(false);
 		Mockito.when(ticketBusinessMock.tokenWasIssuedByUs((Ticket) Mockito.any())).thenReturn(token);
 		Mockito.when(ticketBusinessMock.userIsAuthorized((Ticket) Mockito.any())).thenReturn(true);
 		
