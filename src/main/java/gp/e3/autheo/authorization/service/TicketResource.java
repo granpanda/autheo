@@ -19,53 +19,78 @@ import org.slf4j.LoggerFactory;
 @Consumes(MediaType.APPLICATION_JSON)
 @Produces(MediaType.APPLICATION_JSON)
 public class TicketResource {
-	
+
 	private static Logger logger = LoggerFactory.getLogger(TicketResource.class);
-	
+
 	private final TicketBusiness ticketBusiness;
-	
+
 	public TicketResource(TicketBusiness ticketBusiness) {
-		
+
 		this.ticketBusiness = ticketBusiness;
 	}
 
-	@PUT
-	public Response isAuthorized(Ticket ticket) {
-		
-		logger.info("Received ticket: " + ticket);
-		
+	private Response checkIfUserIsAuthorized(Ticket ticket) {
+
 		Response response = null;
-		
+
 		if (Ticket.isValidTicket(ticket)) {
-			
+
 			Token retrievedToken = ticketBusiness.tokenWasIssuedByUs(ticket);
-			
+
 			if (retrievedToken != null) {
-				
+
 				if (ticketBusiness.userIsAuthorized(ticket)) {
-					
+
 					response = Response.status(200).entity(retrievedToken).build();
-					
+
 				} else {
-					
+
 					// 403 Forbidden.
 					String errorMessage = "You don't have permissions.";
 					response = Response.status(403).entity(errorMessage).build();
 				}
-				
-				
+
 			} else {
-			
+
 				// 401 Unauthorized.
 				String errorMessage = "You are not authenticated, please login.";
 				response = Response.status(401).entity(errorMessage).build();
 			}
-			
+
 		} else {
-			
+
 			response = HttpCommonResponses.getInvalidSyntaxResponse();
 		}
-		
+
+		return response;
+	}
+
+	@PUT
+	public Response isAuthorized(Ticket ticket) {
+
+		logger.info("Received ticket: " + ticket);
+
+		Response response = null;
+
+		if (ticket != null) {
+
+			boolean isPublicPermission = ticketBusiness.isPublicPermission(ticket.getHttpVerb(), ticket.getRequestedUrl());
+
+			if (isPublicPermission) {
+
+				String message = "public permission";
+				response = Response.status(200).entity(message).build();
+				
+			} else {
+				
+				response = checkIfUserIsAuthorized(ticket);
+			}
+
+		} else {
+
+			response = HttpCommonResponses.getInvalidSyntaxResponse();
+		}
+
 		return response;
 	}
 }
