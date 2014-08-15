@@ -20,7 +20,7 @@ public class TokenCacheDAO {
 		this.redisPool = jedisPool;
 	}
 
-	private Jedis getRedisClient(){
+	private Jedis getRedisClient() {
 		return redisPool.getResource();
 	}
 
@@ -98,10 +98,10 @@ public class TokenCacheDAO {
 		
 		long keysRemoved = 0;
 		
-		if(StringValidator.isValidString(tokenValue)){
+		if(StringValidator.isValidString(tokenValue)) {
+			
 			Jedis redisClient = getRedisClient();
 			keysRemoved = redisClient.del(tokenValue);
-			
 			returnResource(redisClient);
 		}
 		

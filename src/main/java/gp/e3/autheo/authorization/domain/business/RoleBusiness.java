@@ -18,6 +18,7 @@ import com.google.gson.reflect.TypeToken;
 
 import redis.clients.jedis.Jedis;
 import redis.clients.jedis.JedisPool;
+import redis.clients.jedis.exceptions.JedisConnectionException;
 
 public class RoleBusiness {
 
@@ -120,22 +121,28 @@ public class RoleBusiness {
 		try {
 			
 			dbConnection = dataSource.getConnection();
-			redisClient = getRedisClient();
 			
 			permissionBusiness.disassociateAllPermissionsFromRole(roleName);
 			roleDAO.removeAllUsersFromRole(dbConnection, roleName);
 			roleDAO.deleteRole(dbConnection, roleName);
 			
+			redisClient = getRedisClient();
 			long keysRemoved = redisClient.del(roleName);
 			roleWasDeleted = (keysRemoved > 0);
+			returnResource(redisClient);
+			
+		} catch (JedisConnectionException e) {
+			
+			e.printStackTrace();
+			redisPool.returnBrokenResource(redisClient);
 			
 		} catch (Exception e) {
 			
 			e.printStackTrace();
-			
+			returnResource(redisClient);
+		
 		} finally {
 			
-			returnResource(redisClient);
 			SqlUtils.closeDbConnection(dbConnection);
 		}
 		
@@ -205,7 +212,6 @@ public class RoleBusiness {
 	public boolean addRolePermissionsToRedis(String roleName) {
 
 		boolean answer = false;
-		Jedis redisClient = getRedisClient();
 		List<Permission> rolePermissions = permissionBusiness.getAllPermissionsOfAGivenRole(roleName);
 
 		if (rolePermissions != null && rolePermissions.size() > 0) {
@@ -213,6 +219,7 @@ public class RoleBusiness {
 			Gson gson = new Gson();
 			String rolePermissionsAsJson = gson.toJson(rolePermissions);
 			
+			Jedis redisClient = getRedisClient();
 			String setResult = redisClient.set(roleName, rolePermissionsAsJson);
 			returnResource(redisClient);
 
