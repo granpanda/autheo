@@ -12,6 +12,7 @@ import javax.servlet.ServletResponse;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
 import org.apache.http.client.ClientProtocolException;
 import org.apache.http.client.methods.HttpPut;
@@ -82,15 +83,14 @@ public class RequestFilter implements Filter {
 
 			HttpResponse authorizationResponse = getAuthorizationResponse(ticketDto);
 			int authorizationStatusCode = authorizationResponse.getStatusLine().getStatusCode();
+			HttpEntity authorizationResponseEntity = authorizationResponse.getEntity();
 			
 			if (authorizationStatusCode == 200) {
 
 				// Puts the token in the http request.
-
-				InputStreamReader inputStreamReader = new InputStreamReader(authorizationResponse.getEntity().getContent());
+				InputStreamReader inputStreamReader = new InputStreamReader(authorizationResponseEntity.getContent());
 				TokenDTO tokenDTO = gson.fromJson(inputStreamReader, TokenDTO.class);
 				servletRequest.setAttribute(TOKEN_ATTRIBUTE, tokenDTO);
-
 				inputStreamReader.close();
 
 				// Go to the next filter. If this filter is the last one, then go to the resource.
@@ -100,7 +100,8 @@ public class RequestFilter implements Filter {
 
 				// Response with the given status code.
 				HttpServletResponse httpResponse = (HttpServletResponse) servletResponse;
-				httpResponse.sendError(authorizationStatusCode);
+				httpResponse.setContentType("application/json");
+				httpResponse.setStatus(authorizationStatusCode);
 			}
 		}
 	}
