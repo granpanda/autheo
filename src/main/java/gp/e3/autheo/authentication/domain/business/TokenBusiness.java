@@ -79,7 +79,7 @@ public class TokenBusiness {
 		return token;
 	}
 
-	private Token getAndSaveAPIToken(BasicDataSource dataSource, User user) {
+	private Token generateSaveAndGetAPIToken(BasicDataSource dataSource, User user) {
 
 		Token apiToken = null;
 		Connection dbConnection = null;
@@ -103,7 +103,7 @@ public class TokenBusiness {
 		return apiToken;
 	}
 
-	private Token getAndSaveInternalAPIToken(BasicDataSource dataSource, User user) {
+	private Token generateSaveAndGetInternalAPIToken(BasicDataSource dataSource, User user) {
 
 		Token internalAPIToken = null;
 		Connection dbConnection = null;
@@ -134,8 +134,8 @@ public class TokenBusiness {
 
 		if (User.isAValidUser(user) && user.isApiClient()) {
 
-			Token apiToken = getAndSaveAPIToken(dataSource, user);
-			Token internalAPIToken = getAndSaveInternalAPIToken(dataSource, user);
+			Token apiToken = generateSaveAndGetAPIToken(dataSource, user);
+			Token internalAPIToken = generateSaveAndGetInternalAPIToken(dataSource, user);
 			tokensWereGeneratedAndSaved = (apiToken != null && internalAPIToken != null);
 		}
 
@@ -151,7 +151,6 @@ public class TokenBusiness {
 			// Generate temporal token
 			temporalToken = generateRandomTokenFromUserInfo(user, TokenTypes.TEMPORAL_TOKEN_TYPE.getTypeNumber());
 			tokenCacheDao.addTokenUsingTokenValueAsKey(temporalToken);
-			generateAndSaveTokensForAnAPIUser(user);
 
 		} else {
 
