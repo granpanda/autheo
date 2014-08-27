@@ -28,7 +28,7 @@ public class TicketBusiness {
 			
 			try {
 				
-				answerToken = tokenBusiness.getToken(ticket.getTokenValue());
+				answerToken = tokenBusiness.getAPIToken(ticket.getTokenValue());
 				
 			} catch (Exception e) {
 				
@@ -57,7 +57,7 @@ public class TicketBusiness {
 		
 		boolean isAuthorized = false;
 		
-		Token retrievedToken = tokenBusiness.getToken(ticket.getTokenValue());
+		Token retrievedToken = tokenBusiness.getAPIToken(ticket.getTokenValue());
 		String roleName = retrievedToken.getUserRole();
 		
 		if (roleBusiness.rolePermissionsAreInRedis(roleName)) {

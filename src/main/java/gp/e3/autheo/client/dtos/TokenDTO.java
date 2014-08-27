@@ -1,5 +1,7 @@
-package gp.e3.autheo.client.filter;
+package gp.e3.autheo.client.dtos;
 
+import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import com.google.gson.Gson;
 
 import gp.e3.autheo.authentication.domain.entities.Token;
@@ -12,7 +14,9 @@ public class TokenDTO {
 	private final String userOrganization;
 	private final String userRole; 
 
-	public TokenDTO(String tokenValue, String username, String userOrganization, String userRole) {
+	@JsonCreator
+	public TokenDTO(@JsonProperty("tokenValue") String tokenValue, @JsonProperty("username") String username, 
+			@JsonProperty("userOrganization") String userOrganization, @JsonProperty("userRole") String userRole) {
 
 		this.tokenValue = tokenValue;
 		this.username = username;

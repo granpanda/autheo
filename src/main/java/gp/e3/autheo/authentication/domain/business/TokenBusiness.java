@@ -161,7 +161,7 @@ public class TokenBusiness {
 		return temporalToken;
 	}
 
-	public Token getToken(String tokenValue) {
+	public Token getAPIToken(String tokenValue) {
 
 		Token token = null;
 
@@ -178,6 +178,29 @@ public class TokenBusiness {
 				}
 
 				token = tokenCacheDao.getTokenByTokenValue(tokenValue);
+			}
+		}
+
+		return token;
+	}
+	
+	public Token getModuleToken(String userOrganizationId) {
+	
+		Token token = null;
+
+		if (StringValidator.isValidString(userOrganizationId)) {
+
+			token = tokenCacheDao.getTokenByOrganization(userOrganizationId);
+
+			if (token == null) {
+
+				try {
+					updateTokensCache();
+				} catch (SQLException e) {
+					e.printStackTrace();
+				}
+
+				token = tokenCacheDao.getTokenByOrganization(userOrganizationId);
 			}
 		}
 

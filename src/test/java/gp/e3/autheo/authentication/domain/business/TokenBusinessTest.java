@@ -14,6 +14,7 @@ import gp.e3.autheo.authentication.domain.exceptions.TokenGenerationException;
 import gp.e3.autheo.authentication.domain.exceptions.ValidDataException;
 import gp.e3.autheo.authentication.persistence.daos.TokenDAO;
 import gp.e3.autheo.authentication.persistence.daos.TokenCacheDAO;
+import gp.e3.autheo.util.TokenFactoryForTests;
 import gp.e3.autheo.util.UserFactoryForTests;
 
 import org.apache.commons.dbcp2.BasicDataSource;
@@ -121,7 +122,7 @@ public class TokenBusinessTest {
 	}
 
 	@Test
-	public void testGetTokenValue_OK_1() {
+	public void testGetAPIToken_OK_1() {
 
 		try {
 
@@ -131,7 +132,7 @@ public class TokenBusinessTest {
 
 			Mockito.when(tokenCacheDaoMock.getTokenByTokenValue(tokenValue)).thenReturn(testToken);
 
-			Token retrievedToken = tokenBusiness.getToken(testToken.getTokenValue());
+			Token retrievedToken = tokenBusiness.getAPIToken(testToken.getTokenValue());
 			assertEquals(0, testToken.compareTo(retrievedToken));
 
 		} catch (TokenGenerationException e) {
@@ -141,7 +142,7 @@ public class TokenBusinessTest {
 	}
 
 	@Test
-	public void testGetTokenValue_OK_2() {
+	public void testGetAPIToken_OK_2() {
 
 		try {
 
@@ -152,7 +153,7 @@ public class TokenBusinessTest {
 			// First return null then return a valid Token object.
 			Mockito.when(tokenCacheDaoMock.getTokenByTokenValue(tokenValue)).thenReturn(null).thenReturn(testToken);
 
-			Token retrievedToken = tokenBusiness.getToken(testToken.getTokenValue());
+			Token retrievedToken = tokenBusiness.getAPIToken(testToken.getTokenValue());
 			assertEquals(0, testToken.compareTo(retrievedToken));
 
 		} catch (TokenGenerationException e) {
@@ -160,26 +161,51 @@ public class TokenBusinessTest {
 			fail(e.getMessage());
 		}
 	}
-
+	
 	@Test
-	public void testGetTokenValue_NOK() {
+	public void testGetAPIToken_NOK() {
 
+		String nullTokenValue = null;
+		Token retrievedToken = tokenBusiness.getAPIToken(nullTokenValue);
+		
+		assertNull(retrievedToken);
+	}
+	
+	@Test
+	public void testGetModuleToken_OK_1() {
+		
 		User user = UserFactoryForTests.getDefaultTestUser();
-
-		String tokenValue = "NULL";
-		Token testToken = new Token(tokenValue, user.getUsername(), user.getOrganizationId(), user.getRoleId(), TokenTypes.TEMPORAL_TOKEN_TYPE.getTypeNumber());
-		Mockito.when(tokenCacheDaoMock.getTokenByTokenValue(Mockito.anyString())).thenReturn(testToken);
-
-		String invalidTokenValue = null;
-
-		try {
-
-			assertNull(tokenBusiness.getToken(invalidTokenValue));
-
-		} catch (Exception e) {
-
-			fail("Unexpected exception: " + e.getMessage());
-		}
+		String organizationId = user.getOrganizationId();
+		Token expectedToken = TokenFactoryForTests.getDefaultTestToken();
+		
+		Mockito.when(tokenCacheDaoMock.getTokenByOrganization(organizationId)).thenReturn(expectedToken);
+		Token moduleToken = tokenBusiness.getModuleToken(organizationId);
+		
+		assertNotNull(moduleToken);
+		assertEquals(0, expectedToken.compareTo(moduleToken));
+	}
+	
+	@Test
+	public void testGetModuleToken_OK_2() {
+		
+		User user = UserFactoryForTests.getDefaultTestUser();
+		String organizationId = user.getOrganizationId();
+		Token expectedToken = TokenFactoryForTests.getDefaultTestToken();
+		
+		Mockito.when(tokenCacheDaoMock.getTokenByOrganization(organizationId)).thenReturn(null).thenReturn(expectedToken);
+		Token moduleToken = tokenBusiness.getModuleToken(organizationId);
+		
+		assertNotNull(moduleToken);
+		assertEquals(0, expectedToken.compareTo(moduleToken));
+	}
+	
+	@Test
+	public void testGetModuleToken_NOK() {
+		
+		String nullOrganizationId = null;
+		Token moduleToken = tokenBusiness.getModuleToken(nullOrganizationId);
+		
+		assertNull(moduleToken);
 	}
 
 	@Test

@@ -68,8 +68,8 @@ public class UserResource {
 	}
 
 	@POST
-	@Path("/token")
-	public Response authenticateUser(User user) {
+	@Path("/{username}/tokens")
+	public Response authenticateUser(@PathParam("username") String username, User user) {
 
 		Response response = null;
 

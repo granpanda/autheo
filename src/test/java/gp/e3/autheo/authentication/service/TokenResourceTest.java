@@ -1,17 +1,15 @@
 package gp.e3.autheo.authentication.service;
 
-import static org.junit.Assert.*;
-
-import java.sql.SQLException;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.fail;
+import gp.e3.autheo.authentication.domain.business.TokenBusiness;
+import gp.e3.autheo.authentication.domain.exceptions.ValidDataException;
+import gp.e3.autheo.authentication.service.resources.TokenResource;
 
 import javax.ws.rs.core.MediaType;
 
 import org.junit.Test;
 import org.mockito.Mockito;
-
-import gp.e3.autheo.authentication.domain.business.TokenBusiness;
-import gp.e3.autheo.authentication.domain.exceptions.ValidDataException;
-import gp.e3.autheo.authentication.service.resources.TokenResource;
 
 import com.sun.jersey.api.client.ClientResponse;
 import com.sun.jersey.api.client.WebResource.Builder;
@@ -35,41 +33,7 @@ public class TokenResourceTest extends ResourceTest {
 	}
 	
 	@Test
-	public void testUpdateTokensCache_OK() {
-		
-		try {
-			
-			Mockito.doNothing().when(tokenBusinessMock).updateTokensCache();
-			
-			String url = "/tokens";
-			ClientResponse httpResponse = getDefaultHttpRequest(url).put(ClientResponse.class);
-			assertEquals(200, httpResponse.getStatus());
-			
-		} catch (SQLException e) {
-			
-			fail("Unexpected exception: " + e.getMessage());
-		}
-	}
-	
-	@Test
-	public void testUpdateTokensCache_NOK() {
-		
-		try {
-			
-			Mockito.doThrow(SQLException.class).when(tokenBusinessMock).updateTokensCache();
-			
-			String url = "/tokens";
-			ClientResponse httpResponse = getDefaultHttpRequest(url).put(ClientResponse.class);
-			assertEquals(500, httpResponse.getStatus());
-			
-		} catch (SQLException e) {
-			
-			fail("Unexpected exception: " + e.getMessage());
-		}
-	}
-	
-	@Test
-	public void testRemoveUserAccessTokenFromCache_OK1(){
+	public void testRemoveUserAccessTokenFromCache_OK1() {
 		
 		String url = "/tokens/test/cache";
 		
@@ -88,11 +52,10 @@ public class TokenResourceTest extends ResourceTest {
 			fail("Exception Unexpected: " + e.getMessage());
 			e.printStackTrace();
 		}
-		
 	}
 	
 	@Test
-	public void testRemoveUserAccessTokenFromCache_NOK1(){
+	public void testRemoveUserAccessTokenFromCache_NOK1() {
 		
 		String url = "/tokens/test/cache";
 		
@@ -109,6 +72,5 @@ public class TokenResourceTest extends ResourceTest {
 			fail("Exception Unexpected: " + e.getMessage());
 			e.printStackTrace();
 		}
-		
 	}
 }

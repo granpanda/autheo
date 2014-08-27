@@ -111,12 +111,13 @@ public class UserResourceTest extends ResourceTest {
 			User user = UserFactoryForTests.getDefaultTestUser();
 
 			String tokenValue = "Hello!123";
-			Token testingToken = new Token(tokenValue, user.getUsername(), user.getOrganizationId(), user.getRoleId(), TokenTypes.TEMPORAL_TOKEN_TYPE.getTypeNumber());
+			String username = user.getUsername();
+			Token testingToken = new Token(tokenValue, username, user.getOrganizationId(), user.getRoleId(), TokenTypes.TEMPORAL_TOKEN_TYPE.getTypeNumber());
 
 			Mockito.when(userBusinessMock.authenticateUser(Mockito.anyString(), Mockito.anyString())).thenReturn(true);
 			Mockito.when(tokenBusinessMock.generateToken((User) Mockito.any())).thenReturn(testingToken);
 
-			String url = "/users/token";
+			String url = "/users/" + username + "/tokens";
 			ClientResponse httpResponse = getDefaultHttpRequest(url).post(ClientResponse.class, user);
 
 			assertEquals(201, httpResponse.getStatus());
@@ -140,13 +141,14 @@ public class UserResourceTest extends ResourceTest {
 			User user = UserFactoryForTests.getDefaultTestUser();
 
 			String tokenValue = "Hello!123";
-			Token testingToken = new Token(tokenValue, user.getUsername(), user.getOrganizationId(), user.getRoleId(), TokenTypes.TEMPORAL_TOKEN_TYPE.getTypeNumber());
+			String username = user.getUsername();
+			Token testingToken = new Token(tokenValue, username, user.getOrganizationId(), user.getRoleId(), TokenTypes.TEMPORAL_TOKEN_TYPE.getTypeNumber());
 
 			// The user is not authenticated.
 			Mockito.when(userBusinessMock.authenticateUser(Mockito.anyString(), Mockito.anyString())).thenReturn(false);
 			Mockito.when(tokenBusinessMock.generateToken((User) Mockito.any())).thenReturn(testingToken);
 
-			String url = "/users/token";
+			String url = "/users/" + username + "/tokens";
 			ClientResponse httpResponse = getDefaultHttpRequest(url).post(ClientResponse.class, user);
 
 			assertEquals(401, httpResponse.getStatus());
@@ -165,13 +167,14 @@ public class UserResourceTest extends ResourceTest {
 			User user = UserFactoryForTests.getDefaultTestUser();
 
 			String tokenValue = "Hello!123";
-			Token testingToken = new Token(tokenValue, user.getUsername(), user.getOrganizationId(), user.getRoleId(), TokenTypes.TEMPORAL_TOKEN_TYPE.getTypeNumber());
+			String username = user.getUsername();
+			Token testingToken = new Token(tokenValue, username, user.getOrganizationId(), user.getRoleId(), TokenTypes.TEMPORAL_TOKEN_TYPE.getTypeNumber());
 
 			// The user is not authenticated.
 			Mockito.when(userBusinessMock.authenticateUser(Mockito.anyString(), Mockito.anyString())).thenReturn(false);
 			Mockito.when(tokenBusinessMock.generateToken((User) Mockito.any())).thenReturn(testingToken);
 
-			String url = "/users/token";
+			String url = "/users/" + username + "/tokens";
 			ClientResponse httpResponse = getDefaultHttpRequest(url).post(ClientResponse.class, null); // Send a null user.
 
 			assertEquals(400, httpResponse.getStatus());

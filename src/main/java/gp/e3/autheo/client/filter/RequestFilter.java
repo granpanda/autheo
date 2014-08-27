@@ -1,5 +1,8 @@
 package gp.e3.autheo.client.filter;
 
+import gp.e3.autheo.client.dtos.TicketDTO;
+import gp.e3.autheo.client.dtos.TokenDTO;
+
 import java.io.IOException;
 import java.io.InputStreamReader;
 

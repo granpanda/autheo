@@ -1,4 +1,4 @@
-package gp.e3.autheo.client.filter;
+package gp.e3.autheo.client.dtos;
 
 import com.google.gson.Gson;
 

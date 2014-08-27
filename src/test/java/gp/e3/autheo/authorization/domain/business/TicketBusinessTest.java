@@ -54,7 +54,7 @@ public class TicketBusinessTest {
 		User user = UserFactoryForTests.getDefaultTestUser();
 		Token token = new Token(ticket.getTokenValue(), user.getUsername(), user.getOrganizationId(), user.getRoleId(), TokenTypes.TEMPORAL_TOKEN_TYPE.getTypeNumber());
 
-		Mockito.when(tokenBusinessMock.getToken(ticket.getTokenValue())).thenReturn(token);
+		Mockito.when(tokenBusinessMock.getAPIToken(ticket.getTokenValue())).thenReturn(token);
 
 		Token retrievedToken = ticketBusiness.tokenWasIssuedByUs(ticket);
 		assertTrue(retrievedToken != null);
@@ -78,7 +78,7 @@ public class TicketBusinessTest {
 		// The token value in the ticket is different than the token value of the token object. 
 		Token token = new Token(tokenValue, user.getUsername(), user.getOrganizationId(), user.getRoleId(), TokenTypes.TEMPORAL_TOKEN_TYPE.getTypeNumber());
 
-		Mockito.when(tokenBusinessMock.getToken(ticket.getTokenValue())).thenReturn(token);
+		Mockito.when(tokenBusinessMock.getAPIToken(ticket.getTokenValue())).thenReturn(token);
 
 		Token retrievedToken = ticketBusiness.tokenWasIssuedByUs(ticket);
 		assertNotNull(retrievedToken);
@@ -95,7 +95,7 @@ public class TicketBusinessTest {
 
 		String errorMessage = "The parameter is null or empty.";
 		IllegalArgumentException illegalArgumentException = new IllegalArgumentException(errorMessage);
-		Mockito.when(tokenBusinessMock.getToken(ticket.getTokenValue())).thenThrow(illegalArgumentException);
+		Mockito.when(tokenBusinessMock.getAPIToken(ticket.getTokenValue())).thenThrow(illegalArgumentException);
 
 		Token retrievedToken = ticketBusiness.tokenWasIssuedByUs(ticket);
 		assertFalse(retrievedToken != null);
@@ -123,7 +123,7 @@ public class TicketBusinessTest {
 		// Add the permission requested in the ticket.
 		permissionTuples.add(new PermissionTuple(ticket.getHttpVerb(), ticket.getRequestedUrl()));
 
-		Mockito.when(tokenBusinessMock.getToken(ticket.getTokenValue())).thenReturn(token);
+		Mockito.when(tokenBusinessMock.getAPIToken(ticket.getTokenValue())).thenReturn(token);
 		Mockito.when(roleBusinessMock.rolePermissionsAreInRedis(roleName)).thenReturn(true);
 		Mockito.when(roleBusinessMock.getRolePermissionsFromRedis(roleName)).thenReturn(permissionTuples);
 
@@ -152,7 +152,7 @@ public class TicketBusinessTest {
 		// Add the permission requested in the ticket.
 		permissionTuples.add(new PermissionTuple(ticket.getHttpVerb(), ticket.getRequestedUrl()));
 
-		Mockito.when(tokenBusinessMock.getToken(ticket.getTokenValue())).thenReturn(token);
+		Mockito.when(tokenBusinessMock.getAPIToken(ticket.getTokenValue())).thenReturn(token);
 		// First time say return false.
 		Mockito.when(roleBusinessMock.rolePermissionsAreInRedis(roleName)).thenReturn(false);
 		Mockito.when(roleBusinessMock.addRolePermissionsToRedis(roleName)).thenReturn(true);
@@ -175,7 +175,7 @@ public class TicketBusinessTest {
 
 		List<PermissionTuple> permissionTuples = new ArrayList<PermissionTuple>();
 
-		Mockito.when(tokenBusinessMock.getToken(ticket.getTokenValue())).thenReturn(token);
+		Mockito.when(tokenBusinessMock.getAPIToken(ticket.getTokenValue())).thenReturn(token);
 		Mockito.when(roleBusinessMock.rolePermissionsAreInRedis(roleName)).thenReturn(true);
 
 		// Return an empty list of permission tuples.
@@ -206,7 +206,7 @@ public class TicketBusinessTest {
 		// Add the permission requested in the ticket.
 		permissionTuples.add(new PermissionTuple(ticket.getHttpVerb(), ticket.getRequestedUrl()));
 
-		Mockito.when(tokenBusinessMock.getToken(ticket.getTokenValue())).thenReturn(token);
+		Mockito.when(tokenBusinessMock.getAPIToken(ticket.getTokenValue())).thenReturn(token);
 		Mockito.when(roleBusinessMock.rolePermissionsAreInRedis(roleName)).thenReturn(false);
 		Mockito.when(roleBusinessMock.addRolePermissionsToRedis(roleName)).thenReturn(false);
 
