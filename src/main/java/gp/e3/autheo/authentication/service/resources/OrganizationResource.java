@@ -14,46 +14,54 @@ import javax.ws.rs.core.Response;
 
 import org.apache.commons.lang3.StringUtils;
 
+import com.google.gson.Gson;
+
 @Path("/organizations")
 @Consumes(MediaType.APPLICATION_JSON)
 @Produces(MediaType.APPLICATION_JSON)
 public class OrganizationResource {
-	
+
 	private final TokenBusiness tokenBusiness;
-	
+
 	public OrganizationResource(TokenBusiness tokenBusiness) {
-		
+
 		this.tokenBusiness = tokenBusiness;
+	}
+
+	private String getStringInJsonFormat(String message) {
+
+		Gson gson = new Gson();
+		return gson.toJson(message);
 	}
 
 	@GET
 	@Path("/{organizationId}/module-token")
 	public Response getModuleTokenByUserOrganization(@PathParam("organizationId") String organizationId) {
-		
+
 		Response response = null;
-		
+
 		System.out.println("********************* 1");
 		System.out.println(organizationId);
-		
+
 		if (!StringUtils.isBlank(organizationId)) {
-			
+
 			Token moduleToken = tokenBusiness.getModuleToken(organizationId);
-			
+
 			if (moduleToken != null) {
-				
+
 				response = Response.status(200).entity(moduleToken).build();
-				
+
 			} else {
-				
-				String errorMessage = "The organization " + organizationId + "does not have a module token.";
+
+				String errorMessage = getStringInJsonFormat("The organization " + organizationId + "does not have a module token.");
 				response = Response.status(404).entity(errorMessage).build();
 			}
-			
+
 		} else {
-			
+
 			response = HttpCommonResponses.getInvalidSyntaxResponse();
 		}
-		
+
 		return response;
 	}
 }

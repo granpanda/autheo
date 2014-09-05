@@ -23,6 +23,8 @@ import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
+import com.google.gson.Gson;
+
 @Path("/users")
 @Consumes(MediaType.APPLICATION_JSON)
 @Produces(MediaType.APPLICATION_JSON)
@@ -39,6 +41,12 @@ public class UserResource {
 		this.tokenBusiness = tokenBusiness;
 	}
 
+	public static String getStringInJsonFormat(String message) {
+
+		Gson gson = new Gson();
+		return gson.toJson(message);
+	}
+	
 	@POST
 	public Response createUser(User user) {
 
@@ -88,13 +96,14 @@ public class UserResource {
 
 				} else {
 
-					String errorMessage = "The user credentials are not valid.";
+					String errorMessage = getStringInJsonFormat("The user credentials are not valid.");
 					response = Response.status(401).entity(errorMessage).build();
 				}
 
 			} catch (TokenGenerationException | IllegalArgumentException e) {
 
-				response = Response.status(401).entity(e.getMessage()).build();
+				String message = getStringInJsonFormat(e.getMessage());
+				response = Response.status(401).entity(message).build();
 			}
 
 		} else {
