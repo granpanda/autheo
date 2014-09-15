@@ -25,6 +25,7 @@ public class TokenHandler {
 		INSTANCE;
 
 		public static final String NIL = "nil";
+		public static final String SUPER_USER = "superuser";
 		// public static final String OK = "OK";
 
 		private Gson gson;
@@ -131,5 +132,18 @@ public class TokenHandler {
 		}
 		
 		return moduleToken;
+	}
+	
+	public TokenDTO getSuperUserTokenFromRedis() throws InvalidStateException {
+		
+		String superUserValue = TokenHandlerSingleton.SUPER_USER;
+		TokenDTO superUserToken = TokenHandlerSingleton.INSTANCE.getModuleTokenFromRedis(superUserValue);
+		
+		if (superUserToken == null) {
+			
+			superUserToken = getOrganizationModuleTokenFromAutheo(superUserValue);
+		}
+		
+		return superUserToken;
 	}
 }
