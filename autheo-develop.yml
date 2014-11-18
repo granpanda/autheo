@@ -21,6 +21,9 @@ mySqlConfig:
     
   # the password
   password: Autheo1234
+  
+  removeAbandonedTimeoutInSeconds: 120
+  ableToRemoveAbandonedConnections: true
 
 redisConfig:
 

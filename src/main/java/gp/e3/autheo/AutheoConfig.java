@@ -9,20 +9,20 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.yammer.dropwizard.config.Configuration;
 
 public class AutheoConfig extends Configuration {
-	
-	@NotNull
+
+    @NotNull
     @JsonProperty
-    private MySQLConfig mySqlConfig;;
-	
-	@NotNull
+    private MySQLConfig mySqlConfig;
+
+    @NotNull
     @JsonProperty
     private RedisConfig redisConfig;
 
-	public MySQLConfig getMySqlConfig() {
-		return mySqlConfig;
-	}
+    public MySQLConfig getMySqlConfig() {
+	return mySqlConfig;
+    }
 
-	public RedisConfig getRedisConfig() {
-		return redisConfig;
-	}
+    public RedisConfig getRedisConfig() {
+	return redisConfig;
+    }
 }

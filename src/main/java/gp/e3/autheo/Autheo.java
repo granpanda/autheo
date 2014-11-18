@@ -88,6 +88,10 @@ public class Autheo extends Service<AutheoConfig> {
 		basicDataSource.setUrl(mySqlConfig.getUrl());
 		basicDataSource.setUsername(mySqlConfig.getUsername());
 		basicDataSource.setPassword(mySqlConfig.getPassword());
+		
+		basicDataSource.setRemoveAbandonedTimeout(mySqlConfig.getRemoveAbandonedTimeoutInSeconds());
+		basicDataSource.setRemoveAbandonedOnBorrow(mySqlConfig.isAbleToRemoveAbandonedConnections());
+		basicDataSource.setRemoveAbandonedOnMaintenance(mySqlConfig.isAbleToRemoveAbandonedConnections());
 
 		// int maxValue = 100;
 		// basicDataSource.setMaxIdle(maxValue);
