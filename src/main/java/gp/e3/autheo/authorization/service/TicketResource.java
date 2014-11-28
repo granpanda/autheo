@@ -15,82 +15,85 @@ import javax.ws.rs.core.Response;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.yammer.metrics.annotation.Timed;
+
 @Path("/auth")
 @Consumes(MediaType.APPLICATION_JSON)
 @Produces(MediaType.APPLICATION_JSON)
 public class TicketResource {
 
-	private static Logger logger = LoggerFactory.getLogger(TicketResource.class);
+    private static Logger logger = LoggerFactory.getLogger(TicketResource.class);
 
-	private final TicketBusiness ticketBusiness;
+    private final TicketBusiness ticketBusiness;
 
-	public TicketResource(TicketBusiness ticketBusiness) {
+    public TicketResource(TicketBusiness ticketBusiness) {
 
-		this.ticketBusiness = ticketBusiness;
-	}
+	this.ticketBusiness = ticketBusiness;
+    }
 
-	private Response checkIfUserIsAuthorized(Ticket ticket) {
+    private Response checkIfUserIsAuthorized(Ticket ticket) {
 
-		Response response = null;
+	Response response = null;
 
-		if (Ticket.isValidTicket(ticket)) {
+	if (Ticket.isValidTicket(ticket)) {
 
-			Token retrievedToken = ticketBusiness.tokenWasIssuedByUs(ticket);
+	    Token retrievedToken = ticketBusiness.tokenWasIssuedByUs(ticket);
 
-			if (retrievedToken != null) {
+	    if (retrievedToken != null) {
 
-				if (ticketBusiness.userIsAuthorized(ticket)) {
+		if (ticketBusiness.userIsAuthorized(ticket)) {
 
-					response = Response.status(200).entity(retrievedToken).build();
-
-				} else {
-
-					// 403 Forbidden.
-					String errorMessage = "You don't have permissions.";
-					response = Response.status(403).entity(errorMessage).build();
-				}
-
-			} else {
-
-				// 401 Unauthorized.
-				String errorMessage = "You are not authenticated, please login.";
-				response = Response.status(401).entity(errorMessage).build();
-			}
+		    response = Response.status(200).entity(retrievedToken).build();
 
 		} else {
 
-			response = HttpCommonResponses.getInvalidSyntaxResponse();
+		    // 403 Forbidden.
+		    String errorMessage = "You don't have permissions.";
+		    response = Response.status(403).entity(errorMessage).build();
 		}
 
-		return response;
+	    } else {
+
+		// 401 Unauthorized.
+		String errorMessage = "You are not authenticated, please login.";
+		response = Response.status(401).entity(errorMessage).build();
+	    }
+
+	} else {
+
+	    response = HttpCommonResponses.getInvalidSyntaxResponse();
 	}
 
-	@PUT
-	public Response isAuthorized(Ticket ticket) {
+	return response;
+    }
 
-		logger.info("Received ticket: " + ticket);
+    @PUT
+    @Timed
+    public Response isAuthorized(Ticket ticket) {
 
-		Response response = null;
+	logger.info("Received ticket: " + ticket);
 
-		if (ticket != null) {
+	Response response = null;
 
-			boolean isPublicPermission = ticketBusiness.isPublicPermission(ticket.getHttpVerb(), ticket.getRequestedUrl());
+	if (ticket != null) {
 
-			if (isPublicPermission) {
+	    boolean isPublicPermission = ticketBusiness.isPublicPermission(ticket.getHttpVerb(), ticket.getRequestedUrl());
 
-				String message = "public permission";
-				response = Response.status(200).entity(message).build();
-				
-			} else {
-				
-				response = checkIfUserIsAuthorized(ticket);
-			}
+	    if (isPublicPermission) {
 
-		} else {
+		String message = "public permission";
+		response = Response.status(200).entity(message).build();
 
-			response = HttpCommonResponses.getInvalidSyntaxResponse();
-		}
+	    } else {
 
-		return response;
+		response = checkIfUserIsAuthorized(ticket);
+	    }
+
+	} else {
+
+	    response = HttpCommonResponses.getInvalidSyntaxResponse();
 	}
+
+	return response;
+    }
 }
