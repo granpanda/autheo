@@ -14,8 +14,12 @@ import javax.crypto.SecretKeyFactory;
 import javax.crypto.spec.PBEKeySpec;
 
 import org.joda.time.DateTime;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class TokenFactory {
+	
+	private static final Logger LOGGER = LoggerFactory.getLogger(TokenFactory.class);
 	
 	public static final int TOKEN_CHARACTER_LIMIT = 20;
 	
@@ -48,17 +52,17 @@ public class TokenFactory {
 	 * @return A new authentication token. 
 	 * @throws TokenGenerationException, exception thrown when there is an error generating the authentication token.
 	 */
-	public static final String getToken(User user) throws TokenGenerationException, IllegalArgumentException {
+	public static final String getToken(User user) throws TokenGenerationException {
+
+		String generatedToken = "";
 		
-		String errorMessage = "";
+		String username = user.getUsername();
+		String password = user.getPassword();
 		
-		if ((user != null) && StringValidator.isValidString(user.getUsername()) && 
-				StringValidator.isValidString(user.getPassword())) {
+		if ((user != null) && StringValidator.isValidString(username) && StringValidator.isValidString(password)) {
 			
 			long currentMillis = DateTime.now().getMillis();
-			String baseForToken = currentMillis + user.getUsername() + user.getPassword();
-			
-			String generatedToken = "";
+			String baseForToken = currentMillis + username + password;
 			
 			try {
 				
@@ -66,16 +70,17 @@ public class TokenFactory {
 				
 			} catch (NoSuchAlgorithmException | InvalidKeySpecException e) {
 				
-				errorMessage = "There was an error generating the authentication token.";
+				LOGGER.error("getToken", e);
+				String errorMessage = "There was an error generating the authentication token.";
 				throw new TokenGenerationException(errorMessage);
 			}
 			
-			return generatedToken;
-			
 		} else {
 			
-			errorMessage = "The user given as argument is not valid.";
+			String errorMessage = "The user given as argument is not valid.";
 			throw new IllegalArgumentException(errorMessage);
 		}
+		
+		return generatedToken;
 	}
 }
