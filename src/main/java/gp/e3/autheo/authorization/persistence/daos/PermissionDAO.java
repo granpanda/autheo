@@ -1,5 +1,6 @@
 package gp.e3.autheo.authorization.persistence.daos;
 
+import gp.e3.autheo.authentication.infrastructure.exceptions.ExceptionUtils;
 import gp.e3.autheo.authentication.infrastructure.utils.SqlUtils;
 import gp.e3.autheo.authorization.domain.entities.Permission;
 import gp.e3.autheo.authorization.persistence.mappers.PermissionMapper;
@@ -8,10 +9,14 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.util.ArrayList;
 import java.util.List;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 public class PermissionDAO {
+
+	private static final Logger LOGGER = LoggerFactory.getLogger(PermissionDAO.class);
 
 	//------------------------------------------------------------------------------------------------------
 	// Database column names constants
@@ -66,117 +71,82 @@ public class PermissionDAO {
 	//------------------------------------------------------------------------------------------------------
 	// Database operations
 	//------------------------------------------------------------------------------------------------------
-	
-	private int createPermissionsUniqueIndex(Connection dbConnection) {
 
-		int result = 0;
+	private void createPermissionsUniqueIndex(Connection dbConnection) throws SQLException {
 
-		try {
-
-			PreparedStatement prepareStatement = dbConnection.prepareStatement(CREATE_PERMISSIONS_UNIQUE_INDEX);
-			result = prepareStatement.executeUpdate();
-			prepareStatement.close();
-
-		} catch (SQLException e) {
-
-			e.printStackTrace();
-		}
-
-		return result;
+		PreparedStatement prepareStatement = dbConnection.prepareStatement(CREATE_PERMISSIONS_UNIQUE_INDEX);
+		prepareStatement.executeUpdate();
+		prepareStatement.close();
 	}
 
-	public int createPermissionsTable(Connection dbConnection) {
-
-		int affectedRows = 0;
+	public void createPermissionsTable(Connection dbConnection) {
 
 		try {
 
 			PreparedStatement prepareStatement = dbConnection.prepareStatement(CREATE_PERMISSIONS_TABLE_IF_NOT_EXISTS);
-			affectedRows = prepareStatement.executeUpdate();
+			prepareStatement.executeUpdate();
 			prepareStatement.close();
-			
-			affectedRows = createPermissionsUniqueIndex(dbConnection);
+
+			createPermissionsUniqueIndex(dbConnection);
 
 		} catch (SQLException e) {
 
-			e.printStackTrace();
+			LOGGER.error("createPermissionsTable", e);
+			ExceptionUtils.throwIllegalStateException(e);
 		}
-
-		return affectedRows;
 	}
 
-	public int countPermissionsTable(Connection dbConnection) {
+	public int countPermissionsTable(Connection dbConnection) throws SQLException {
 
 		int tableRows = 0;
 
-		try {
+		PreparedStatement prepareStatement = dbConnection.prepareStatement(COUNT_PERMISSIONS_TABLE);
+		ResultSet resultSet = prepareStatement.executeQuery();
 
-			PreparedStatement prepareStatement = dbConnection.prepareStatement(COUNT_PERMISSIONS_TABLE);
-			ResultSet resultSet = prepareStatement.executeQuery();
-
-			if (resultSet.next()) {
-				tableRows = resultSet.getInt(1);
-			}
-
-			resultSet.close();
-			prepareStatement.close();
-
-		} catch (SQLException e) {
-
-			e.printStackTrace();
+		if (resultSet.next()) {
+			tableRows = resultSet.getInt(1);
 		}
+
+		resultSet.close();
+		prepareStatement.close();
 
 		return tableRows;
 	}
 
-	public int countRolePermissionsTable(Connection dbConnection) {
+	public int countRolePermissionsTable(Connection dbConnection) throws SQLException {
 
 		int tableRows = 0;
 
-		try {
+		PreparedStatement prepareStatement = dbConnection.prepareStatement(COUNT_ROLE_PERMISSIONS_TABLE);
+		ResultSet resultSet = prepareStatement.executeQuery();
 
-			PreparedStatement prepareStatement = dbConnection.prepareStatement(COUNT_ROLE_PERMISSIONS_TABLE);
-			ResultSet resultSet = prepareStatement.executeQuery();
-
-			if (resultSet.next()) {
-				tableRows = resultSet.getInt(1);
-			}
-
-			resultSet.close();
-			prepareStatement.close();
-
-		} catch (SQLException e) {
-
-			e.printStackTrace();
+		if (resultSet.next()) {
+			tableRows = resultSet.getInt(1);
 		}
+
+		resultSet.close();
+		prepareStatement.close();
 
 		return tableRows;
 	}
 
-	public long createPermission(Connection dbConnection, Permission permission) {
+	public long createPermission(Connection dbConnection, Permission permission) throws SQLException {
 
 		long permissionId = 0;
 		String createPermissionSQL = "INSERT INTO permissions (name, http_verb, url) VALUES (?, ?, ?);";
 
-		try {
+		PreparedStatement prepareStatement = dbConnection.prepareStatement(createPermissionSQL, PreparedStatement.RETURN_GENERATED_KEYS);
+		prepareStatement.setString(1, permission.getName());
+		prepareStatement.setString(2, permission.getHttpVerb());
+		prepareStatement.setString(3, permission.getUrl());
 
-			PreparedStatement prepareStatement = dbConnection.prepareStatement(createPermissionSQL, PreparedStatement.RETURN_GENERATED_KEYS);
-			prepareStatement.setString(1, permission.getName());
-			prepareStatement.setString(2, permission.getHttpVerb());
-			prepareStatement.setString(3, permission.getUrl());
+		int affectedRows = prepareStatement.executeUpdate();
 
-			int affectedRows = prepareStatement.executeUpdate();
-			
-			if (affectedRows > 0) {
-				permissionId = SqlUtils.getGeneratedIdFromResultSet(prepareStatement.getGeneratedKeys());
-			}
-			
-			prepareStatement.close();
-
-		} catch (SQLException e) {
-
-			e.printStackTrace();
+		if (affectedRows > 0) {
+			permissionId = SqlUtils.getGeneratedIdFromResultSet(prepareStatement.getGeneratedKeys());
 		}
+
+		prepareStatement.close();
 
 		return permissionId;
 	}
@@ -191,190 +161,126 @@ public class PermissionDAO {
 
 		return totalBatchResult;
 	}
-	
-	public int associateAllPermissionsToRole(Connection dbConnection, String roleName, List<Long> permissionIdList) {
 
-		int affectedRows = 0;
+	public int associateAllPermissionsToRole(Connection dbConnection, String roleName, List<Long> permissionIdList) throws SQLException {
+
 		String associateAllPermissionsToRoleSQL = "INSERT INTO roles_permissions (role_name, permission_id) VALUES (?, ?);";
 
-		try {
+		PreparedStatement prepareStatement = dbConnection.prepareStatement(associateAllPermissionsToRoleSQL);
 
-			PreparedStatement prepareStatement = dbConnection.prepareStatement(associateAllPermissionsToRoleSQL);
+		for (Long permissionId : permissionIdList) {
 
-			for (Long permissionId : permissionIdList) {
-
-				prepareStatement.setString(1, roleName);
-				prepareStatement.setLong(2, permissionId);
-				prepareStatement.addBatch();
-			}
-
-			int[] batchResult = prepareStatement.executeBatch();
-			affectedRows = getTotalResultFromBatchResult(batchResult);
-			prepareStatement.close();
-
-		} catch (SQLException e) {
-
-			e.printStackTrace();
-		}
-		
-		return affectedRows;
-	}
-	
-	public int disassociateAllPermissionsFromRole(Connection dbConnection, String roleName) {
-		
-		int affectedRows = 0;
-		String disassociateAllPermissionsFromRoleSQL = "DELETE FROM roles_permissions WHERE role_name = ?;";
-		
-		try {
-			
-			PreparedStatement prepareStatement = dbConnection.prepareStatement(disassociateAllPermissionsFromRoleSQL);
 			prepareStatement.setString(1, roleName);
-			
-			affectedRows = prepareStatement.executeUpdate();
-			prepareStatement.close();
-			
-		} catch (SQLException e) {
-			
-			e.printStackTrace();
+			prepareStatement.setLong(2, permissionId);
+			prepareStatement.addBatch();
 		}
-		
+
+		int[] batchResult = prepareStatement.executeBatch();
+		int affectedRows = getTotalResultFromBatchResult(batchResult);
+		prepareStatement.close();
+
 		return affectedRows;
 	}
-	
-	public int disassociatePermissionFromAllRoles(Connection dbConnection, long permissionId) {
-		
-		int affectedRows = 0;
+
+	public int disassociateAllPermissionsFromRole(Connection dbConnection, String roleName) throws SQLException {
+
+		String disassociateAllPermissionsFromRoleSQL = "DELETE FROM roles_permissions WHERE role_name = ?;";
+
+		PreparedStatement prepareStatement = dbConnection.prepareStatement(disassociateAllPermissionsFromRoleSQL);
+		prepareStatement.setString(1, roleName);
+
+		int affectedRows = prepareStatement.executeUpdate();
+		prepareStatement.close();
+
+		return affectedRows;
+	}
+
+	public int disassociatePermissionFromAllRoles(Connection dbConnection, long permissionId) throws SQLException {
+
 		String disassociatePermissionFromAllRolesSQL = "DELETE FROM roles_permissions WHERE permission_id = ?;";
-		
-		try {
-			
-			PreparedStatement prepareStatement = dbConnection.prepareStatement(disassociatePermissionFromAllRolesSQL);
-			prepareStatement.setLong(1, permissionId);
-			
-			affectedRows = prepareStatement.executeUpdate();
-			prepareStatement.close();
-			
-		} catch (SQLException e) {
-			
-			e.printStackTrace();
-		}
-		
+
+		PreparedStatement prepareStatement = dbConnection.prepareStatement(disassociatePermissionFromAllRolesSQL);
+		prepareStatement.setLong(1, permissionId);
+
+		int affectedRows = prepareStatement.executeUpdate();
+		prepareStatement.close();
+
 		return affectedRows;
 	}
-	
-	public Permission getPermissionById(Connection dbConnection, long permissionId) {
-		
-		Permission permission = null;
+
+	public Permission getPermissionById(Connection dbConnection, long permissionId) throws SQLException {
+
 		String getPermissionByIdSQL = "SELECT * FROM permissions WHERE id = ?;";
-		
-		try {
-			
-			PreparedStatement prepareStatement = dbConnection.prepareStatement(getPermissionByIdSQL);
-			prepareStatement.setLong(1, permissionId);
-			
-			ResultSet resultSet = prepareStatement.executeQuery();
-			permission = PermissionMapper.getSinglePermission(resultSet);
-			
-			resultSet.close();
-			prepareStatement.close();
-			
-		} catch (SQLException e) {
-			
-			e.printStackTrace();
-		}
-		
+
+		PreparedStatement prepareStatement = dbConnection.prepareStatement(getPermissionByIdSQL);
+		prepareStatement.setLong(1, permissionId);
+
+		ResultSet resultSet = prepareStatement.executeQuery();
+		Permission permission = PermissionMapper.getSinglePermission(resultSet);
+
+		resultSet.close();
+		prepareStatement.close();
+
 		return permission;
 	}
-	
-	public Permission getPermissionByHttpVerbAndUrl(Connection dbConnection, String httpVerb, String url) {
-		
-		Permission permission = null;
+
+	public Permission getPermissionByHttpVerbAndUrl(Connection dbConnection, String httpVerb, String url) throws SQLException {
+
 		String getPermissionByHttpVerbAndUrlSQL = "SELECT * FROM permissions WHERE http_verb = ? AND url = ?;";
-		
-		try {
-			
-			PreparedStatement prepareStatement = dbConnection.prepareStatement(getPermissionByHttpVerbAndUrlSQL);
-			prepareStatement.setString(1, httpVerb);
-			prepareStatement.setString(2, url);
-			
-			ResultSet resultSet = prepareStatement.executeQuery();
-			permission = PermissionMapper.getSinglePermission(resultSet);
-			
-			resultSet.close();
-			prepareStatement.close();
-			
-		} catch (SQLException e) {
-			
-			e.printStackTrace();
-		}
-		
+
+		PreparedStatement prepareStatement = dbConnection.prepareStatement(getPermissionByHttpVerbAndUrlSQL);
+		prepareStatement.setString(1, httpVerb);
+		prepareStatement.setString(2, url);
+
+		ResultSet resultSet = prepareStatement.executeQuery();
+		Permission permission = PermissionMapper.getSinglePermission(resultSet);
+
+		resultSet.close();
+		prepareStatement.close();
+
 		return permission;
 	}
-	
-	public List<Permission> getAllPermissions(Connection dbConnection) {
-		
-		List<Permission> allPermissions = new ArrayList<Permission>();
+
+	public List<Permission> getAllPermissions(Connection dbConnection) throws SQLException {
+
 		String getAllPermissionsSQL = "SELECT * FROM permissions;";
-		
-		try {
-			
-			PreparedStatement prepareStatement = dbConnection.prepareStatement(getAllPermissionsSQL);
-			ResultSet resultSet = prepareStatement.executeQuery();
-			
-			allPermissions = PermissionMapper.getMultiplePermissions(resultSet);
-			resultSet.close();
-			prepareStatement.close();
-			
-		} catch (SQLException e) {
-			
-			e.printStackTrace();
-		}
-		
+
+		PreparedStatement prepareStatement = dbConnection.prepareStatement(getAllPermissionsSQL);
+		ResultSet resultSet = prepareStatement.executeQuery();
+
+		List<Permission> allPermissions = PermissionMapper.getMultiplePermissions(resultSet);
+		resultSet.close();
+		prepareStatement.close();
+
 		return allPermissions;
 	}
-	
-	public List<Permission> getAllPermissionsOfAGivenRole(Connection dbConnection, String roleName) {
-		
-		List<Permission> permissionsOfARole = new ArrayList<Permission>();
+
+	public List<Permission> getAllPermissionsOfAGivenRole(Connection dbConnection, String roleName) throws SQLException {
+
 		String getAllPermissionsOfAGivenRoleSQL = "SELECT * FROM permissions LEFT JOIN roles_permissions ON permissions.id = roles_permissions.permission_id WHERE role_name = ?;";
-		
-		try {
-			
-			PreparedStatement prepareStatement = dbConnection.prepareStatement(getAllPermissionsOfAGivenRoleSQL);
-			prepareStatement.setString(1, roleName);
-			
-			ResultSet resultSet = prepareStatement.executeQuery();
-			permissionsOfARole = PermissionMapper.getMultiplePermissions(resultSet);
-			
-			resultSet.close();
-			prepareStatement.close();
-			
-		} catch (SQLException e) {
-			
-			e.printStackTrace();
-		}
-		
+
+		PreparedStatement prepareStatement = dbConnection.prepareStatement(getAllPermissionsOfAGivenRoleSQL);
+		prepareStatement.setString(1, roleName);
+
+		ResultSet resultSet = prepareStatement.executeQuery();
+		List<Permission> permissionsOfARole = PermissionMapper.getMultiplePermissions(resultSet);
+
+		resultSet.close();
+		prepareStatement.close();
+
 		return permissionsOfARole;
 	}
-	
-	public int deletePermission(Connection dbConnection, long permissionId) {
-		
-		int affectedRows = 0;
+
+	public int deletePermission(Connection dbConnection, long permissionId) throws SQLException {
+
 		String deletePermissionSQL = "DELETE FROM permissions WHERE id = ?;";
-		
-		try {
-			
-			PreparedStatement prepareStatement = dbConnection.prepareStatement(deletePermissionSQL);
-			prepareStatement.setLong(1, permissionId);
-			
-			affectedRows = prepareStatement.executeUpdate();
-			prepareStatement.close();
-			
-		} catch (SQLException e) {
-			
-			e.printStackTrace();
-		}
-		
+
+		PreparedStatement prepareStatement = dbConnection.prepareStatement(deletePermissionSQL);
+		prepareStatement.setLong(1, permissionId);
+
+		int affectedRows = prepareStatement.executeUpdate();
+		prepareStatement.close();
+
 		return affectedRows;
 	}
 }

@@ -52,9 +52,9 @@ public class RoleDAOTest {
 	@Before
 	public void setUp() {
 
-		roleDAO.createRolesTable(dbConnection);
-		roleDAO.createRolesAndUsersTable(dbConnection);
-		roleDAO.createRolesAndPermissionsTable(dbConnection);
+		roleDAO.createRolesTableIfNotExists(dbConnection);
+		roleDAO.createRolesAndUsersTableIfNotExists(dbConnection);
+		roleDAO.createRolesAndPermissionsTableIfNotExists(dbConnection);
 	}
 
 	@After

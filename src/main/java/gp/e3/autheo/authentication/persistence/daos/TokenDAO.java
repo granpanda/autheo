@@ -44,184 +44,112 @@ public class TokenDAO {
 		}
 	}
 
-	public int countTokensTableRows(Connection dbConnection) {
+	public int countTokensTableRows(Connection dbConnection) throws SQLException {
 
-		int count = 0;
+		PreparedStatement prepareStatement = dbConnection.prepareStatement(COUNT_TOKENS_TABLE);
+		ResultSet resultSet = prepareStatement.executeQuery();
 
-		try {
+		int count = resultSet.next() ? resultSet.getInt(1) : 0;
 
-			PreparedStatement prepareStatement = dbConnection.prepareStatement(COUNT_TOKENS_TABLE);
-			ResultSet resultSet = prepareStatement.executeQuery();
-
-			count = resultSet.next() ? resultSet.getInt(1) : 0;
-
-			resultSet.close();
-			prepareStatement.close();
-
-		} catch (SQLException e) {
-
-			LOGGER.error("countTokensTableRows", e);
-			ExceptionUtils.throwIllegalStateException(e);
-		}
+		resultSet.close();
+		prepareStatement.close();
 
 		return count;
 	}
 
-	public boolean createToken(Connection dbConnection, Token token) {
+	public boolean createToken(Connection dbConnection, Token token) throws SQLException {
 
-		boolean tokenWasCreated = false;
 		String createTokenSQL = "INSERT INTO tokens (token_value, username, organization_id, role_id, token_type) VALUES (?, ?, ?, ?, ?);";
+		PreparedStatement prepareStatement = dbConnection.prepareStatement(createTokenSQL);
 
-		try {
+		prepareStatement.setString(1, token.getTokenValue());
+		prepareStatement.setString(2, token.getUsername());
+		prepareStatement.setString(3, token.getUserOrganization());
+		prepareStatement.setString(4, token.getUserRole());
+		prepareStatement.setInt(5, token.getTokenType());
 
-			PreparedStatement prepareStatement = dbConnection.prepareStatement(createTokenSQL);
-
-			prepareStatement.setString(1, token.getTokenValue());
-			prepareStatement.setString(2, token.getUsername());
-			prepareStatement.setString(3, token.getUserOrganization());
-			prepareStatement.setString(4, token.getUserRole());
-			prepareStatement.setInt(5, token.getTokenType());
-
-			int rowsAffected = prepareStatement.executeUpdate();
-			prepareStatement.close();
-
-			tokenWasCreated = (rowsAffected == 1);
-
-		} catch (SQLException e) {
-
-			LOGGER.error("createToken: check the given token was not already created.", e);
-			ExceptionUtils.throwIllegalStateException(e);
-		}
+		int rowsAffected = prepareStatement.executeUpdate();
+		boolean tokenWasCreated = (rowsAffected == 1);
+		prepareStatement.close();
 
 		return tokenWasCreated;
 	}
 
-	public Token getTokenByOrganizationId(Connection dbConnection, String organizationId) {
+	public Token getTokenByOrganizationId(Connection dbConnection, String organizationId) throws SQLException {
 
-		Token token = null;
 		String getTokenByOrganizationIdSQL = "SELECT * FROM tokens WHERE organization_id = ?;";
+		PreparedStatement prepareStatement = dbConnection.prepareStatement(getTokenByOrganizationIdSQL);
+		prepareStatement.setString(1, organizationId);
 
-		try {
+		ResultSet resultSet = prepareStatement.executeQuery();
+		Token token = resultSet.next() ? TokenMapper.map(resultSet) : null; 
 
-			PreparedStatement prepareStatement = dbConnection.prepareStatement(getTokenByOrganizationIdSQL);
-			prepareStatement.setString(1, organizationId);
-
-			ResultSet resultSet = prepareStatement.executeQuery();
-			
-			token = resultSet.next() ? TokenMapper.map(resultSet) : null; 
-
-			resultSet.close();
-			prepareStatement.close();
-
-		} catch (SQLException e) {
-			
-			LOGGER.error("getTokenByOrganizationId", e);
-			ExceptionUtils.throwIllegalStateException(e);
-		}
+		resultSet.close();
+		prepareStatement.close();
 
 		return token;
 	}
 
-	public List<Token> getAllTokens(Connection dbConnection) {
+	public List<Token> getAllTokens(Connection dbConnection) throws SQLException {
 
 		List<Token> allTokens = new ArrayList<Token>();
 		String getAllTokensSQL = "SELECT * FROM tokens;";
-		
-		try {
-			
-			PreparedStatement prepareStatement = dbConnection.prepareStatement(getAllTokensSQL);
-			ResultSet resultSet = prepareStatement.executeQuery();
 
-			while (resultSet.next()) {
-				allTokens.add(TokenMapper.map(resultSet));
-			}
+		PreparedStatement prepareStatement = dbConnection.prepareStatement(getAllTokensSQL);
+		ResultSet resultSet = prepareStatement.executeQuery();
 
-			resultSet.close();
-			prepareStatement.close();
-			
-		} catch (SQLException e) {
-			
-			LOGGER.error("getAllTokens", e);
-			ExceptionUtils.throwIllegalStateException(e);
+		while (resultSet.next()) {
+			allTokens.add(TokenMapper.map(resultSet));
 		}
+
+		resultSet.close();
+		prepareStatement.close();
 
 		return allTokens;
 	}
 
-	public boolean updateTokenByTokenValue(Connection dbConnection, String tokenValue, Token updatedToken) {
+	public boolean updateTokenByTokenValue(Connection dbConnection, String tokenValue, Token updatedToken) throws SQLException {
 
-		boolean tokenWasUpdated = false;
 		String updateTokenByTokenValueSQL = "UPDATE tokens SET token_value = ?, username = ?, organization_id = ?, role_id = ?, token_type = ? WHERE token_value = ?;";
-		
-		try {
-			
-			PreparedStatement prepareStatement = dbConnection.prepareStatement(updateTokenByTokenValueSQL);
-			prepareStatement.setString(1, updatedToken.getTokenValue());
-			prepareStatement.setString(2, updatedToken.getUsername());
-			prepareStatement.setString(3, updatedToken.getUserOrganization());
-			prepareStatement.setString(4, updatedToken.getUserRole());
-			prepareStatement.setInt(5, updatedToken.getTokenType());
-			prepareStatement.setString(6, tokenValue);
 
-			int rowsAffected = prepareStatement.executeUpdate();
-			tokenWasUpdated = (rowsAffected == 1);
-			
-			prepareStatement.close();
-			
-		} catch (SQLException e) {
-			
-			LOGGER.error("updateTokenByTokenValue", e);
-			ExceptionUtils.throwIllegalStateException(e);
-		}
+		PreparedStatement prepareStatement = dbConnection.prepareStatement(updateTokenByTokenValueSQL);
+		prepareStatement.setString(1, updatedToken.getTokenValue());
+		prepareStatement.setString(2, updatedToken.getUsername());
+		prepareStatement.setString(3, updatedToken.getUserOrganization());
+		prepareStatement.setString(4, updatedToken.getUserRole());
+		prepareStatement.setInt(5, updatedToken.getTokenType());
+		prepareStatement.setString(6, tokenValue);
+
+		int rowsAffected = prepareStatement.executeUpdate();
+		boolean tokenWasUpdated = (rowsAffected == 1);
+		prepareStatement.close();
 
 		return tokenWasUpdated;
 	}
 
-	public boolean deleteTokenByTokenValue(Connection dbConnection, String tokenValue) {
+	public boolean deleteTokenByTokenValue(Connection dbConnection, String tokenValue) throws SQLException {
 
-		boolean tokenWasDeleted = false;
 		String deleteTokenByTokenValueSQL = "DELETE FROM tokens WHERE token_value = ?;";
-		
-		try {
-			
-			PreparedStatement prepareStatement = dbConnection.prepareStatement(deleteTokenByTokenValueSQL);
-			prepareStatement.setString(1, tokenValue);
+		PreparedStatement prepareStatement = dbConnection.prepareStatement(deleteTokenByTokenValueSQL);
+		prepareStatement.setString(1, tokenValue);
 
-			int rowsAffected = prepareStatement.executeUpdate();
-			tokenWasDeleted = (rowsAffected == 1);
-			
-			prepareStatement.close();
-			
-		} catch (SQLException e) {
-			
-			LOGGER.error("deleteTokenByTokenValue", e);
-			ExceptionUtils.throwIllegalStateException(e);
-		}
-		
+		int rowsAffected = prepareStatement.executeUpdate();
+		boolean tokenWasDeleted = (rowsAffected == 1);
+		prepareStatement.close();
+
 		return tokenWasDeleted;
 	}
 
-	public boolean deleteTokenByUsername(Connection dbConnection, String username) {
+	public boolean deleteTokenByUsername(Connection dbConnection, String username) throws SQLException {
 
-		boolean tokenWasDeleted = false;
-		
-		try {
-			
-			String deleteTokenByUsernameSQL = "DELETE FROM tokens WHERE username = ?;";
-			PreparedStatement prepareStatement = dbConnection.prepareStatement(deleteTokenByUsernameSQL);
-			prepareStatement.setString(1, username);
+		String deleteTokenByUsernameSQL = "DELETE FROM tokens WHERE username = ?;";
+		PreparedStatement prepareStatement = dbConnection.prepareStatement(deleteTokenByUsernameSQL);
+		prepareStatement.setString(1, username);
 
-			int rowsAffected = prepareStatement.executeUpdate();
-			tokenWasDeleted = (rowsAffected == 1);
-			
-			prepareStatement.close();
-			
-		} catch (SQLException e) {
-			
-			LOGGER.error("deleteTokenByUsername", e);
-			ExceptionUtils.throwIllegalStateException(e);
-		}
-		
+		int rowsAffected = prepareStatement.executeUpdate();
+		boolean tokenWasDeleted = (rowsAffected == 1);
+		prepareStatement.close();
+
 		return tokenWasDeleted;
 	}
 }

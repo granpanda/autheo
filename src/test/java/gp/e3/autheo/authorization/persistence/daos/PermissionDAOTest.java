@@ -60,7 +60,7 @@ public class PermissionDAOTest {
 	@Before
 	public void setUp() {
 
-		roleDAO.createRolesAndPermissionsTable(dbConnection);
+		roleDAO.createRolesAndPermissionsTableIfNotExists(dbConnection);
 		permissionDAO.createPermissionsTable(dbConnection);
 	}
 

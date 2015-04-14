@@ -1,12 +1,20 @@
 package gp.e3.autheo.authorization.persistence.daos;
 
+import gp.e3.autheo.authentication.infrastructure.exceptions.ExceptionUtils;
+
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 public class RoleDAO {
+
+	private static final Logger LOGGER = LoggerFactory.getLogger(RoleDAO.class);
 
 	//------------------------------------------------------------------------------------------------------
 	// Database column names constants
@@ -52,7 +60,7 @@ public class RoleDAO {
 	// Database operations
 	//------------------------------------------------------------------------------------------------------
 
-	public boolean createRolesTable(Connection dbConnection) {
+	public boolean createRolesTableIfNotExists(Connection dbConnection) {
 
 		boolean rolesTableWasCreated = false;
 
@@ -63,15 +71,16 @@ public class RoleDAO {
 			rolesTableWasCreated = (result != 0);
 			prepareStatement.close();
 
-		} catch (Exception e) {
+		} catch (SQLException e) {
 
-			e.printStackTrace();
+			LOGGER.error("createRolesTableIfNotExists", e);
+			ExceptionUtils.throwIllegalStateException(e);
 		}
 
 		return rolesTableWasCreated;
 	}
-	
-	public boolean createRolesAndPermissionsTable(Connection dbConnection) {
+
+	public boolean createRolesAndPermissionsTableIfNotExists(Connection dbConnection) {
 
 		boolean rolesAndPermissionsTableWasCreated = false;
 
@@ -82,15 +91,16 @@ public class RoleDAO {
 			rolesAndPermissionsTableWasCreated = (result != 0);
 			prepareStatement.close();
 
-		} catch (Exception e) {
+		} catch (SQLException e) {
 
-			e.printStackTrace();
+			LOGGER.error("createRolesAndPermissionsTableIfNotExists", e);
+			ExceptionUtils.throwIllegalStateException(e);
 		}
 
 		return rolesAndPermissionsTableWasCreated;
 	}
 
-	public boolean createRolesAndUsersTable(Connection dbConnection) {
+	public boolean createRolesAndUsersTableIfNotExists(Connection dbConnection) {
 
 		boolean rolesAndUsersTableWasCreated = false;
 
@@ -101,218 +111,146 @@ public class RoleDAO {
 			rolesAndUsersTableWasCreated = (result != 0);
 			prepareStatement.close();
 
-		} catch (Exception e) {
+		} catch (SQLException e) {
 
-			e.printStackTrace();
+			LOGGER.error("createRolesAndUsersTableIfNotExists", e);
+			ExceptionUtils.throwIllegalStateException(e);
 		}
 
 		return rolesAndUsersTableWasCreated;
 	}
 
-	private int getTableRowsFromResultSet(ResultSet resultSet) throws Exception {
+	private int getTableRowsFromResultSet(ResultSet resultSet) throws SQLException {
 
 		int tableRows = 0;
-		
+
 		if (resultSet.next()) {
 			tableRows = resultSet.getInt(1);
 		}
 
 		return tableRows;
 	}
-	
-	public int countRolesTable(Connection dbConnection) {
 
-		int tableRows = 0;
+	public int countRolesTable(Connection dbConnection) throws SQLException {
 
-		try {
+		PreparedStatement prepareStatement = dbConnection.prepareStatement(COUNT_ROLES_TABLE);
+		ResultSet resultSet = prepareStatement.executeQuery();
+		int tableRows = getTableRowsFromResultSet(resultSet);
 
-			PreparedStatement prepareStatement = dbConnection.prepareStatement(COUNT_ROLES_TABLE);
-			ResultSet resultSet = prepareStatement.executeQuery();
-			tableRows = getTableRowsFromResultSet(resultSet);
-			
-			resultSet.close();
-			prepareStatement.close();
-
-		} catch (Exception e) {
-
-			e.printStackTrace();
-		}
+		resultSet.close();
+		prepareStatement.close();
 
 		return tableRows;
 	}
-	
-	public int countRolePermissionsTable(Connection dbConnection) {
-		
-		int tableRows = 0;
-		
-		try {
-			
-			PreparedStatement prepareStatement = dbConnection.prepareStatement(COUNT_ROLE_PERMISSIONS_TABLE);
-			ResultSet resultSet = prepareStatement.executeQuery();
-			tableRows = getTableRowsFromResultSet(resultSet);
-			
-			resultSet.close();
-			prepareStatement.close();
-			
-		} catch (Exception e) {
-			
-			e.printStackTrace();
-		}
-		
+
+	public int countRolePermissionsTable(Connection dbConnection) throws SQLException {
+
+		PreparedStatement prepareStatement = dbConnection.prepareStatement(COUNT_ROLE_PERMISSIONS_TABLE);
+		ResultSet resultSet = prepareStatement.executeQuery();
+		int tableRows = getTableRowsFromResultSet(resultSet);
+
+		resultSet.close();
+		prepareStatement.close();
+
 		return tableRows;
 	}
-	
-	public int countRoleUsersTable(Connection dbConnection) {
-		
-		int tableRows = 0;
-		
-		try {
-			
-			PreparedStatement prepareStatement = dbConnection.prepareStatement(COUNT_ROLE_USERS_TABLE);
-			ResultSet resultSet = prepareStatement.executeQuery();
-			tableRows = getTableRowsFromResultSet(resultSet);
-			
-			resultSet.close();
-			prepareStatement.close();
-			
-		} catch (Exception e) {
-			
-			e.printStackTrace();
-		}
-		
+
+	public int countRoleUsersTable(Connection dbConnection) throws SQLException {
+
+		PreparedStatement prepareStatement = dbConnection.prepareStatement(COUNT_ROLE_USERS_TABLE);
+		ResultSet resultSet = prepareStatement.executeQuery();
+		int tableRows = getTableRowsFromResultSet(resultSet);
+
+		resultSet.close();
+		prepareStatement.close();
+
 		return tableRows;
 	}
-	
-	public int createRole(Connection dbConnection, String roleName) {
-		
-		int affectedRows = 0;
+
+	public int createRole(Connection dbConnection, String roleName) throws SQLException {
+
 		String createRoleSQL = "INSERT INTO roles (name) VALUES (?);";
-		
-		try {
-			
-			PreparedStatement prepareStatement = dbConnection.prepareStatement(createRoleSQL);
-			prepareStatement.setString(1, roleName);
-			
-			affectedRows = prepareStatement.executeUpdate();
-			prepareStatement.close();
-			
-		} catch (Exception e) {
-			
-			e.printStackTrace();
-		}
-		
+
+		PreparedStatement prepareStatement = dbConnection.prepareStatement(createRoleSQL);
+		prepareStatement.setString(1, roleName);
+
+		int affectedRows = prepareStatement.executeUpdate();
+		prepareStatement.close();
+
 		return affectedRows;
 	}
-	
-	public List<String> getAllRolesNames(Connection dbConnection) {
-		
+
+	public List<String> getAllRolesNames(Connection dbConnection) throws SQLException {
+
 		List<String> roleNamesList = new ArrayList<String>();
 		String getAllRolesNamesSQL = "SELECT name FROM roles;";
-		
-		try {
-			
-			PreparedStatement prepareStatement = dbConnection.prepareStatement(getAllRolesNamesSQL);
-			ResultSet resultSet = prepareStatement.executeQuery();
-			
-			while (resultSet.next()) {
-				
-				String roleName = resultSet.getString(1);
-				roleNamesList.add(roleName);
-			}
-			
-			resultSet.close();
-			prepareStatement.close();
-			
-		} catch (Exception e) {
-			
-			e.printStackTrace();
+
+		PreparedStatement prepareStatement = dbConnection.prepareStatement(getAllRolesNamesSQL);
+		ResultSet resultSet = prepareStatement.executeQuery();
+
+		while (resultSet.next()) {
+
+			String roleName = resultSet.getString(1);
+			roleNamesList.add(roleName);
 		}
-		
+
+		resultSet.close();
+		prepareStatement.close();
+
 		return roleNamesList;
 	}
-	
-	public int deleteRole(Connection dbConnection, String roleName) {
-		
-		int affectedRows = 0;
+
+	public int deleteRole(Connection dbConnection, String roleName) throws SQLException {
+
 		String deleteRoleSQL = "DELETE FROM roles WHERE name = ?;";
-		
-		try {
-			
-			PreparedStatement prepareStatement = dbConnection.prepareStatement(deleteRoleSQL);
-			prepareStatement.setString(1, roleName);
-			affectedRows = prepareStatement.executeUpdate();
-			prepareStatement.close();
-			
-		} catch (Exception e) {
-			
-			e.printStackTrace();
-		}
-		
+
+		PreparedStatement prepareStatement = dbConnection.prepareStatement(deleteRoleSQL);
+		prepareStatement.setString(1, roleName);
+		int affectedRows = prepareStatement.executeUpdate();
+		prepareStatement.close();
+
 		return affectedRows;
 	}
-	
-	public int addUserToRole(Connection dbConnection, String username, String roleName) {
-		
-		int affectedRows = 0;
+
+	public int addUserToRole(Connection dbConnection, String username, String roleName) throws SQLException {
+
 		String addUserToRoleSQL = "INSERT INTO roles_users (username, role_name) VALUES (?, ?);";
-		
-		try {
-			
-			PreparedStatement prepareStatement = dbConnection.prepareStatement(addUserToRoleSQL);
-			prepareStatement.setString(1, username);
-			prepareStatement.setString(2, roleName);
-			
-			affectedRows = prepareStatement.executeUpdate();
-			prepareStatement.close();
-			
-		} catch (Exception e) {
-			
-			e.printStackTrace();
-		}
-		
+
+		PreparedStatement prepareStatement = dbConnection.prepareStatement(addUserToRoleSQL);
+		prepareStatement.setString(1, username);
+		prepareStatement.setString(2, roleName);
+
+		int affectedRows = prepareStatement.executeUpdate();
+		prepareStatement.close();
+
 		return affectedRows;
 	}
-	
-	public int removeUserFromRole(Connection dbConnection, String username) {
-		
-		int affectedRows = 0;
+
+	public int removeUserFromRole(Connection dbConnection, String username) throws SQLException {
+
 		String removeUserFromRoleSQL = "DELETE FROM roles_users WHERE username = ?;";
-		
-		try {
-			
-			PreparedStatement prepareStatement = dbConnection.prepareStatement(removeUserFromRoleSQL);
-			prepareStatement.setString(1, username);
-			
-			affectedRows = prepareStatement.executeUpdate();
-			prepareStatement.close();
-			
-		} catch (Exception e) {
-			
-			e.printStackTrace();
-		}
-		
+
+		PreparedStatement prepareStatement = dbConnection.prepareStatement(removeUserFromRoleSQL);
+		prepareStatement.setString(1, username);
+
+		int affectedRows = prepareStatement.executeUpdate();
+		prepareStatement.close();
+
 		return affectedRows;
 	}
-	
-	public boolean removeAllUsersFromRole(Connection dbConnection, String roleName) {
-		
+
+	public boolean removeAllUsersFromRole(Connection dbConnection, String roleName) throws SQLException {
+
 		boolean allUsersWereRemovedFromRole = false;
 		String removeAllUsersFromRoleSQL = "DELETE FROM roles_users WHERE role_name = ?;";
-		
-		try {
-			
-			PreparedStatement prepareStatement = dbConnection.prepareStatement(removeAllUsersFromRoleSQL);
-			prepareStatement.setString(1, roleName);
-			
-			int affectedRows = prepareStatement.executeUpdate();
-			allUsersWereRemovedFromRole = (affectedRows != 0);
-			prepareStatement.close();
-			
-		} catch (Exception e) {
-			
-			e.printStackTrace();
-		}
-		
+
+		PreparedStatement prepareStatement = dbConnection.prepareStatement(removeAllUsersFromRoleSQL);
+		prepareStatement.setString(1, roleName);
+
+		int affectedRows = prepareStatement.executeUpdate();
+		allUsersWereRemovedFromRole = (affectedRows != 0);
+		prepareStatement.close();
+
 		return allUsersWereRemovedFromRole;
 	}
 }
