@@ -1,8 +1,11 @@
 package gp.e3.autheo.authentication.persistence.daos;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.fail;
 import gp.e3.autheo.authentication.domain.entities.User;
-import gp.e3.autheo.authentication.infrastructure.datastructures.Tuple;
+import gp.e3.autheo.util.ExceptionUtilsForTests;
 import gp.e3.autheo.util.UserFactoryForTests;
 
 import java.sql.Connection;
@@ -11,7 +14,6 @@ import java.sql.PreparedStatement;
 import java.sql.SQLException;
 import java.util.List;
 
-import org.apache.commons.lang3.StringUtils;
 import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Before;
@@ -74,32 +76,46 @@ public class UserDAOTest {
 
 		User user = UserFactoryForTests.getDefaultTestUser();
 		String salt = "salt";
+		
+		try {
+			
+			assertEquals(0, userDAO.countUsersTable(dbConnection));
+			userDAO.createUser(dbConnection, user, user.getPassword(), salt);
 
-		assertEquals(0, userDAO.countUsersTable(dbConnection));
-		userDAO.createUser(dbConnection, user, user.getPassword(), salt);
+			int numberOfUsersIntoDb = userDAO.getAllUsers(dbConnection).size();
 
-		int numberOfUsersIntoDb = userDAO.getAllUsers(dbConnection).size();
+			assertEquals(1, numberOfUsersIntoDb);
+			assertEquals(numberOfUsersIntoDb, userDAO.countUsersTable(dbConnection));
 
-		assertEquals(1, numberOfUsersIntoDb);
-		assertEquals(numberOfUsersIntoDb, userDAO.countUsersTable(dbConnection));
-
-		User retrievedUser = userDAO.getUserByUsername(dbConnection, user.getUsername());
-		assertEquals(0, user.compareTo(retrievedUser));
+			User retrievedUser = userDAO.getUserByUsername(dbConnection, user.getUsername());
+			assertEquals(0, user.compareTo(retrievedUser));
+			
+		} catch (SQLException e) {
+			
+			ExceptionUtilsForTests.logUnexpectedException(e);
+		}
 	}
 
 	@Test
 	public void testCountUsersTable_NOK() {
 
 		User user = UserFactoryForTests.getDefaultTestUser();
+		
+		try {
+			
+			assertEquals(0, userDAO.countUsersTable(dbConnection));
+			int numberOfUsersIntoDb = userDAO.getAllUsers(dbConnection).size();
 
-		assertEquals(0, userDAO.countUsersTable(dbConnection));
-		int numberOfUsersIntoDb = userDAO.getAllUsers(dbConnection).size();
+			assertEquals(0, numberOfUsersIntoDb);
+			assertEquals(numberOfUsersIntoDb, userDAO.countUsersTable(dbConnection));
 
-		assertEquals(0, numberOfUsersIntoDb);
-		assertEquals(numberOfUsersIntoDb, userDAO.countUsersTable(dbConnection));
-
-		User retrievedUser = userDAO.getUserByUsername(dbConnection, user.getUsername());
-		assertEquals(0, user.compareTo(retrievedUser));
+			User retrievedUser = userDAO.getUserByUsername(dbConnection, user.getUsername());
+			assertEquals(0, user.compareTo(retrievedUser));
+			
+		} catch (SQLException e) {
+			
+			ExceptionUtilsForTests.logUnexpectedException(e);
+		}
 	}
 
 	@Test
@@ -107,27 +123,40 @@ public class UserDAOTest {
 
 		User user = UserFactoryForTests.getDefaultTestUser();
 		String salt = "salt";
+		
+		try {
+			
+			assertEquals(0, userDAO.countUsersTable(dbConnection));
+			User createdUser = userDAO.createUser(dbConnection, user, user.getPassword(), salt);
+			assertNotNull(createdUser);
 
-		assertEquals(0, userDAO.countUsersTable(dbConnection));
-		Tuple createUserResult = userDAO.createUser(dbConnection, user, user.getPassword(), salt);
-		assertEquals(true, createUserResult.isExpectedResult());
-
-		assertEquals(1, userDAO.countUsersTable(dbConnection));
-		User retrievedUser = userDAO.getUserByUsername(dbConnection, user.getUsername());
-		assertEquals(0, user.compareTo(retrievedUser));
+			assertEquals(1, userDAO.countUsersTable(dbConnection));
+			User retrievedUser = userDAO.getUserByUsername(dbConnection, user.getUsername());
+			assertEquals(0, user.compareTo(retrievedUser));
+			
+		} catch (SQLException e) {
+			
+			ExceptionUtilsForTests.logUnexpectedException(e);
+		}
 	}
 
 	@Test
-	public void testCreateUser_NOK() {
+	public void testCreateUser_NOK_emptyUser() {
 
 		User user = new User(null, null, null, false, null, null);
 		String salt = "salt";
-
-		assertEquals(0, userDAO.countUsersTable(dbConnection));
-		Tuple createUserResult = userDAO.createUser(dbConnection, user, user.getPassword(), salt);
 		
-		assertEquals(false, createUserResult.isExpectedResult());
-		assertEquals(false, StringUtils.isBlank(createUserResult.getErrorMessage()));
+		try {
+			
+			assertEquals(0, userDAO.countUsersTable(dbConnection));
+			userDAO.createUser(dbConnection, user, user.getPassword(), salt);
+			
+			fail("The method shoud threw an exception");
+			
+		} catch (SQLException e) {
+			
+			assertNotNull(e);
+		}
 	}
 
 	@Test
@@ -135,10 +164,17 @@ public class UserDAOTest {
 
 		User user = UserFactoryForTests.getDefaultTestUser();
 		String salt = "salt";
-
-		userDAO.createUser(dbConnection, user, user.getPassword(), salt);
-		User retrievedUser = userDAO.getUserByUsername(dbConnection, user.getUsername());
-		assertEquals(0, user.compareTo(retrievedUser));
+		
+		try {
+			
+			userDAO.createUser(dbConnection, user, user.getPassword(), salt);
+			User retrievedUser = userDAO.getUserByUsername(dbConnection, user.getUsername());
+			assertEquals(0, user.compareTo(retrievedUser));
+			
+		} catch (SQLException e) {
+			
+			ExceptionUtilsForTests.logUnexpectedException(e);
+		}
 	}
 
 	@Test
@@ -146,12 +182,19 @@ public class UserDAOTest {
 
 		User user = UserFactoryForTests.getDefaultTestUser();
 		String salt = "salt";
+		
+		try {
+			
+			userDAO.createUser(dbConnection, user, user.getPassword(), salt);
+			String unknownUsername = "unknownUsername";
 
-		userDAO.createUser(dbConnection, user, user.getPassword(), salt);
-		String unknownUsername = "unknownUsername";
-
-		User retrievedUser = userDAO.getUserByUsername(dbConnection, unknownUsername);
-		assertNull(retrievedUser);
+			User retrievedUser = userDAO.getUserByUsername(dbConnection, unknownUsername);
+			assertNull(retrievedUser);
+			
+		} catch (SQLException e) {
+			
+			ExceptionUtilsForTests.logUnexpectedException(e);
+		}
 	}
 
 	@Test
@@ -160,14 +203,21 @@ public class UserDAOTest {
 		int listSize = 5;
 		List<User> userList = UserFactoryForTests.getUserList(listSize);
 		String salt = "123";
+		
+		try {
+			
+			for (User user : userList) {
+				userDAO.createUser(dbConnection, user, user.getPassword(), salt);
+			}
 
-		for (User user : userList) {
-			userDAO.createUser(dbConnection, user, user.getPassword(), salt);
+			assertEquals(listSize, userDAO.countUsersTable(dbConnection));
+			List<User> retrievedUsers = userDAO.getAllUsers(dbConnection);
+			assertEquals(listSize, retrievedUsers.size());
+			
+		} catch (SQLException e) {
+			
+			ExceptionUtilsForTests.logUnexpectedException(e);
 		}
-
-		assertEquals(listSize, userDAO.countUsersTable(dbConnection));
-		List<User> retrievedUsers = userDAO.getAllUsers(dbConnection);
-		assertEquals(listSize, retrievedUsers.size());
 	}
 
 	@Test
@@ -176,14 +226,21 @@ public class UserDAOTest {
 		int listSize = 0;
 		List<User> userList = UserFactoryForTests.getUserList(listSize);
 		String salt = "123";
+		
+		try {
+			
+			for (User user : userList) {
+				userDAO.createUser(dbConnection, user, user.getPassword(), salt);
+			}
 
-		for (User user : userList) {
-			userDAO.createUser(dbConnection, user, user.getPassword(), salt);
+			assertEquals(listSize, userDAO.countUsersTable(dbConnection));
+			List<User> retrievedUsers = userDAO.getAllUsers(dbConnection);
+			assertEquals(listSize, retrievedUsers.size());
+			
+		} catch (SQLException e) {
+			
+			ExceptionUtilsForTests.logUnexpectedException(e);
 		}
-
-		assertEquals(listSize, userDAO.countUsersTable(dbConnection));
-		List<User> retrievedUsers = userDAO.getAllUsers(dbConnection);
-		assertEquals(listSize, retrievedUsers.size());
 	}
 
 	@Test
@@ -191,13 +248,20 @@ public class UserDAOTest {
 
 		User user = UserFactoryForTests.getDefaultTestUser();
 		String salt = "salt";
+		
+		try {
+			
+			assertEquals(0, userDAO.countUsersTable(dbConnection));
+			userDAO.createUser(dbConnection, user, user.getPassword(), salt);
+			assertEquals(1, userDAO.countUsersTable(dbConnection));
 
-		assertEquals(0, userDAO.countUsersTable(dbConnection));
-		userDAO.createUser(dbConnection, user, user.getPassword(), salt);
-		assertEquals(1, userDAO.countUsersTable(dbConnection));
-
-		String password = userDAO.getPasswordByUsername(dbConnection, user.getUsername());
-		assertEquals(user.getPassword(), password);
+			String password = userDAO.getPasswordByUsername(dbConnection, user.getUsername());
+			assertEquals(user.getPassword(), password);
+			
+		} catch (SQLException e) {
+			
+			ExceptionUtilsForTests.logUnexpectedException(e);
+		}
 	}
 
 	@Test
@@ -205,11 +269,19 @@ public class UserDAOTest {
 
 		User user = UserFactoryForTests.getDefaultTestUser();
 		
-		assertEquals(0, userDAO.countUsersTable(dbConnection));
-		String password = userDAO.getPasswordByUsername(dbConnection, user.getUsername());
+		try {
+			
+			assertEquals(0, userDAO.countUsersTable(dbConnection));
+			String password = userDAO.getPasswordByUsername(dbConnection, user.getUsername());
+			
+			assertNotNull(password);
+			assertEquals("", password);
+			
+		} catch (SQLException e) {
+			
+			ExceptionUtilsForTests.logUnexpectedException(e);
+		}
 		
-		assertNotNull(password);
-		assertEquals("", password);
 	}
 
 	@Test
@@ -217,21 +289,28 @@ public class UserDAOTest {
 
 		User defaultUser = UserFactoryForTests.getDefaultTestUser();
 		String salt = "salt";
+		
+		try {
+			
+			assertEquals(0, userDAO.countUsersTable(dbConnection));
+			userDAO.createUser(dbConnection, defaultUser, defaultUser.getPassword(), salt);
+			assertEquals(1, userDAO.countUsersTable(dbConnection));
 
-		assertEquals(0, userDAO.countUsersTable(dbConnection));
-		userDAO.createUser(dbConnection, defaultUser, defaultUser.getPassword(), salt);
-		assertEquals(1, userDAO.countUsersTable(dbConnection));
+			User updatedUser = UserFactoryForTests.getDefaultTestUser(1);
+			boolean userWasUpdated = userDAO.updateUser(dbConnection, defaultUser.getUsername(), updatedUser.getName(), updatedUser.getPassword());
 
-		User updatedUser = UserFactoryForTests.getDefaultTestUser(1);
-		int numberOfRowsModified = userDAO.updateUser(dbConnection, defaultUser.getUsername(), updatedUser.getName(), updatedUser.getPassword());
+			assertEquals(true, userWasUpdated);
+			assertEquals(1, userDAO.countUsersTable(dbConnection));
 
-		assertEquals(1, numberOfRowsModified);
-		assertEquals(1, userDAO.countUsersTable(dbConnection));
-
-		User retrievedUser = userDAO.getUserByUsername(dbConnection, defaultUser.getUsername());
-		assertEquals(defaultUser.getUsername(), retrievedUser.getUsername());
-		assertEquals(updatedUser.getName(), retrievedUser.getName());
-		assertEquals(updatedUser.getPassword(), retrievedUser.getPassword());
+			User retrievedUser = userDAO.getUserByUsername(dbConnection, defaultUser.getUsername());
+			assertEquals(defaultUser.getUsername(), retrievedUser.getUsername());
+			assertEquals(updatedUser.getName(), retrievedUser.getName());
+			assertEquals(updatedUser.getPassword(), retrievedUser.getPassword());
+			
+		} catch (SQLException e) {
+			
+			ExceptionUtilsForTests.logUnexpectedException(e);
+		}
 	}
 
 	@Test
@@ -239,26 +318,33 @@ public class UserDAOTest {
 
 		User defaultUser = UserFactoryForTests.getDefaultTestUser();
 		String salt = "salt";
+		
+		try {
+			
+			assertEquals(0, userDAO.countUsersTable(dbConnection));
+			userDAO.createUser(dbConnection, defaultUser, defaultUser.getPassword(), salt);
+			assertEquals(1, userDAO.countUsersTable(dbConnection));
 
-		assertEquals(0, userDAO.countUsersTable(dbConnection));
-		userDAO.createUser(dbConnection, defaultUser, defaultUser.getPassword(), salt);
-		assertEquals(1, userDAO.countUsersTable(dbConnection));
+			User updatedUser = UserFactoryForTests.getDefaultTestUser(1);
 
-		User updatedUser = UserFactoryForTests.getDefaultTestUser(1);
+			String unknownUsername = "unknownUsername";
+			boolean userWasUpdated = userDAO.updateUser(dbConnection, unknownUsername, updatedUser.getName(), updatedUser.getPassword());
 
-		String unknownUsername = "unknownUsername";
-		int numberOfRowsModified = userDAO.updateUser(dbConnection, unknownUsername, updatedUser.getName(), updatedUser.getPassword());
+			assertEquals(false, userWasUpdated);
+			assertEquals(1, userDAO.countUsersTable(dbConnection));
 
-		assertEquals(0, numberOfRowsModified);
-		assertEquals(1, userDAO.countUsersTable(dbConnection));
+			User unknownUser = userDAO.getUserByUsername(dbConnection, unknownUsername);
+			assertNull(unknownUser);
 
-		User unknownUser = userDAO.getUserByUsername(dbConnection, unknownUsername);
-		assertNull(unknownUser);
-
-		User retrievedDefaultUser = userDAO.getUserByUsername(dbConnection, defaultUser.getUsername());
-		assertEquals(defaultUser.getName(), retrievedDefaultUser.getName());
-		assertEquals(defaultUser.getUsername(), retrievedDefaultUser.getUsername());
-		assertEquals(defaultUser.getPassword(), retrievedDefaultUser.getPassword());
+			User retrievedDefaultUser = userDAO.getUserByUsername(dbConnection, defaultUser.getUsername());
+			assertEquals(defaultUser.getName(), retrievedDefaultUser.getName());
+			assertEquals(defaultUser.getUsername(), retrievedDefaultUser.getUsername());
+			assertEquals(defaultUser.getPassword(), retrievedDefaultUser.getPassword());
+			
+		} catch (SQLException e) {
+			
+			ExceptionUtilsForTests.logUnexpectedException(e);
+		}
 	}
 
 	@Test
@@ -266,14 +352,21 @@ public class UserDAOTest {
 
 		User defaultUser = UserFactoryForTests.getDefaultTestUser();
 		String salt = "salt";
+		
+		try {
+			
+			assertEquals(0, userDAO.countUsersTable(dbConnection));
+			userDAO.createUser(dbConnection, defaultUser, defaultUser.getPassword(), salt);
+			assertEquals(1, userDAO.countUsersTable(dbConnection));
 
-		assertEquals(0, userDAO.countUsersTable(dbConnection));
-		userDAO.createUser(dbConnection, defaultUser, defaultUser.getPassword(), salt);
-		assertEquals(1, userDAO.countUsersTable(dbConnection));
-
-		int numberOfRowsModified = userDAO.deleteUser(dbConnection, defaultUser.getUsername());
-		assertEquals(1, numberOfRowsModified);
-		assertEquals(0, userDAO.countUsersTable(dbConnection));
+			boolean userWasDeleted = userDAO.deleteUser(dbConnection, defaultUser.getUsername());
+			assertEquals(true, userWasDeleted);
+			assertEquals(0, userDAO.countUsersTable(dbConnection));
+			
+		} catch (SQLException e) {
+			
+			ExceptionUtilsForTests.logUnexpectedException(e);
+		}
 	}
 
 	@Test
@@ -281,10 +374,17 @@ public class UserDAOTest {
 
 		User defaultUser = UserFactoryForTests.getDefaultTestUser();
 		
-		assertEquals(0, userDAO.countUsersTable(dbConnection));
-		int numberOfRowsModified = userDAO.deleteUser(dbConnection, defaultUser.getUsername());
+		try {
+			
+			assertEquals(0, userDAO.countUsersTable(dbConnection));
+			boolean userWasDeleted = userDAO.deleteUser(dbConnection, defaultUser.getUsername());
 
-		assertEquals(0, numberOfRowsModified);
-		assertEquals(0, userDAO.countUsersTable(dbConnection));
+			assertEquals(false, userWasDeleted);
+			assertEquals(0, userDAO.countUsersTable(dbConnection));
+			
+		} catch (SQLException e) {
+			
+			ExceptionUtilsForTests.logUnexpectedException(e);
+		}
 	}
 }
