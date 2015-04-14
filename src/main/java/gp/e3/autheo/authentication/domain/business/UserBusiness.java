@@ -1,7 +1,7 @@
 package gp.e3.autheo.authentication.domain.business;
 
 import gp.e3.autheo.authentication.domain.entities.User;
-import gp.e3.autheo.authentication.infrastructure.utils.SqlUtils;
+import gp.e3.autheo.authentication.infrastructure.exceptions.ExceptionUtils;
 import gp.e3.autheo.authentication.persistence.daos.UserDAO;
 
 import java.security.NoSuchAlgorithmException;
@@ -13,11 +13,8 @@ import java.util.List;
 
 import org.apache.commons.dbcp2.BasicDataSource;
 import org.apache.commons.dbutils.DbUtils;
-import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import redis.clients.jedis.Tuple;
 
 public class UserBusiness {
 	
@@ -55,7 +52,7 @@ public class UserBusiness {
 		} catch (NoSuchAlgorithmException | InvalidKeySpecException | IllegalArgumentException e) {
 			
 			LOGGER.error("createUser", e);
-			throw new IllegalStateException(e);
+			ExceptionUtils.throwIllegalStateException(e);
 			
 		} finally {
 
@@ -79,7 +76,7 @@ public class UserBusiness {
 		} catch (SQLException | NoSuchAlgorithmException | InvalidKeySpecException | IllegalArgumentException e) {
 
 			LOGGER.error("authenticateUser", e);
-			throw new IllegalStateException(e);
+			ExceptionUtils.throwIllegalStateException(e);
 
 		} finally {
 
@@ -102,7 +99,7 @@ public class UserBusiness {
 		} catch (SQLException e) {
 			
 			LOGGER.error("getUserByUsername", e);
-			throw new IllegalStateException(e);
+			ExceptionUtils.throwIllegalStateException(e);
 			
 		} finally {
 			
@@ -122,13 +119,14 @@ public class UserBusiness {
 			dbConnection = dataSource.getConnection();
 			usersList = userDao.getAllUsers(dbConnection);
 			
-		} catch (Exception e) {
+		} catch (SQLException e) {
 			
-			e.printStackTrace();
+			LOGGER.error("getAllUsers", e);
+			ExceptionUtils.throwIllegalStateException(e);
 			
 		} finally {
 			
-			SqlUtils.closeDbConnection(dbConnection);
+			DbUtils.closeQuietly(dbConnection);
 		}
 		
 		return usersList;
@@ -142,16 +140,16 @@ public class UserBusiness {
 		try {
 			
 			dbConnection = dataSource.getConnection();
-			int rowsAffected = userDao.updateUser(dbConnection, username, updatedUser.getName(), updatedUser.getPassword());
-			userWasUpdated = (rowsAffected == 1);
+			userWasUpdated = userDao.updateUser(dbConnection, username, updatedUser.getName(), updatedUser.getPassword());
 			
-		} catch (Exception e) {
+		} catch (SQLException e) {
 			
-			e.printStackTrace();
+			LOGGER.error("updateUser", e);
+			ExceptionUtils.throwIllegalStateException(e);
 			
 		} finally {
 			
-			SqlUtils.closeDbConnection(dbConnection);
+			DbUtils.closeQuietly(dbConnection);
 		}
 		
 		return userWasUpdated;
@@ -165,16 +163,16 @@ public class UserBusiness {
 		try {
 			
 			dbConnection = dataSource.getConnection();
-			int affectedRows = userDao.deleteUser(dbConnection, username);
-			userWasDeleted = (affectedRows == 1);
+			userWasDeleted = userDao.deleteUser(dbConnection, username);
 			
-		} catch (Exception e) {
+		} catch (SQLException e) {
 			
-			e.printStackTrace();
+			LOGGER.error("deleteUser", e);
+			ExceptionUtils.throwIllegalStateException(e);
 			
 		} finally {
 			
-			SqlUtils.closeDbConnection(dbConnection);
+			DbUtils.closeQuietly(dbConnection);
 		}
 		
 		return userWasDeleted;

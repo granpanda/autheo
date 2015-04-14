@@ -5,12 +5,12 @@ import gp.e3.autheo.authentication.domain.business.UserBusiness;
 import gp.e3.autheo.authentication.domain.entities.Token;
 import gp.e3.autheo.authentication.domain.entities.User;
 import gp.e3.autheo.authentication.domain.exceptions.TokenGenerationException;
-import gp.e3.autheo.authentication.infrastructure.datastructures.Tuple;
 import gp.e3.autheo.authentication.infrastructure.validators.StringValidator;
 import gp.e3.autheo.authentication.service.resources.commons.HttpCommonResponses;
 import gp.e3.autheo.authorization.domain.business.RoleBusiness;
 
 import java.util.List;
+import java.util.Objects;
 
 import javax.ws.rs.Consumes;
 import javax.ws.rs.DELETE;
@@ -54,17 +54,17 @@ public class UserResource {
 
 		if (User.isAValidUser(user)) {
 
-			Tuple createUserAnswer = userBusiness.createUser(user);
+			User createUser = userBusiness.createUser(user);
 			
-			if (createUserAnswer.isExpectedResult()) {
+			if (Objects.nonNull(createUser)) {
 				
 				tokenBusiness.generateAndSaveTokensForAnAPIUser(user);
 				roleBusiness.addUserToRole(user.getUsername(), user.getRoleId());
-				response = Response.status(201).entity(createUserAnswer).build();
+				response = Response.status(201).entity(createUser).build();
 				
 			} else {
 				
-				response = Response.status(500).entity(createUserAnswer).build();
+				response = Response.status(500).entity(createUser).build();
 			}
 
 		} else {

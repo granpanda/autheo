@@ -1,10 +1,8 @@
 package gp.e3.autheo.authentication.infrastructure.exceptions;
 
-import java.sql.SQLException;
-
 public class ExceptionUtils {
 
-	public static void throwIllegalStateException(SQLException e) {
+	public static void throwIllegalStateException(Exception e) {
 
 		throw new IllegalStateException(e);
 	}
