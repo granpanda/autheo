@@ -46,10 +46,10 @@ public class UserBusiness {
 
 		} catch (SQLException e) {
 
-			LOGGER.error("createUser", e);
-			throw new IllegalArgumentException("The given user is already created or is not valid");
+			LOGGER.error("createUser: check the user was not already created.", e);
+			ExceptionUtils.throwIllegalStateException(e);
 
-		} catch (NoSuchAlgorithmException | InvalidKeySpecException | IllegalArgumentException e) {
+		} catch (NoSuchAlgorithmException | InvalidKeySpecException e) {
 			
 			LOGGER.error("createUser", e);
 			ExceptionUtils.throwIllegalStateException(e);
@@ -73,7 +73,7 @@ public class UserBusiness {
 			String passwordHashFromDb = userDao.getPasswordByUsername(dbConnection, username);
 			isAuthenticated = PasswordHandler.validatePassword(password, passwordHashFromDb);				
 
-		} catch (SQLException | NoSuchAlgorithmException | InvalidKeySpecException | IllegalArgumentException e) {
+		} catch (SQLException | NoSuchAlgorithmException | InvalidKeySpecException e) {
 
 			LOGGER.error("authenticateUser", e);
 			ExceptionUtils.throwIllegalStateException(e);

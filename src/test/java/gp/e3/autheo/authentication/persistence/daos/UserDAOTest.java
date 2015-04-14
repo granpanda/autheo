@@ -92,7 +92,7 @@ public class UserDAOTest {
 			
 		} catch (SQLException e) {
 			
-			ExceptionUtilsForTests.logUnexpectedException(e);
+			ExceptionUtilsForTests.logAndFailOnUnexpectedException(e);
 		}
 	}
 
@@ -114,7 +114,7 @@ public class UserDAOTest {
 			
 		} catch (SQLException e) {
 			
-			ExceptionUtilsForTests.logUnexpectedException(e);
+			ExceptionUtilsForTests.logAndFailOnUnexpectedException(e);
 		}
 	}
 
@@ -136,7 +136,7 @@ public class UserDAOTest {
 			
 		} catch (SQLException e) {
 			
-			ExceptionUtilsForTests.logUnexpectedException(e);
+			ExceptionUtilsForTests.logAndFailOnUnexpectedException(e);
 		}
 	}
 
@@ -173,7 +173,7 @@ public class UserDAOTest {
 			
 		} catch (SQLException e) {
 			
-			ExceptionUtilsForTests.logUnexpectedException(e);
+			ExceptionUtilsForTests.logAndFailOnUnexpectedException(e);
 		}
 	}
 
@@ -193,7 +193,7 @@ public class UserDAOTest {
 			
 		} catch (SQLException e) {
 			
-			ExceptionUtilsForTests.logUnexpectedException(e);
+			ExceptionUtilsForTests.logAndFailOnUnexpectedException(e);
 		}
 	}
 
@@ -216,7 +216,7 @@ public class UserDAOTest {
 			
 		} catch (SQLException e) {
 			
-			ExceptionUtilsForTests.logUnexpectedException(e);
+			ExceptionUtilsForTests.logAndFailOnUnexpectedException(e);
 		}
 	}
 
@@ -239,7 +239,7 @@ public class UserDAOTest {
 			
 		} catch (SQLException e) {
 			
-			ExceptionUtilsForTests.logUnexpectedException(e);
+			ExceptionUtilsForTests.logAndFailOnUnexpectedException(e);
 		}
 	}
 
@@ -260,7 +260,7 @@ public class UserDAOTest {
 			
 		} catch (SQLException e) {
 			
-			ExceptionUtilsForTests.logUnexpectedException(e);
+			ExceptionUtilsForTests.logAndFailOnUnexpectedException(e);
 		}
 	}
 
@@ -279,7 +279,7 @@ public class UserDAOTest {
 			
 		} catch (SQLException e) {
 			
-			ExceptionUtilsForTests.logUnexpectedException(e);
+			ExceptionUtilsForTests.logAndFailOnUnexpectedException(e);
 		}
 		
 	}
@@ -309,7 +309,7 @@ public class UserDAOTest {
 			
 		} catch (SQLException e) {
 			
-			ExceptionUtilsForTests.logUnexpectedException(e);
+			ExceptionUtilsForTests.logAndFailOnUnexpectedException(e);
 		}
 	}
 
@@ -343,7 +343,7 @@ public class UserDAOTest {
 			
 		} catch (SQLException e) {
 			
-			ExceptionUtilsForTests.logUnexpectedException(e);
+			ExceptionUtilsForTests.logAndFailOnUnexpectedException(e);
 		}
 	}
 
@@ -365,7 +365,7 @@ public class UserDAOTest {
 			
 		} catch (SQLException e) {
 			
-			ExceptionUtilsForTests.logUnexpectedException(e);
+			ExceptionUtilsForTests.logAndFailOnUnexpectedException(e);
 		}
 	}
 
@@ -384,7 +384,7 @@ public class UserDAOTest {
 			
 		} catch (SQLException e) {
 			
-			ExceptionUtilsForTests.logUnexpectedException(e);
+			ExceptionUtilsForTests.logAndFailOnUnexpectedException(e);
 		}
 	}
 }

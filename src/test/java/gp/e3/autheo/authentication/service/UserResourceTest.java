@@ -9,7 +9,6 @@ import gp.e3.autheo.authentication.domain.business.constants.TokenTypes;
 import gp.e3.autheo.authentication.domain.entities.Token;
 import gp.e3.autheo.authentication.domain.entities.User;
 import gp.e3.autheo.authentication.domain.exceptions.TokenGenerationException;
-import gp.e3.autheo.authentication.infrastructure.datastructures.Tuple;
 import gp.e3.autheo.authentication.service.resources.UserResource;
 import gp.e3.autheo.authorization.domain.business.RoleBusiness;
 import gp.e3.autheo.util.UserFactoryForTests;
@@ -52,8 +51,8 @@ public class UserResourceTest extends ResourceTest {
 
 		User user = UserFactoryForTests.getDefaultTestUser();
 
-		Tuple createUserResult = new Tuple(true);
-		Mockito.when(userBusinessMock.createUser(Mockito.any(User.class))).thenReturn(createUserResult);
+		User expectedCreatedUser = user;
+		Mockito.when(userBusinessMock.createUser(Mockito.any(User.class))).thenReturn(expectedCreatedUser);
 		Mockito.when(tokenBusinessMock.generateAndSaveTokensForAnAPIUser(Mockito.any(User.class))).thenReturn(true);
 		Mockito.when(roleBusinessMock.addUserToRole(Mockito.anyString(), Mockito.anyString())).thenReturn(true);
 
@@ -62,41 +61,36 @@ public class UserResourceTest extends ResourceTest {
 
 		assertEquals(201, httpResponse.getStatus());
 
-		Tuple tupleFromResponse = httpResponse.getEntity(Tuple.class);
-		assertEquals(true, tupleFromResponse.isExpectedResult());
+		User createdUser = httpResponse.getEntity(User.class);
+		assertEquals(0, expectedCreatedUser.compareTo(createdUser));
 	}
 	
 	@Test
-	public void testCreateUser_NOK_1() {
+	public void testCreateUser_NOK_1_exception() {
+		
+		try {
+			
+			User user = UserFactoryForTests.getDefaultTestUser();
 
-		User user = UserFactoryForTests.getDefaultTestUser();
+			Mockito.doThrow(IllegalStateException.class).when(userBusinessMock).createUser(Mockito.any(User.class));
+			Mockito.when(tokenBusinessMock.generateAndSaveTokensForAnAPIUser(Mockito.any(User.class))).thenReturn(true);
+			Mockito.when(roleBusinessMock.addUserToRole(Mockito.anyString(), Mockito.anyString())).thenReturn(true);
+			
+			String url = "/users";
+			ClientResponse httpResponse = getDefaultHttpRequest(url).post(ClientResponse.class, user);
 
-		String errorMessage = "There was an error creating the user.";
-		Tuple createUserResult = new Tuple(errorMessage);
-		Mockito.when(userBusinessMock.createUser(Mockito.any(User.class))).thenReturn(createUserResult);
-		Mockito.when(tokenBusinessMock.generateAndSaveTokensForAnAPIUser(Mockito.any(User.class))).thenReturn(true);
-		Mockito.when(roleBusinessMock.addUserToRole(Mockito.anyString(), Mockito.anyString())).thenReturn(true);
-
-		String url = "/users";
-		ClientResponse httpResponse = getDefaultHttpRequest(url).post(ClientResponse.class, user);
-
-		assertEquals(500, httpResponse.getStatus());
-
-		Tuple tupleFromResponse = httpResponse.getEntity(Tuple.class);
-		assertEquals(false, tupleFromResponse.isExpectedResult());
+			assertEquals(500, httpResponse.getStatus());
+			
+		} catch (IllegalStateException e) {
+			
+			assertNotNull(e);
+		}
 	}
 
 	@Test
-	public void testCreateUser_NOK_2() {
+	public void testCreateUser_NOK_2_nullUser() {
 
 		User user = null;
-
-		String errorMessage = "There was an error creating the user.";
-		Tuple createUserResult = new Tuple(errorMessage);
-		Mockito.when(userBusinessMock.createUser(Mockito.any(User.class))).thenReturn(createUserResult);
-		Mockito.when(tokenBusinessMock.generateAndSaveTokensForAnAPIUser(Mockito.any(User.class))).thenReturn(true);
-		Mockito.when(roleBusinessMock.addUserToRole(Mockito.anyString(), Mockito.anyString())).thenReturn(true);
-
 		String url = "/users";
 		ClientResponse httpResponse = getDefaultHttpRequest(url).post(ClientResponse.class, user);
 
@@ -253,10 +247,10 @@ public class UserResourceTest extends ResourceTest {
 		
 		assertEquals(200, httpResponse.getStatus());
 		
-		List retrievedUserList = httpResponse.getEntity(List.class);
+		User[] retrievedUserArray = httpResponse.getEntity(User[].class);
 		
-		assertNotNull(retrievedUserList);
-		assertEquals(listSize, retrievedUserList.size());
+		assertNotNull(retrievedUserArray);
+		assertEquals(listSize, retrievedUserArray.length);
 	}
 	
 	@Test
@@ -272,10 +266,10 @@ public class UserResourceTest extends ResourceTest {
 		
 		assertEquals(200, httpResponse.getStatus());
 		
-		List retrievedUserList = httpResponse.getEntity(List.class);
+		User[] retrievedUserArray = httpResponse.getEntity(User[].class);
 		
-		assertNotNull(retrievedUserList);
-		assertEquals(listSize, retrievedUserList.size());
+		assertNotNull(retrievedUserArray);
+		assertEquals(listSize, retrievedUserArray.length);
 	}
 	
 	@Test
