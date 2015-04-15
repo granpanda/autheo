@@ -32,7 +32,7 @@ public class TokenDAOTest {
 		} catch (SQLException e) {
 			e.printStackTrace();
 		}
-		
+
 		tokenDAO = new TokenDAO();
 	}
 
@@ -44,7 +44,7 @@ public class TokenDAOTest {
 		} catch (SQLException e) {
 			e.printStackTrace();
 		}
-		
+
 		dbConnection = null;
 		tokenDAO = null;
 	}
@@ -52,23 +52,28 @@ public class TokenDAOTest {
 	@Before
 	public void setUp() {
 
-		try {
-			tokenDAO.createTokensTableIfNotExists(dbConnection);
-		} catch (SQLException e) {
-			e.printStackTrace();
-		}
+		tokenDAO.createTokensTableIfNotExists(dbConnection);
+	}
+
+	private void logUnexpectedException(SQLException e) {
+
+		e.printStackTrace();
+		fail("Unexpected exception: " + e.getMessage());
 	}
 
 	@After
 	public void tearDown() {
 
 		String dropTableSQL = "DROP TABLE tokens";
-		
+
 		try {
+			
 			PreparedStatement prepareStatement = dbConnection.prepareStatement(dropTableSQL);
 			prepareStatement.executeUpdate();
+			
 		} catch (SQLException e) {
-			e.printStackTrace();
+			
+			logUnexpectedException(e);
 		}
 	}
 
@@ -144,14 +149,9 @@ public class TokenDAOTest {
 		}
 	}
 
-	private void logUnexpectedException(SQLException e) {
-		e.printStackTrace();
-		fail("Unexpected exception: " + e.getMessage());
-	}
-	
 	@Test
 	public void testCreateToken_NOK() {
-		
+
 		try {
 
 			assertEquals(0, tokenDAO.countTokensTableRows(dbConnection));
@@ -174,10 +174,10 @@ public class TokenDAOTest {
 			}
 		}
 	}
-	
+
 	@Test
 	public void testGetAllTokens_OK() {
-		
+
 		try {
 
 			assertEquals(0, tokenDAO.countTokensTableRows(dbConnection));
@@ -191,9 +191,9 @@ public class TokenDAOTest {
 			tokenDAO.createToken(dbConnection, secondToken);
 
 			assertEquals(2, tokenDAO.countTokensTableRows(dbConnection));
-			
+
 			List<Token> tokens = tokenDAO.getAllTokens(dbConnection);
-			
+
 			assertEquals(2, tokenDAO.countTokensTableRows(dbConnection));
 			assertEquals(tokenDAO.countTokensTableRows(dbConnection), tokens.size());
 
@@ -202,14 +202,14 @@ public class TokenDAOTest {
 			logUnexpectedException(e);
 		}
 	}
-	
+
 	@Test
 	public void testGetAllTokens_NOK() {
-		
+
 		try {
 
 			assertEquals(0, tokenDAO.countTokensTableRows(dbConnection));
-			
+
 			List<Token> tokens = tokenDAO.getAllTokens(dbConnection);
 			assertEquals(tokenDAO.countTokensTableRows(dbConnection), tokens.size());
 
@@ -218,10 +218,10 @@ public class TokenDAOTest {
 			logUnexpectedException(e);
 		}
 	}
-	
+
 	@Test
 	public void testUpdateTokenByTokenValue_OK() {
-		
+
 		try {
 
 			assertEquals(0, tokenDAO.countTokensTableRows(dbConnection));
@@ -230,22 +230,22 @@ public class TokenDAOTest {
 			tokenDAO.createToken(dbConnection, firstToken);
 
 			assertEquals(1, tokenDAO.countTokensTableRows(dbConnection));
-			
+
 			List<Token> tokens = tokenDAO.getAllTokens(dbConnection);
-			
+
 			assertEquals(1, tokenDAO.countTokensTableRows(dbConnection));
 			assertEquals(tokenDAO.countTokensTableRows(dbConnection), tokens.size());
-			
+
 			Token createdToken = tokens.get(0);
 			assertEquals(0, firstToken.compareTo(createdToken));
-			
+
 			Token secondToken = TokenFactoryForTests.getDefaultTestToken(2);
 			tokenDAO.updateTokenByTokenValue(dbConnection, createdToken.getTokenValue(), secondToken);
-			
+
 			List<Token> updatedTokenList = tokenDAO.getAllTokens(dbConnection);
 			assertEquals(1, tokenDAO.countTokensTableRows(dbConnection));
 			assertEquals(tokenDAO.countTokensTableRows(dbConnection), updatedTokenList.size());
-			
+
 			Token updatedToken = updatedTokenList.get(0);
 			assertEquals(0, secondToken.compareTo(updatedToken));
 
@@ -254,10 +254,10 @@ public class TokenDAOTest {
 			logUnexpectedException(e);
 		}
 	}
-	
+
 	@Test
 	public void testUpdateTokenByTokenValue_NOK() {
-		
+
 		try {
 
 			assertEquals(0, tokenDAO.countTokensTableRows(dbConnection));
@@ -266,23 +266,23 @@ public class TokenDAOTest {
 			tokenDAO.createToken(dbConnection, firstToken);
 
 			assertEquals(1, tokenDAO.countTokensTableRows(dbConnection));
-			
+
 			List<Token> tokens = tokenDAO.getAllTokens(dbConnection);
-			
+
 			assertEquals(1, tokenDAO.countTokensTableRows(dbConnection));
 			assertEquals(tokenDAO.countTokensTableRows(dbConnection), tokens.size());
-			
+
 			Token createdToken = tokens.get(0);
 			assertEquals(0, firstToken.compareTo(createdToken));
-			
+
 			String unknownTokenValue = "unknownTokenValue";
 			Token secondToken = TokenFactoryForTests.getDefaultTestToken(2);
 			tokenDAO.updateTokenByTokenValue(dbConnection, unknownTokenValue, secondToken);
-			
+
 			List<Token> updatedTokenList = tokenDAO.getAllTokens(dbConnection);
 			assertEquals(1, tokenDAO.countTokensTableRows(dbConnection));
 			assertEquals(tokenDAO.countTokensTableRows(dbConnection), updatedTokenList.size());
-			
+
 			// The token was not updated because the given token value was not into the db.
 			Token updatedToken = updatedTokenList.get(0);
 			assertEquals(0, firstToken.compareTo(updatedToken));
@@ -292,12 +292,12 @@ public class TokenDAOTest {
 			logUnexpectedException(e);
 		}
 	}
-	
+
 	@Test
 	public void testDeleteTokenByTokenValue_OK() {
-		
+
 		try {
-			
+
 			assertEquals(0, tokenDAO.countTokensTableRows(dbConnection));
 
 			Token firstToken = TokenFactoryForTests.getDefaultTestToken();
@@ -309,30 +309,30 @@ public class TokenDAOTest {
 			tokenDAO.createToken(dbConnection, secondToken);
 
 			assertEquals(2, tokenDAO.countTokensTableRows(dbConnection));
-			
+
 			List<Token> tokens = tokenDAO.getAllTokens(dbConnection);
-			
+
 			assertEquals(2, tokenDAO.countTokensTableRows(dbConnection));
 			assertEquals(tokenDAO.countTokensTableRows(dbConnection), tokens.size());
-			
+
 			tokenDAO.deleteTokenByTokenValue(dbConnection, firstToken.getTokenValue());
 			assertEquals(1, tokenDAO.countTokensTableRows(dbConnection));
-			
+
 			tokenDAO.deleteTokenByTokenValue(dbConnection, secondToken.getTokenValue());
-			
+
 			assertEquals(0, tokenDAO.countTokensTableRows(dbConnection));
-			
+
 		} catch (SQLException e) {
-			
+
 			logUnexpectedException(e);
 		}
 	}
-	
+
 	@Test
 	public void testDeleteTokenByTokenValue_NOK() {
-		
+
 		try {
-			
+
 			assertEquals(0, tokenDAO.countTokensTableRows(dbConnection));
 
 			Token firstToken = TokenFactoryForTests.getDefaultTestToken();
@@ -344,25 +344,25 @@ public class TokenDAOTest {
 			tokenDAO.createToken(dbConnection, secondToken);
 
 			assertEquals(2, tokenDAO.countTokensTableRows(dbConnection));
-			
+
 			List<Token> tokens = tokenDAO.getAllTokens(dbConnection);
-			
+
 			assertEquals(2, tokenDAO.countTokensTableRows(dbConnection));
 			assertEquals(tokenDAO.countTokensTableRows(dbConnection), tokens.size());
-			
+
 			String unknownTokenValue = "unknownTokenValue";
 			tokenDAO.deleteTokenByTokenValue(dbConnection, unknownTokenValue);
 			assertEquals(2, tokenDAO.countTokensTableRows(dbConnection));
-			
+
 		} catch (SQLException e) {
-			
+
 			logUnexpectedException(e);
 		}
 	}
-	
+
 	@Test
 	public void testDeleteTokenByUsername_OK() {
-		
+
 		try {
 			assertEquals(0, tokenDAO.countTokensTableRows(dbConnection));
 
@@ -375,26 +375,26 @@ public class TokenDAOTest {
 			tokenDAO.createToken(dbConnection, secondToken);
 
 			assertEquals(2, tokenDAO.countTokensTableRows(dbConnection));
-			
+
 			List<Token> tokens = tokenDAO.getAllTokens(dbConnection);
-			
+
 			assertEquals(2, tokenDAO.countTokensTableRows(dbConnection));
 			assertEquals(tokenDAO.countTokensTableRows(dbConnection), tokens.size());
-			
+
 			tokenDAO.deleteTokenByUsername(dbConnection, firstToken.getUsername());
 			assertEquals(1, tokenDAO.countTokensTableRows(dbConnection));
-			
+
 			tokenDAO.deleteTokenByUsername(dbConnection, secondToken.getUsername());
 			assertEquals(0, tokenDAO.countTokensTableRows(dbConnection));
 		} catch (SQLException e) {
-			
+
 			logUnexpectedException(e);
 		}
 	}
-	
+
 	@Test
 	public void testDeleteTokenByUsername_NOK() {
-		
+
 		try {
 			assertEquals(0, tokenDAO.countTokensTableRows(dbConnection));
 
@@ -407,18 +407,19 @@ public class TokenDAOTest {
 			tokenDAO.createToken(dbConnection, secondToken);
 
 			assertEquals(2, tokenDAO.countTokensTableRows(dbConnection));
-			
+
 			List<Token> tokens = tokenDAO.getAllTokens(dbConnection);
-			
+
 			assertEquals(2, tokenDAO.countTokensTableRows(dbConnection));
 			assertEquals(tokenDAO.countTokensTableRows(dbConnection), tokens.size());
-			
+
 			String unknownUsername = "unknownUsername";
 			tokenDAO.deleteTokenByUsername(dbConnection, unknownUsername);
 			assertEquals(2, tokenDAO.countTokensTableRows(dbConnection));
+
 		} catch (SQLException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
+			
+			logUnexpectedException(e);
 		}
 	}
 }

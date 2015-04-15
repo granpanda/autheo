@@ -6,7 +6,6 @@ import gp.e3.autheo.authentication.infrastructure.config.MySQLConfig;
 import gp.e3.autheo.authentication.infrastructure.config.RedisConfig;
 import gp.e3.autheo.authentication.infrastructure.healthchecks.MySQLHealthCheck;
 import gp.e3.autheo.authentication.infrastructure.healthchecks.RedisHealthCheck;
-import gp.e3.autheo.authentication.infrastructure.utils.SqlUtils;
 import gp.e3.autheo.authentication.persistence.daos.TokenCacheDAO;
 import gp.e3.autheo.authentication.persistence.daos.TokenDAO;
 import gp.e3.autheo.authentication.persistence.daos.UserDAO;
@@ -25,6 +24,7 @@ import java.sql.Connection;
 import java.sql.SQLException;
 
 import org.apache.commons.dbcp2.BasicDataSource;
+import org.apache.commons.dbutils.DbUtils;
 import org.eclipse.jetty.servlets.CrossOriginFilter;
 
 import redis.clients.jedis.Jedis;
@@ -118,9 +118,9 @@ public class Autheo extends Service<AutheoConfig> {
 			permissionDAO.createPermissionsTable(dbConnection);
 
 			RoleDAO roleDAO = new RoleDAO();
-			roleDAO.createRolesTable(dbConnection);
-			roleDAO.createRolesAndPermissionsTable(dbConnection);
-			roleDAO.createRolesAndUsersTable(dbConnection);
+			roleDAO.createRolesTableIfNotExists(dbConnection);
+			roleDAO.createRolesAndPermissionsTableIfNotExists(dbConnection);
+			roleDAO.createRolesAndUsersTableIfNotExists(dbConnection);
 
 		} catch (SQLException e) {
 
@@ -128,7 +128,7 @@ public class Autheo extends Service<AutheoConfig> {
 
 		} finally {
 
-			SqlUtils.closeDbConnection(dbConnection);
+			DbUtils.closeQuietly(dbConnection);
 		}
 	}
 

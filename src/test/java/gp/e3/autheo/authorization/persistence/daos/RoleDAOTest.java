@@ -1,9 +1,9 @@
 package gp.e3.autheo.authorization.persistence.daos;
 
-import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.*;
 import gp.e3.autheo.authentication.domain.entities.User;
-import gp.e3.autheo.authentication.infrastructure.utils.SqlUtils;
 import gp.e3.autheo.authorization.domain.entities.Role;
+import gp.e3.autheo.util.ExceptionUtilsForTests;
 import gp.e3.autheo.util.RoleFactoryForTests;
 import gp.e3.autheo.util.UserFactoryForTests;
 
@@ -13,6 +13,7 @@ import java.sql.PreparedStatement;
 import java.sql.SQLException;
 import java.util.List;
 
+import org.apache.commons.dbutils.DbUtils;
 import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Before;
@@ -46,15 +47,15 @@ public class RoleDAOTest {
 	public static void tearDownClass() {
 
 		roleDAO = null;
-		SqlUtils.closeDbConnection(dbConnection);
+		DbUtils.closeQuietly(dbConnection);
 	}
 
 	@Before
 	public void setUp() {
 
-		roleDAO.createRolesTable(dbConnection);
-		roleDAO.createRolesAndUsersTable(dbConnection);
-		roleDAO.createRolesAndPermissionsTable(dbConnection);
+		roleDAO.createRolesTableIfNotExists(dbConnection);
+		roleDAO.createRolesAndUsersTableIfNotExists(dbConnection);
+		roleDAO.createRolesAndPermissionsTableIfNotExists(dbConnection);
 	}
 
 	@After
@@ -86,65 +87,89 @@ public class RoleDAOTest {
 	@Test
 	public void testCreateRole_OK() {
 
-		Role role = RoleFactoryForTests.getDefaultTestRole();
+		try {
+			
+			Role role = RoleFactoryForTests.getDefaultTestRole();
+			assertEquals(0, roleDAO.countRolesTable(dbConnection));
+			roleDAO.createRole(dbConnection, role.getName());
+			assertEquals(1, roleDAO.countRolesTable(dbConnection));
 
-		assertEquals(0, roleDAO.countRolesTable(dbConnection));
-		roleDAO.createRole(dbConnection, role.getName());
-		assertEquals(1, roleDAO.countRolesTable(dbConnection));
+			List<String> rolesNames = roleDAO.getAllRolesNames(dbConnection);
 
-		List<String> rolesNames = roleDAO.getAllRolesNames(dbConnection);
-
-		assertEquals(1, rolesNames.size());
-		assertEquals(role.getName(), rolesNames.get(0));
+			assertEquals(1, rolesNames.size());
+			assertEquals(role.getName(), rolesNames.get(0));
+			
+		} catch (SQLException e) {
+			
+			ExceptionUtilsForTests.logAndFailOnUnexpectedException(e);
+		}
 	}
 
 	@Test
-	public void testCreateRole_NOK() {
+	public void testCreateRole_NOK_createdRepeatedRole() {
 
-		Role role = RoleFactoryForTests.getDefaultTestRole();
+		try {
+			
+			Role role = RoleFactoryForTests.getDefaultTestRole();
+			assertEquals(0, roleDAO.countRolesTable(dbConnection));
+			roleDAO.createRole(dbConnection, role.getName());
+			assertEquals(1, roleDAO.countRolesTable(dbConnection));
 
-		assertEquals(0, roleDAO.countRolesTable(dbConnection));
-		roleDAO.createRole(dbConnection, role.getName());
-		assertEquals(1, roleDAO.countRolesTable(dbConnection));
+			List<String> rolesNames = roleDAO.getAllRolesNames(dbConnection);
 
-		List<String> rolesNames = roleDAO.getAllRolesNames(dbConnection);
+			assertEquals(1, rolesNames.size());
+			assertEquals(role.getName(), rolesNames.get(0));
 
-		assertEquals(1, rolesNames.size());
-		assertEquals(role.getName(), rolesNames.get(0));
-
-		// The answer should be 0 because the role already exists into the DB.
-		int affectedRows = roleDAO.createRole(dbConnection, role.getName());
-		assertEquals(0, affectedRows);
+			// The answer should be 0 because the role already exists into the DB.
+			roleDAO.createRole(dbConnection, role.getName());
+			fail("Should throw an exception because the role was already created.");
+			
+		} catch (SQLException e) {
+			
+			assertNotNull(e);
+		}
 	}
 
 	@Test
 	public void testGetAllRolesNames_OK() {
+		
+		try {
+			
+			Role role = RoleFactoryForTests.getDefaultTestRole();
+			assertEquals(0, roleDAO.countRolesTable(dbConnection));
+			roleDAO.createRole(dbConnection, role.getName());
+			assertEquals(1, roleDAO.countRolesTable(dbConnection));
 
-		Role role = RoleFactoryForTests.getDefaultTestRole();
+			List<String> rolesNames = roleDAO.getAllRolesNames(dbConnection);
 
-		assertEquals(0, roleDAO.countRolesTable(dbConnection));
-		roleDAO.createRole(dbConnection, role.getName());
-		assertEquals(1, roleDAO.countRolesTable(dbConnection));
+			assertEquals(1, rolesNames.size());
+			assertEquals(role.getName(), rolesNames.get(0));
 
-		List<String> rolesNames = roleDAO.getAllRolesNames(dbConnection);
+			Role secondRole = RoleFactoryForTests.getDefaultTestRole(2);
+			roleDAO.createRole(dbConnection, secondRole.getName());
+			assertEquals(2, roleDAO.countRolesTable(dbConnection));
 
-		assertEquals(1, rolesNames.size());
-		assertEquals(role.getName(), rolesNames.get(0));
-
-		Role secondRole = RoleFactoryForTests.getDefaultTestRole(2);
-		roleDAO.createRole(dbConnection, secondRole.getName());
-		assertEquals(2, roleDAO.countRolesTable(dbConnection));
-
-		rolesNames = roleDAO.getAllRolesNames(dbConnection);
-		assertEquals(2, rolesNames.size());
+			rolesNames = roleDAO.getAllRolesNames(dbConnection);
+			assertEquals(2, rolesNames.size());
+			
+		} catch (SQLException e) {
+			
+			ExceptionUtilsForTests.logAndFailOnUnexpectedException(e);
+		}
 	}
 
 	@Test
 	public void testGetAllRolesNames_NOK() {
 
-
-		List<String> rolesNames = roleDAO.getAllRolesNames(dbConnection);
-		assertEquals(0, rolesNames.size());
+		try {
+			
+			List<String> rolesNames = roleDAO.getAllRolesNames(dbConnection);
+			assertEquals(0, rolesNames.size());
+			
+		} catch (SQLException e) {
+			
+			ExceptionUtilsForTests.logAndFailOnUnexpectedException(e);
+		}
 	}
 
 	@Test
@@ -153,63 +178,90 @@ public class RoleDAOTest {
 		Role defaultRole = RoleFactoryForTests.getDefaultTestRole();
 		Role secondRole = RoleFactoryForTests.getDefaultTestRole(2);
 
-		assertEquals(0, roleDAO.countRolesTable(dbConnection));
-		roleDAO.createRole(dbConnection, defaultRole.getName());
-		roleDAO.createRole(dbConnection, secondRole.getName());
-		assertEquals(2, roleDAO.countRolesTable(dbConnection));
+		try {
+			
+			assertEquals(0, roleDAO.countRolesTable(dbConnection));
+			roleDAO.createRole(dbConnection, defaultRole.getName());
+			roleDAO.createRole(dbConnection, secondRole.getName());
+			assertEquals(2, roleDAO.countRolesTable(dbConnection));
 
-		roleDAO.deleteRole(dbConnection, defaultRole.getName());
-		assertEquals(1, roleDAO.countRolesTable(dbConnection));
+			roleDAO.deleteRole(dbConnection, defaultRole.getName());
+			assertEquals(1, roleDAO.countRolesTable(dbConnection));
 
-		List<String> allRolesNames = roleDAO.getAllRolesNames(dbConnection);
-		assertEquals(1, allRolesNames.size());
-		assertEquals(secondRole.getName(), allRolesNames.get(0));
+			List<String> allRolesNames = roleDAO.getAllRolesNames(dbConnection);
+			assertEquals(1, allRolesNames.size());
+			assertEquals(secondRole.getName(), allRolesNames.get(0));
 
-		roleDAO.deleteRole(dbConnection, secondRole.getName());
-		assertEquals(0, roleDAO.countRolesTable(dbConnection));
+			roleDAO.deleteRole(dbConnection, secondRole.getName());
+			assertEquals(0, roleDAO.countRolesTable(dbConnection));
+			
+		} catch (SQLException e) {
+			
+			ExceptionUtilsForTests.logAndFailOnUnexpectedException(e);
+		}
 	}
 
 	@Test
 	public void testDeleteRole_NOK() {
 
-		String fakeRoleName = "fakeRoleName";
-
-		assertEquals(0, roleDAO.countRolesTable(dbConnection));
-		roleDAO.deleteRole(dbConnection, fakeRoleName);
-		assertEquals(0, roleDAO.countRolesTable(dbConnection));
+		try {
+			
+			String fakeRoleName = "fakeRoleName";
+			assertEquals(0, roleDAO.countRolesTable(dbConnection));
+			roleDAO.deleteRole(dbConnection, fakeRoleName);
+			assertEquals(0, roleDAO.countRolesTable(dbConnection));
+			
+		} catch (SQLException e) {
+			
+			ExceptionUtilsForTests.logAndFailOnUnexpectedException(e);
+		}
 	}
 
 	@Test
 	public void testAddUserToRole_OK() {
 
-		User user = UserFactoryForTests.getDefaultTestUser();
-		Role role = RoleFactoryForTests.getDefaultTestRole();
+		try {
+			
+			User user = UserFactoryForTests.getDefaultTestUser();
+			Role role = RoleFactoryForTests.getDefaultTestRole();
 
-		assertEquals(0, roleDAO.countRoleUsersTable(dbConnection));
-		roleDAO.addUserToRole(dbConnection, user.getUsername(), role.getName());
-		assertEquals(1, roleDAO.countRoleUsersTable(dbConnection));
+			assertEquals(0, roleDAO.countRoleUsersTable(dbConnection));
+			roleDAO.addUserToRole(dbConnection, user.getUsername(), role.getName());
+			assertEquals(1, roleDAO.countRoleUsersTable(dbConnection));
 
-		String secondUsername = "second";
-		String thirdUsername = "third";
+			String secondUsername = "second";
+			String thirdUsername = "third";
 
-		roleDAO.addUserToRole(dbConnection, secondUsername, role.getName());
-		roleDAO.addUserToRole(dbConnection, thirdUsername, role.getName());
-		assertEquals(3, roleDAO.countRoleUsersTable(dbConnection));
+			roleDAO.addUserToRole(dbConnection, secondUsername, role.getName());
+			roleDAO.addUserToRole(dbConnection, thirdUsername, role.getName());
+			assertEquals(3, roleDAO.countRoleUsersTable(dbConnection));
+			
+		} catch (SQLException e) {
+			
+			ExceptionUtilsForTests.logAndFailOnUnexpectedException(e);
+		}
 	}
 
 	@Test
 	public void testAddUserToRole_NOK() {
+		
+		try {
+			
+			User user = UserFactoryForTests.getDefaultTestUser();
+			Role role = RoleFactoryForTests.getDefaultTestRole();
 
-		User user = UserFactoryForTests.getDefaultTestUser();
-		Role role = RoleFactoryForTests.getDefaultTestRole();
+			assertEquals(0, roleDAO.countRoleUsersTable(dbConnection));
+			roleDAO.addUserToRole(dbConnection, user.getUsername(), role.getName());
+			assertEquals(1, roleDAO.countRoleUsersTable(dbConnection));
 
-		assertEquals(0, roleDAO.countRoleUsersTable(dbConnection));
-		roleDAO.addUserToRole(dbConnection, user.getUsername(), role.getName());
-		assertEquals(1, roleDAO.countRoleUsersTable(dbConnection));
-
-		// The method should return 0 because the username is already been assigned a role.
-		int affectedRows = roleDAO.addUserToRole(dbConnection, user.getUsername(), role.getName());
-		assertEquals(0, affectedRows);
+			// The method should return 0 because the username is already been assigned a role.
+			roleDAO.addUserToRole(dbConnection, user.getUsername(), role.getName());
+			fail("Should throw an exception because the user already had that role.");
+			
+		} catch (SQLException e) {
+			
+			assertNotNull(e);
+		}
 	}
 
 	@Test
@@ -218,39 +270,52 @@ public class RoleDAOTest {
 		User user = UserFactoryForTests.getDefaultTestUser();
 		Role role = RoleFactoryForTests.getDefaultTestRole();
 
-		assertEquals(0, roleDAO.countRoleUsersTable(dbConnection));
-		roleDAO.addUserToRole(dbConnection, user.getUsername(), role.getName());
-		assertEquals(1, roleDAO.countRoleUsersTable(dbConnection));
+		try {
+			
+			assertEquals(0, roleDAO.countRoleUsersTable(dbConnection));
+			roleDAO.addUserToRole(dbConnection, user.getUsername(), role.getName());
+			assertEquals(1, roleDAO.countRoleUsersTable(dbConnection));
 
-		String secondUsername = "second";
-		String thirdUsername = "third";
+			String secondUsername = "second";
+			String thirdUsername = "third";
 
-		roleDAO.addUserToRole(dbConnection, secondUsername, role.getName());
-		roleDAO.addUserToRole(dbConnection, thirdUsername, role.getName());
-		assertEquals(3, roleDAO.countRoleUsersTable(dbConnection));
+			roleDAO.addUserToRole(dbConnection, secondUsername, role.getName());
+			roleDAO.addUserToRole(dbConnection, thirdUsername, role.getName());
+			assertEquals(3, roleDAO.countRoleUsersTable(dbConnection));
 
-		roleDAO.removeUserFromRole(dbConnection, secondUsername);
-		assertEquals(2, roleDAO.countRoleUsersTable(dbConnection));
+			roleDAO.removeUserFromRole(dbConnection, secondUsername);
+			assertEquals(2, roleDAO.countRoleUsersTable(dbConnection));
 
-		// The same username so nothing changes.
-		roleDAO.removeUserFromRole(dbConnection, secondUsername);
-		assertEquals(2, roleDAO.countRoleUsersTable(dbConnection));
+			// The same username so nothing changes.
+			roleDAO.removeUserFromRole(dbConnection, secondUsername);
+			assertEquals(2, roleDAO.countRoleUsersTable(dbConnection));
 
-		roleDAO.removeUserFromRole(dbConnection, user.getUsername());
-		assertEquals(1, roleDAO.countRoleUsersTable(dbConnection));
+			roleDAO.removeUserFromRole(dbConnection, user.getUsername());
+			assertEquals(1, roleDAO.countRoleUsersTable(dbConnection));
 
-		roleDAO.removeUserFromRole(dbConnection, thirdUsername);
-		assertEquals(0, roleDAO.countRoleUsersTable(dbConnection));
+			roleDAO.removeUserFromRole(dbConnection, thirdUsername);
+			assertEquals(0, roleDAO.countRoleUsersTable(dbConnection));
+			
+		} catch (SQLException e) {
+			
+			ExceptionUtilsForTests.logAndFailOnUnexpectedException(e);
+		}
 	}
 
 	@Test
 	public void testRemoveUserFromRole_NOK() {
 
-		String fakeUsername = "fakeUsername";
-
-		assertEquals(0, roleDAO.countRoleUsersTable(dbConnection));
-		roleDAO.removeUserFromRole(dbConnection, fakeUsername);
-		assertEquals(0, roleDAO.countRoleUsersTable(dbConnection));
+		try {
+			
+			String fakeUsername = "fakeUsername";
+			assertEquals(0, roleDAO.countRoleUsersTable(dbConnection));
+			roleDAO.removeUserFromRole(dbConnection, fakeUsername);
+			assertEquals(0, roleDAO.countRoleUsersTable(dbConnection));
+			
+		} catch (SQLException e) {
+			
+			ExceptionUtilsForTests.logAndFailOnUnexpectedException(e);
+		}
 	}
 
 	@Test
@@ -259,19 +324,26 @@ public class RoleDAOTest {
 		User user = UserFactoryForTests.getDefaultTestUser();
 		Role role = RoleFactoryForTests.getDefaultTestRole();
 
-		assertEquals(0, roleDAO.countRoleUsersTable(dbConnection));
-		roleDAO.addUserToRole(dbConnection, user.getUsername(), role.getName());
-		assertEquals(1, roleDAO.countRoleUsersTable(dbConnection));
+		try {
+			
+			assertEquals(0, roleDAO.countRoleUsersTable(dbConnection));
+			roleDAO.addUserToRole(dbConnection, user.getUsername(), role.getName());
+			assertEquals(1, roleDAO.countRoleUsersTable(dbConnection));
 
-		String secondUsername = "second";
-		String thirdUsername = "third";
+			String secondUsername = "second";
+			String thirdUsername = "third";
 
-		roleDAO.addUserToRole(dbConnection, secondUsername, role.getName());
-		roleDAO.addUserToRole(dbConnection, thirdUsername, role.getName());
-		assertEquals(3, roleDAO.countRoleUsersTable(dbConnection));
+			roleDAO.addUserToRole(dbConnection, secondUsername, role.getName());
+			roleDAO.addUserToRole(dbConnection, thirdUsername, role.getName());
+			assertEquals(3, roleDAO.countRoleUsersTable(dbConnection));
 
-		roleDAO.removeAllUsersFromRole(dbConnection, role.getName());
-		assertEquals(0, roleDAO.countRoleUsersTable(dbConnection));
+			roleDAO.removeAllUsersFromRole(dbConnection, role.getName());
+			assertEquals(0, roleDAO.countRoleUsersTable(dbConnection));
+			
+		} catch (SQLException e) {
+			
+			ExceptionUtilsForTests.logAndFailOnUnexpectedException(e);
+		}
 	}
 
 	@Test
@@ -280,19 +352,26 @@ public class RoleDAOTest {
 		User user = UserFactoryForTests.getDefaultTestUser();
 		Role role = RoleFactoryForTests.getDefaultTestRole();
 
-		assertEquals(0, roleDAO.countRoleUsersTable(dbConnection));
-		roleDAO.addUserToRole(dbConnection, user.getUsername(), role.getName());
-		assertEquals(1, roleDAO.countRoleUsersTable(dbConnection));
+		try {
+			
+			assertEquals(0, roleDAO.countRoleUsersTable(dbConnection));
+			roleDAO.addUserToRole(dbConnection, user.getUsername(), role.getName());
+			assertEquals(1, roleDAO.countRoleUsersTable(dbConnection));
 
-		String secondUsername = "second";
-		String thirdUsername = "third";
+			String secondUsername = "second";
+			String thirdUsername = "third";
 
-		roleDAO.addUserToRole(dbConnection, secondUsername, role.getName());
-		roleDAO.addUserToRole(dbConnection, thirdUsername, role.getName());
-		assertEquals(3, roleDAO.countRoleUsersTable(dbConnection));
+			roleDAO.addUserToRole(dbConnection, secondUsername, role.getName());
+			roleDAO.addUserToRole(dbConnection, thirdUsername, role.getName());
+			assertEquals(3, roleDAO.countRoleUsersTable(dbConnection));
 
-		String fakeRoleName = "fakeRoleName";
-		roleDAO.removeAllUsersFromRole(dbConnection, fakeRoleName);
-		assertEquals(3, roleDAO.countRoleUsersTable(dbConnection));
+			String fakeRoleName = "fakeRoleName";
+			roleDAO.removeAllUsersFromRole(dbConnection, fakeRoleName);
+			assertEquals(3, roleDAO.countRoleUsersTable(dbConnection));
+			
+		} catch (SQLException e) {
+			
+			ExceptionUtilsForTests.logAndFailOnUnexpectedException(e);
+		}
 	}
 }

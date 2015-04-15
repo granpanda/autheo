@@ -5,8 +5,8 @@ import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.fail;
 import gp.e3.autheo.authentication.domain.entities.User;
-import gp.e3.autheo.authentication.infrastructure.datastructures.Tuple;
 import gp.e3.autheo.authentication.persistence.daos.UserDAO;
+import gp.e3.autheo.util.ExceptionUtilsForTests;
 import gp.e3.autheo.util.UserFactoryForTests;
 
 import java.security.NoSuchAlgorithmException;
@@ -51,31 +51,41 @@ public class UserBusinessTest {
 
 	@Test
 	public void testCreateUser_OK() {
-
-		User user = UserFactoryForTests.getDefaultTestUser();
-
-		Tuple expectedTuple = new Tuple(true);
 		
-		Mockito.when(userDaoMock.createUser(Mockito.any(Connection.class), Mockito.any(User.class), Mockito.anyString(), Mockito.anyString())).thenReturn(expectedTuple);
-		UserBusiness userBusiness = new UserBusiness(dataSourceMock, userDaoMock);
-		Tuple createdUserResult = userBusiness.createUser(user);
+		try {
+			
+			User user = UserFactoryForTests.getDefaultTestUser();
 
-		assertEquals(true, createdUserResult.isExpectedResult());
+			User expectedUser = user;
+			Mockito.when(userDaoMock.createUser(Mockito.any(Connection.class), Mockito.any(User.class), Mockito.anyString(), Mockito.anyString())).thenReturn(expectedUser);
+			UserBusiness userBusiness = new UserBusiness(dataSourceMock, userDaoMock);
+			
+			User createdUser = userBusiness.createUser(user);
+			assertEquals(0, expectedUser.compareTo(createdUser));
+			
+		} catch (SQLException e) {
+			
+			ExceptionUtilsForTests.logAndFailOnUnexpectedException(e);
+		}
 	}
 
 	@Test
 	public void testCreateUser_NOK() {
 
-		User user = UserFactoryForTests.getDefaultTestUser();
-
-		String errorMessage = "The user with username: " + user.getUsername() + " is already registered.";
-		Tuple expectedTuple = new Tuple(errorMessage);
-		
-		Mockito.when(userDaoMock.createUser(Mockito.any(Connection.class), Mockito.any(User.class), Mockito.anyString(), Mockito.anyString())).thenReturn(expectedTuple);
-		UserBusiness userBusiness = new UserBusiness(dataSourceMock, userDaoMock);
-		Tuple createdUserResult = userBusiness.createUser(user);
-
-		assertEquals(false, createdUserResult.isExpectedResult());
+		try {
+			
+			User user = UserFactoryForTests.getDefaultTestUser();
+			
+			Mockito.doThrow(SQLException.class).when(userDaoMock).createUser(Mockito.any(Connection.class), Mockito.any(User.class), Mockito.anyString(), Mockito.anyString());
+			UserBusiness userBusiness = new UserBusiness(dataSourceMock, userDaoMock);
+			userBusiness.createUser(user);
+			
+			fail("The method should throw an exception");
+			
+		} catch (SQLException | IllegalStateException e) {
+			
+			assertNotNull(e);
+		}
 	}
 
 	@Test
@@ -92,10 +102,9 @@ public class UserBusinessTest {
 			UserBusiness userBusiness = new UserBusiness(dataSourceMock, userDaoMock);
 			assertEquals(true, userBusiness.authenticateUser(user.getUsername(), user.getPassword()));
 
-		} catch (NoSuchAlgorithmException | InvalidKeySpecException e) {
+		} catch (NoSuchAlgorithmException | InvalidKeySpecException | SQLException e) {
 
-			e.printStackTrace();
-			fail(e.getMessage());
+			ExceptionUtilsForTests.logAndFailOnUnexpectedException(e);
 		}
 	}
 
@@ -117,118 +126,169 @@ public class UserBusinessTest {
 
 			assertEquals(false, userBusiness.authenticateUser(user.getUsername(), modifiedOriginalPassword));
 
-		} catch (NoSuchAlgorithmException | InvalidKeySpecException e) {
+		} catch (NoSuchAlgorithmException | InvalidKeySpecException | SQLException e) {
 
-			e.printStackTrace();
-			fail(e.getMessage());
+			ExceptionUtilsForTests.logAndFailOnUnexpectedException(e);
 		}
 	}
 
 	@Test
 	public void testGetUserByUsername_OK() {
+		
+		try {
+			
+			User user = UserFactoryForTests.getDefaultTestUser();
+			Mockito.when(userDaoMock.getUserByUsername(dbConnectionMock, user.getUsername())).thenReturn(user);
 
-		User user = UserFactoryForTests.getDefaultTestUser();
+			UserBusiness userBusiness = new UserBusiness(dataSourceMock, userDaoMock);
+			User retrievedUser = userBusiness.getUserByUsername(user.getUsername());
 
-		Mockito.when(userDaoMock.getUserByUsername(dbConnectionMock, user.getUsername())).thenReturn(user);
-
-		UserBusiness userBusiness = new UserBusiness(dataSourceMock, userDaoMock);
-		User retrievedUser = userBusiness.getUserByUsername(user.getUsername());
-
-		assertNotNull(retrievedUser);
-		assertEquals(0, user.compareTo(retrievedUser));
+			assertNotNull(retrievedUser);
+			assertEquals(0, user.compareTo(retrievedUser));
+			
+		} catch (SQLException e) {
+			
+			ExceptionUtilsForTests.logAndFailOnUnexpectedException(e);
+		}
 	}
 
 	@Test
 	public void testGetUserByUsername_NOK() {
 
-		User user = UserFactoryForTests.getDefaultTestUser();
-		Mockito.when(userDaoMock.getUserByUsername(dbConnectionMock, user.getUsername())).thenReturn(null);
+		try {
+			
+			User user = UserFactoryForTests.getDefaultTestUser();
+			Mockito.when(userDaoMock.getUserByUsername(dbConnectionMock, user.getUsername())).thenReturn(null);
 
-		UserBusiness userBusiness = new UserBusiness(dataSourceMock, userDaoMock);
-		User retrievedUser = userBusiness.getUserByUsername(user.getUsername());
+			UserBusiness userBusiness = new UserBusiness(dataSourceMock, userDaoMock);
+			User retrievedUser = userBusiness.getUserByUsername(user.getUsername());
+			assertNull(retrievedUser);
+			
+		} catch (SQLException e) {
 
-		assertNull(retrievedUser);
+			ExceptionUtilsForTests.logAndFailOnUnexpectedException(e);
+		}
 	}
 
 	@Test
 	public void testGetAllUsers_OK() {
+		
+		try {
+			
+			int listSize = 5;
+			List<User> userList = UserFactoryForTests.getUserList(listSize);
+			Mockito.when(userDaoMock.getAllUsers(dbConnectionMock)).thenReturn(userList);
 
-		int listSize = 5;
-		List<User> userList = UserFactoryForTests.getUserList(listSize);
-		Mockito.when(userDaoMock.getAllUsers(dbConnectionMock)).thenReturn(userList);
-
-		UserBusiness userBusiness = new UserBusiness(dataSourceMock, userDaoMock);
-		List<User> retreivedUserList = userBusiness.getAllUsers();
-
-		assertEquals(listSize, retreivedUserList.size());
+			UserBusiness userBusiness = new UserBusiness(dataSourceMock, userDaoMock);
+			List<User> retreivedUserList = userBusiness.getAllUsers();
+			assertEquals(listSize, retreivedUserList.size());
+			
+		} catch (SQLException e) {
+			
+			ExceptionUtilsForTests.logAndFailOnUnexpectedException(e);
+		}
 	}
 
 	@Test
 	public void testGetAllUsers_NOK() {
+		
+		try {
+			
+			int listSize = 0;
+			List<User> userList = UserFactoryForTests.getUserList(listSize);
+			Mockito.when(userDaoMock.getAllUsers(dbConnectionMock)).thenReturn(userList);
 
-		int listSize = 0;
-		List<User> userList = UserFactoryForTests.getUserList(listSize);
-		Mockito.when(userDaoMock.getAllUsers(dbConnectionMock)).thenReturn(userList);
-
-		UserBusiness userBusiness = new UserBusiness(dataSourceMock, userDaoMock);
-		List<User> retreivedUserList = userBusiness.getAllUsers();
-
-		assertEquals(listSize, retreivedUserList.size());
+			UserBusiness userBusiness = new UserBusiness(dataSourceMock, userDaoMock);
+			List<User> retreivedUserList = userBusiness.getAllUsers();
+			assertEquals(listSize, retreivedUserList.size());
+			
+		} catch (SQLException e) {
+			
+			ExceptionUtilsForTests.logAndFailOnUnexpectedException(e);
+		}
 	}
 
 	@Test
 	public void testUpdateUser_OK() {
+		
+		try {
+			
+			User defaultUser = UserFactoryForTests.getDefaultTestUser();
+			User updatedUser = UserFactoryForTests.getDefaultTestUser(1);
 
-		User defaultUser = UserFactoryForTests.getDefaultTestUser();
-		User updatedUser = UserFactoryForTests.getDefaultTestUser(1);
+			boolean expectedUserWasUpdated = true;
+			Mockito.when(userDaoMock.updateUser(dbConnectionMock, defaultUser.getUsername(), updatedUser.getName(), 
+					updatedUser.getPassword())).thenReturn(expectedUserWasUpdated);
 
-		int numberOfRowsModified = 1;
-		Mockito.when(userDaoMock.updateUser(dbConnectionMock, defaultUser.getUsername(), updatedUser.getName(), 
-				updatedUser.getPassword())).thenReturn(numberOfRowsModified);
-
-		UserBusiness userBusiness = new UserBusiness(dataSourceMock, userDaoMock);
-		boolean userWasUpdated = userBusiness.updateUser(defaultUser.getUsername(), updatedUser);
-		assertEquals(true, userWasUpdated);
+			UserBusiness userBusiness = new UserBusiness(dataSourceMock, userDaoMock);
+			boolean userWasUpdated = userBusiness.updateUser(defaultUser.getUsername(), updatedUser);
+			assertEquals(true, userWasUpdated);
+			
+		} catch (SQLException e) {
+			
+			ExceptionUtilsForTests.logAndFailOnUnexpectedException(e);
+		}
 	}
 
 	@Test
 	public void testUpdateUser_NOK() {
+		
+		try {
+			
+			// The default user was never used in this test.
+			// User defaultUser = UserFactoryForTests.getDefaultTestUser();
+			User updatedUser = UserFactoryForTests.getDefaultTestUser(1);
 
-		// The default user was never used in this test.
-		// User defaultUser = UserFactoryForTests.getDefaultTestUser();
-		User updatedUser = UserFactoryForTests.getDefaultTestUser(1);
+			boolean expectedUserWasUpdated = false;
+			Mockito.when(userDaoMock.updateUser(dbConnectionMock, updatedUser.getUsername(), updatedUser.getName(), 
+					updatedUser.getPassword())).thenReturn(expectedUserWasUpdated);
 
-		int numberOfRowsModified = 0;
-		Mockito.when(userDaoMock.updateUser(dbConnectionMock, updatedUser.getUsername(), updatedUser.getName(), 
-				updatedUser.getPassword())).thenReturn(numberOfRowsModified);
-
-		UserBusiness userBusiness = new UserBusiness(dataSourceMock, userDaoMock);
-		boolean userWasUpdated = userBusiness.updateUser(updatedUser.getUsername(), updatedUser);
-		assertEquals(false, userWasUpdated);
+			UserBusiness userBusiness = new UserBusiness(dataSourceMock, userDaoMock);
+			boolean userWasUpdated = userBusiness.updateUser(updatedUser.getUsername(), updatedUser);
+			assertEquals(false, userWasUpdated);
+			
+		} catch (SQLException e) {
+			
+			ExceptionUtilsForTests.logAndFailOnUnexpectedException(e);
+		}
 	}
 
 	@Test
 	public void testDeleteUser_OK() {
+		
+		try {
+			
+			User user = UserFactoryForTests.getDefaultTestUser();
 
-		User user = UserFactoryForTests.getDefaultTestUser();
+			boolean expectedUserWasDeleted = true;
+			Mockito.when(userDaoMock.deleteUser(dbConnectionMock, user.getUsername())).thenReturn(expectedUserWasDeleted);
 
-		int numberOfRowsModified = 1;
-		Mockito.when(userDaoMock.deleteUser(dbConnectionMock, user.getUsername())).thenReturn(numberOfRowsModified);
-
-		UserBusiness userBusiness = new UserBusiness(dataSourceMock, userDaoMock);
-		boolean userWasDeleted = userBusiness.deleteUser(user.getUsername());
-		assertEquals(true, userWasDeleted);
+			UserBusiness userBusiness = new UserBusiness(dataSourceMock, userDaoMock);
+			boolean userWasDeleted = userBusiness.deleteUser(user.getUsername());
+			assertEquals(true, userWasDeleted);
+			
+		} catch (SQLException e) {
+			
+			ExceptionUtilsForTests.logAndFailOnUnexpectedException(e);
+		}
 	}
 
 	@Test
 	public void testDeleteUser_NOK() {
+		
+		try {
+			
+			boolean expectedUserWasDeleted = false;
+			String unknownUsername = "unknownUsername";
+			Mockito.when(userDaoMock.deleteUser(dbConnectionMock, unknownUsername)).thenReturn(expectedUserWasDeleted);
 
-		int numberOfRowsModified = 0;
-		String unknownUsername = "unknownUsername";
-		Mockito.when(userDaoMock.deleteUser(dbConnectionMock, unknownUsername)).thenReturn(numberOfRowsModified);
-
-		UserBusiness userBusiness = new UserBusiness(dataSourceMock, userDaoMock);
-		boolean userWasDeleted = userBusiness.deleteUser(unknownUsername);
-		assertEquals(false, userWasDeleted);
+			UserBusiness userBusiness = new UserBusiness(dataSourceMock, userDaoMock);
+			boolean userWasDeleted = userBusiness.deleteUser(unknownUsername);
+			assertEquals(false, userWasDeleted);
+			
+		} catch (SQLException e) {
+			
+			ExceptionUtilsForTests.logAndFailOnUnexpectedException(e);
+		}
 	}
 }

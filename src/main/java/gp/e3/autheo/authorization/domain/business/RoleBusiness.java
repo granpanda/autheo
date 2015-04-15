@@ -1,6 +1,6 @@
 package gp.e3.autheo.authorization.domain.business;
 
-import gp.e3.autheo.authentication.infrastructure.utils.SqlUtils;
+import gp.e3.autheo.authentication.infrastructure.exceptions.ExceptionUtils;
 import gp.e3.autheo.authentication.infrastructure.validators.StringValidator;
 import gp.e3.autheo.authorization.domain.entities.Permission;
 import gp.e3.autheo.authorization.domain.entities.Role;
@@ -8,19 +8,25 @@ import gp.e3.autheo.authorization.infrastructure.dtos.PermissionTuple;
 import gp.e3.autheo.authorization.persistence.daos.RoleDAO;
 
 import java.sql.Connection;
+import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
 
 import org.apache.commons.dbcp2.BasicDataSource;
-
-import com.google.gson.Gson;
-import com.google.gson.reflect.TypeToken;
+import org.apache.commons.dbutils.DbUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import redis.clients.jedis.Jedis;
 import redis.clients.jedis.JedisPool;
 import redis.clients.jedis.exceptions.JedisConnectionException;
 
+import com.google.gson.Gson;
+import com.google.gson.reflect.TypeToken;
+
 public class RoleBusiness {
+	
+	private static final Logger LOGGER = LoggerFactory.getLogger(RoleBusiness.class);
 
 	private BasicDataSource dataSource;
 	private JedisPool redisPool;
@@ -66,13 +72,14 @@ public class RoleBusiness {
 				createdRole = role;
 			}
 
-		} catch (Exception e) {
+		} catch (SQLException e) {
 
-			e.printStackTrace();
+			LOGGER.error("createRole: check the role was not already created.", e);
+			ExceptionUtils.throwIllegalStateException(e);
 			
 		} finally {
 			
-			SqlUtils.closeDbConnection(dbConnection);
+			DbUtils.closeQuietly(dbConnection);
 		}
 
 		return createdRole;
@@ -94,13 +101,14 @@ public class RoleBusiness {
 			dbConnection = dataSource.getConnection();
 			rolesNames = roleDAO.getAllRolesNames(dbConnection);
 			
-		} catch (Exception e) {
+		} catch (SQLException e) {
 			
-			e.printStackTrace();
+			LOGGER.error("getAllRolesNames", e);
+			ExceptionUtils.throwIllegalStateException(e);
 			
 		} finally {
 			
-			SqlUtils.closeDbConnection(dbConnection);
+			DbUtils.closeQuietly(dbConnection);
 		}
 		
 		return rolesNames;
@@ -133,17 +141,19 @@ public class RoleBusiness {
 			
 		} catch (JedisConnectionException e) {
 			
-			e.printStackTrace();
+			LOGGER.error("deleteRole", e);
+			ExceptionUtils.throwIllegalStateException(e);
 			redisPool.returnBrokenResource(redisClient);
 			
-		} catch (Exception e) {
+		} catch (SQLException e) {
 			
-			e.printStackTrace();
+			LOGGER.error("deleteRole", e);
+			ExceptionUtils.throwIllegalStateException(e);
 			returnResource(redisClient);
 		
 		} finally {
 			
-			SqlUtils.closeDbConnection(dbConnection);
+			DbUtils.closeQuietly(dbConnection);
 		}
 		
 		return roleWasDeleted;
@@ -160,13 +170,14 @@ public class RoleBusiness {
 			int affectedRows = roleDAO.addUserToRole(dbConnection, username, roleName);
 			userWasAddedToRole = (affectedRows == 1);
 			
-		} catch (Exception e) {
+		} catch (SQLException e) {
 			
-			e.printStackTrace();
+			LOGGER.error("addUserToRole", e);
+			ExceptionUtils.throwIllegalStateException(e);
 			
 		} finally {
 			
-			SqlUtils.closeDbConnection(dbConnection);
+			DbUtils.closeQuietly(dbConnection);
 		}
 		
 		return userWasAddedToRole;
@@ -183,13 +194,14 @@ public class RoleBusiness {
 			int affectedRows = roleDAO.removeUserFromRole(dbConnection, username);
 			userWasRemovedFromRole = (affectedRows > 0);
 			
-		} catch (Exception e) {
+		} catch (SQLException e) {
 			
-			e.printStackTrace();
+			LOGGER.error("removeUserFromRole", e);
+			ExceptionUtils.throwIllegalStateException(e);
 			
 		} finally {
 			
-			SqlUtils.closeDbConnection(dbConnection);
+			DbUtils.closeQuietly(dbConnection);
 		}
 		
 		return userWasRemovedFromRole;
@@ -223,10 +235,10 @@ public class RoleBusiness {
 			String setResult = redisClient.set(roleName, rolePermissionsAsJson);
 			returnResource(redisClient);
 
+			// See: http://redis.io/commands/SET
 			answer = (setResult.equals("OK"));
 		}
-
-		// See: http://redis.io/commands/SET
+		
 		return answer;
 	}
 

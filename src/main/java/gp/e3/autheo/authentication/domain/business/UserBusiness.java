@@ -1,17 +1,24 @@
 package gp.e3.autheo.authentication.domain.business;
 
 import gp.e3.autheo.authentication.domain.entities.User;
-import gp.e3.autheo.authentication.infrastructure.datastructures.Tuple;
-import gp.e3.autheo.authentication.infrastructure.utils.SqlUtils;
+import gp.e3.autheo.authentication.infrastructure.exceptions.ExceptionUtils;
 import gp.e3.autheo.authentication.persistence.daos.UserDAO;
 
+import java.security.NoSuchAlgorithmException;
+import java.security.spec.InvalidKeySpecException;
 import java.sql.Connection;
+import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
 
 import org.apache.commons.dbcp2.BasicDataSource;
+import org.apache.commons.dbutils.DbUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class UserBusiness {
+	
+	private static final Logger LOGGER = LoggerFactory.getLogger(UserBusiness.class);
 
 	private final BasicDataSource dataSource;
 	private final UserDAO userDao;
@@ -22,9 +29,9 @@ public class UserBusiness {
 		this.userDao = userDao;
 	}
 
-	public Tuple createUser(User newUser) {
+	public User createUser(User newUser) {
 
-		Tuple answerTuple = null;
+		User createdUser = null;
 		Connection dbConnection = null;
 
 		try {
@@ -35,19 +42,24 @@ public class UserBusiness {
 			String passwordHash = PasswordHandler.getPasswordHash(originalPassword);
 			String passwordSalt = PasswordHandler.getSaltFromHashedAndSaltedPassword(passwordHash);
 
-			answerTuple = userDao.createUser(dbConnection, newUser, passwordHash, passwordSalt);
+			createdUser = userDao.createUser(dbConnection, newUser, passwordHash, passwordSalt);
 
-		} catch (Exception e) {
+		} catch (SQLException e) {
 
-			e.printStackTrace();
-			answerTuple = new Tuple(e.getMessage());
+			LOGGER.error("createUser: check the user was not already created.", e);
+			ExceptionUtils.throwIllegalStateException(e);
 
+		} catch (NoSuchAlgorithmException | InvalidKeySpecException e) {
+			
+			LOGGER.error("createUser", e);
+			ExceptionUtils.throwIllegalStateException(e);
+			
 		} finally {
 
-			SqlUtils.closeDbConnection(dbConnection);
+			DbUtils.closeQuietly(dbConnection);
 		}
 
-		return answerTuple;
+		return createdUser;
 	}
 
 	public boolean authenticateUser(String username, String password) {
@@ -59,19 +71,16 @@ public class UserBusiness {
 
 			dbConnection = dataSource.getConnection();
 			String passwordHashFromDb = userDao.getPasswordByUsername(dbConnection, username);
+			isAuthenticated = PasswordHandler.validatePassword(password, passwordHashFromDb);				
 
-			if (passwordHashFromDb != null) {
-				isAuthenticated = PasswordHandler.validatePassword(password, passwordHashFromDb);
+		} catch (SQLException | NoSuchAlgorithmException | InvalidKeySpecException e) {
 
-			}
-
-		} catch (Exception e) {
-
-			e.printStackTrace();
+			LOGGER.error("authenticateUser", e);
+			ExceptionUtils.throwIllegalStateException(e);
 
 		} finally {
 
-			SqlUtils.closeDbConnection(dbConnection);
+			DbUtils.closeQuietly(dbConnection);
 		}
 
 		return isAuthenticated;
@@ -87,13 +96,14 @@ public class UserBusiness {
 			dbConnection = dataSource.getConnection();
 			user = userDao.getUserByUsername(dbConnection, username);
 			
-		} catch (Exception e) {
+		} catch (SQLException e) {
 			
-			e.printStackTrace();
+			LOGGER.error("getUserByUsername", e);
+			ExceptionUtils.throwIllegalStateException(e);
 			
 		} finally {
 			
-			SqlUtils.closeDbConnection(dbConnection);
+			DbUtils.closeQuietly(dbConnection);
 		}
 
 		return user;
@@ -109,13 +119,14 @@ public class UserBusiness {
 			dbConnection = dataSource.getConnection();
 			usersList = userDao.getAllUsers(dbConnection);
 			
-		} catch (Exception e) {
+		} catch (SQLException e) {
 			
-			e.printStackTrace();
+			LOGGER.error("getAllUsers", e);
+			ExceptionUtils.throwIllegalStateException(e);
 			
 		} finally {
 			
-			SqlUtils.closeDbConnection(dbConnection);
+			DbUtils.closeQuietly(dbConnection);
 		}
 		
 		return usersList;
@@ -129,16 +140,16 @@ public class UserBusiness {
 		try {
 			
 			dbConnection = dataSource.getConnection();
-			int rowsAffected = userDao.updateUser(dbConnection, username, updatedUser.getName(), updatedUser.getPassword());
-			userWasUpdated = (rowsAffected == 1);
+			userWasUpdated = userDao.updateUser(dbConnection, username, updatedUser.getName(), updatedUser.getPassword());
 			
-		} catch (Exception e) {
+		} catch (SQLException e) {
 			
-			e.printStackTrace();
+			LOGGER.error("updateUser", e);
+			ExceptionUtils.throwIllegalStateException(e);
 			
 		} finally {
 			
-			SqlUtils.closeDbConnection(dbConnection);
+			DbUtils.closeQuietly(dbConnection);
 		}
 		
 		return userWasUpdated;
@@ -152,16 +163,16 @@ public class UserBusiness {
 		try {
 			
 			dbConnection = dataSource.getConnection();
-			int affectedRows = userDao.deleteUser(dbConnection, username);
-			userWasDeleted = (affectedRows == 1);
+			userWasDeleted = userDao.deleteUser(dbConnection, username);
 			
-		} catch (Exception e) {
+		} catch (SQLException e) {
 			
-			e.printStackTrace();
+			LOGGER.error("deleteUser", e);
+			ExceptionUtils.throwIllegalStateException(e);
 			
 		} finally {
 			
-			SqlUtils.closeDbConnection(dbConnection);
+			DbUtils.closeQuietly(dbConnection);
 		}
 		
 		return userWasDeleted;

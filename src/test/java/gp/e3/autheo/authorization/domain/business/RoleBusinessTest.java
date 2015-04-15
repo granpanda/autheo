@@ -9,6 +9,7 @@ import gp.e3.autheo.authorization.domain.entities.Permission;
 import gp.e3.autheo.authorization.domain.entities.Role;
 import gp.e3.autheo.authorization.infrastructure.dtos.PermissionTuple;
 import gp.e3.autheo.authorization.persistence.daos.RoleDAO;
+import gp.e3.autheo.util.ExceptionUtilsForTests;
 import gp.e3.autheo.util.RoleFactoryForTests;
 
 import java.sql.Connection;
@@ -79,23 +80,40 @@ public class RoleBusinessTest {
 
 	@Test
 	public void testCreateRole_OK() {
+		
+		try {
+			
+			Role role = RoleFactoryForTests.getDefaultTestRole();
+			
+			int affectedRows = 1;
+			Mockito.when(roleDaoMock.createRole(dbConnectionMock, role.getName())).thenReturn(affectedRows);
+			Role createdRole = roleBusiness.createRole(role);
 
-		Role role = RoleFactoryForTests.getDefaultTestRole();
-		Mockito.when(roleDaoMock.createRole(dbConnectionMock, role.getName())).thenReturn(1);
-		Role createdRole = roleBusiness.createRole(role);
-
-		assertNotNull(createdRole);
-		assertEquals(role.getName(), createdRole.getName());
+			assertNotNull(createdRole);
+			assertEquals(role.getName(), createdRole.getName());
+			
+		} catch (SQLException e) {
+			
+			ExceptionUtilsForTests.logAndFailOnUnexpectedException(e);
+		}
 	}
 
 	@Test
 	public void testCreateRole_NOK() {
+		
+		try {
+			
+			Role role = RoleFactoryForTests.getDefaultTestRole();
+			int affectedRows = 0;
+			Mockito.when(roleDaoMock.createRole(dbConnectionMock, role.getName())).thenReturn(affectedRows);
 
-		Role role = RoleFactoryForTests.getDefaultTestRole();
-		Mockito.when(roleDaoMock.createRole(dbConnectionMock, role.getName())).thenReturn(0);
-
-		Role createdRole = roleBusiness.createRole(role);
-		assertNull(createdRole);
+			Role createdRole = roleBusiness.createRole(role);
+			assertNull(createdRole);
+			
+		} catch (SQLException e) {
+			
+			ExceptionUtilsForTests.logAndFailOnUnexpectedException(e);
+		}
 	}
 
 	@Test
@@ -134,31 +152,43 @@ public class RoleBusinessTest {
 
 	@Test
 	public void testGetAllRolesNames_OK() {
+		
+		try {
+			
+			List<String> rolesNamesList = new ArrayList<String>();
 
-		List<String> rolesNamesList = new ArrayList<String>();
+			rolesNamesList.add("admin");
+			rolesNamesList.add("tester");
+			Mockito.when(roleDaoMock.getAllRolesNames(dbConnectionMock)).thenReturn(rolesNamesList);
 
-		rolesNamesList.add("admin");
-		rolesNamesList.add("tester");
+			List<String> allRolesNames = roleBusiness.getAllRolesNames();
 
-		Mockito.when(roleDaoMock.getAllRolesNames(dbConnectionMock)).thenReturn(rolesNamesList);
-
-		List<String> allRolesNames = roleBusiness.getAllRolesNames();
-
-		assertNotNull(allRolesNames);
-		assertEquals(rolesNamesList.size(), allRolesNames.size());
+			assertNotNull(allRolesNames);
+			assertEquals(rolesNamesList.size(), allRolesNames.size());
+			
+		} catch (SQLException e) {
+			
+			ExceptionUtilsForTests.logAndFailOnUnexpectedException(e);
+		}
 	}
 
 	@Test
 	public void testGetAllRolesNames_NOK() {
+		
+		try {
+			
+			List<String> rolesNamesList = new ArrayList<String>();
+			Mockito.when(roleDaoMock.getAllRolesNames(dbConnectionMock)).thenReturn(rolesNamesList);
 
-		List<String> rolesNamesList = new ArrayList<String>();
+			List<String> allRolesNames = roleBusiness.getAllRolesNames();
 
-		Mockito.when(roleDaoMock.getAllRolesNames(dbConnectionMock)).thenReturn(rolesNamesList);
-
-		List<String> allRolesNames = roleBusiness.getAllRolesNames();
-
-		assertNotNull(allRolesNames);
-		assertEquals(rolesNamesList.size(), allRolesNames.size());
+			assertNotNull(allRolesNames);
+			assertEquals(rolesNamesList.size(), allRolesNames.size());
+			
+		} catch (SQLException e) {
+			
+			ExceptionUtilsForTests.logAndFailOnUnexpectedException(e);
+		}
 	}
 
 	@Test

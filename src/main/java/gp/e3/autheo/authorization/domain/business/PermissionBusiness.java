@@ -1,6 +1,6 @@
 package gp.e3.autheo.authorization.domain.business;
 
-import gp.e3.autheo.authentication.infrastructure.utils.SqlUtils;
+import gp.e3.autheo.authentication.infrastructure.exceptions.ExceptionUtils;
 import gp.e3.autheo.authorization.domain.entities.Permission;
 import gp.e3.autheo.authorization.persistence.daos.PermissionDAO;
 
@@ -10,8 +10,13 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.apache.commons.dbcp2.BasicDataSource;
+import org.apache.commons.dbutils.DbUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class PermissionBusiness {
+	
+	private static final Logger LOGGER = LoggerFactory.getLogger(PermissionBusiness.class);
 
 	private final BasicDataSource dataSource;
 	private final PermissionDAO permissionDao;
@@ -34,11 +39,12 @@ public class PermissionBusiness {
 
 		} catch (SQLException e) {
 
-			e.printStackTrace();
+			LOGGER.error("createPermission: check the permission was not already created.", e);
+			ExceptionUtils.throwIllegalStateException(e);
 
 		} finally {
 
-			SqlUtils.closeDbConnection(dbConnection);
+			DbUtils.closeQuietly(dbConnection);
 		}
 
 		return permissionId;
@@ -72,11 +78,12 @@ public class PermissionBusiness {
 
 		} catch (SQLException e) {
 
-			e.printStackTrace();
+			LOGGER.error("overwritePermissionsToRole", e);
+			ExceptionUtils.throwIllegalStateException(e);
 
 		} finally {
 
-			SqlUtils.closeDbConnection(dbConnection);
+			DbUtils.closeQuietly(dbConnection);
 		}
 
 		return permissionsWereOverwritten;
@@ -95,11 +102,12 @@ public class PermissionBusiness {
 
 		} catch (SQLException e) {
 
-			e.printStackTrace();
+			LOGGER.error("disassociatePermissionFromAllRoles", e);
+			ExceptionUtils.throwIllegalStateException(e);
 
 		} finally {
 
-			SqlUtils.closeDbConnection(dbConnection);
+			DbUtils.closeQuietly(dbConnection);
 		}
 
 		return permissionWasDisassociated;
@@ -118,11 +126,12 @@ public class PermissionBusiness {
 
 		} catch (SQLException e) {
 
-			e.printStackTrace();
+			LOGGER.error("disassociateAllPermissionsFromRole", e);
+			ExceptionUtils.throwIllegalStateException(e);
 
 		} finally {
 
-			SqlUtils.closeDbConnection(dbConnection);
+			DbUtils.closeQuietly(dbConnection);
 		}
 
 		return permissionsWereDisassociatedFromRole;
@@ -140,11 +149,12 @@ public class PermissionBusiness {
 
 		} catch (SQLException e) {
 
-			e.printStackTrace();
+			LOGGER.error("getPermissionById", e);
+			ExceptionUtils.throwIllegalStateException(e);
 
 		} finally {
 
-			SqlUtils.closeDbConnection(dbConnection);
+			DbUtils.closeQuietly(dbConnection);
 		}
 
 		return permission;
@@ -162,11 +172,12 @@ public class PermissionBusiness {
 
 		} catch (SQLException e) {
 
-			e.printStackTrace();
+			LOGGER.error("getPermissionByHttpVerbAndUrl", e);
+			ExceptionUtils.throwIllegalStateException(e);
 
 		} finally {
 
-			SqlUtils.closeDbConnection(dbConnection);
+			DbUtils.closeQuietly(dbConnection);
 		}
 
 		return permission;
@@ -184,11 +195,12 @@ public class PermissionBusiness {
 
 		} catch (SQLException e) {
 
-			e.printStackTrace();
+			LOGGER.error("getAllPermissions", e);
+			ExceptionUtils.throwIllegalStateException(e);
 
 		} finally {
 
-			SqlUtils.closeDbConnection(dbConnection);
+			DbUtils.closeQuietly(dbConnection);
 		}
 
 		return permissions;
@@ -207,11 +219,12 @@ public class PermissionBusiness {
 
 		} catch (SQLException e) {
 
-			e.printStackTrace();
+			LOGGER.error("getAllPermissionsOfAGivenRole", e);
+			ExceptionUtils.throwIllegalStateException(e);
 
 		} finally {
 
-			SqlUtils.closeDbConnection(dbConnection);
+			DbUtils.closeQuietly(dbConnection);
 		}
 
 		return allPermissions;
@@ -232,11 +245,12 @@ public class PermissionBusiness {
 
 		} catch (SQLException e) {
 
-			e.printStackTrace();
+			LOGGER.error("deletePermission", e);
+			ExceptionUtils.throwIllegalStateException(e);
 
 		} finally {
 
-			SqlUtils.closeDbConnection(dbConnection);
+			DbUtils.closeQuietly(dbConnection);
 		}
 
 		return permissionWasDeleted;

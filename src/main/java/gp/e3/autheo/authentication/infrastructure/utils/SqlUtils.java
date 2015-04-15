@@ -28,16 +28,4 @@ public class SqlUtils {
 			}
 		}
 	}
-
-	public static void closeDbConnection(Connection dbConnection) {
-
-		if (dbConnection != null) {
-
-			try {
-				dbConnection.close();
-			} catch (SQLException e) {
-				e.printStackTrace();
-			}
-		}
-	}
 }

@@ -5,7 +5,6 @@ import gp.e3.autheo.authentication.domain.entities.Token;
 import gp.e3.autheo.authentication.domain.entities.User;
 import gp.e3.autheo.authentication.domain.exceptions.TokenGenerationException;
 import gp.e3.autheo.authentication.domain.exceptions.ValidDataException;
-import gp.e3.autheo.authentication.infrastructure.utils.SqlUtils;
 import gp.e3.autheo.authentication.infrastructure.validators.StringValidator;
 import gp.e3.autheo.authentication.persistence.daos.TokenCacheDAO;
 import gp.e3.autheo.authentication.persistence.daos.TokenDAO;
@@ -15,8 +14,13 @@ import java.sql.SQLException;
 import java.util.List;
 
 import org.apache.commons.dbcp2.BasicDataSource;
+import org.apache.commons.dbutils.DbUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class TokenBusiness {
+	
+	private static final Logger LOGGER = LoggerFactory.getLogger(TokenBusiness.class);
 
 	public static final String INTERNAL_API_CLIENT_ROLE = "module";
 
@@ -24,22 +28,30 @@ public class TokenBusiness {
 	private final TokenDAO tokenDAO;
 	private final TokenCacheDAO tokenCacheDao;
 
-	public void updateTokensCache() throws SQLException {
+	public void updateTokensCache() {
 
-		Connection dbConnection = dataSource.getConnection();
+		try {
+			
+			Connection dbConnection = dataSource.getConnection();
 
-		List<Token> tokens = tokenDAO.getAllTokens(dbConnection);
+			List<Token> tokens = tokenDAO.getAllTokens(dbConnection);
 
-		for (Token tokenFromDb : tokens) {
+			for (Token tokenFromDb : tokens) {
 
-			tokenCacheDao.addTokenUsingTokenValueAsKey(tokenFromDb);
+				tokenCacheDao.addTokenUsingTokenValueAsKey(tokenFromDb);
 
-			if (tokenFromDb.getTokenType() == TokenTypes.INTERNAL_API_TOKEN_TYPE.getTypeNumber()) {
-				tokenCacheDao.addTokenUsingOrganizationAsKey(tokenFromDb);
+				if (tokenFromDb.getTokenType() == TokenTypes.INTERNAL_API_TOKEN_TYPE.getTypeNumber()) {
+					tokenCacheDao.addTokenUsingOrganizationAsKey(tokenFromDb);
+				}
 			}
-		}
 
-		dbConnection.close();
+			dbConnection.close();
+			
+		} catch (SQLException e) {
+			
+			LOGGER.error("updateTokensCache", e);
+			throw new IllegalStateException(e);
+		}
 	}
 
 	public TokenBusiness(BasicDataSource basicDataSource, TokenDAO tokenDAO, TokenCacheDAO tokenCacheDao) {
@@ -51,15 +63,19 @@ public class TokenBusiness {
 		Connection dbConnection = null;
 
 		try {
+			
 			dbConnection = dataSource.getConnection();
 			this.tokenDAO.createTokensTableIfNotExists(dbConnection);
 			updateTokensCache();
 
-		} catch (Exception e) {
-			e.printStackTrace();
+		} catch (SQLException e) {
+			
+			LOGGER.error("TokenBusiness constructor", e);
+			throw new IllegalStateException(e);
+			
 		} finally {
 
-			SqlUtils.closeDbConnection(dbConnection);
+			DbUtils.closeQuietly(dbConnection);
 		}
 	}
 
@@ -93,11 +109,12 @@ public class TokenBusiness {
 
 		} catch (TokenGenerationException | SQLException e) {
 
-			e.printStackTrace();
+			LOGGER.error("generateSaveAndGetAPIToken", e);
+			throw new IllegalStateException(e);
 
 		} finally {
 
-			SqlUtils.closeDbConnection(dbConnection);
+			DbUtils.closeQuietly(dbConnection);
 		}
 
 		return apiToken;
@@ -118,11 +135,12 @@ public class TokenBusiness {
 
 		} catch (TokenGenerationException | SQLException e) {
 
-			e.printStackTrace();
+			LOGGER.error("generateSaveAndGetInternalAPIToken", e);
+			throw new IllegalStateException(e);
 
 		} finally {
 
-			SqlUtils.closeDbConnection(dbConnection);
+			DbUtils.closeQuietly(dbConnection);
 		}
 
 		return internalAPIToken;
@@ -142,7 +160,7 @@ public class TokenBusiness {
 		return tokensWereGeneratedAndSaved;
 	}
 
-	public Token generateToken(User user) throws TokenGenerationException, IllegalArgumentException {
+	public Token generateToken(User user) throws TokenGenerationException {
 
 		Token temporalToken = null;
 
@@ -171,12 +189,7 @@ public class TokenBusiness {
 
 			if (token == null) {
 
-				try {
-					updateTokensCache();
-				} catch (SQLException e) {
-					e.printStackTrace();
-				}
-
+				updateTokensCache();
 				token = tokenCacheDao.getTokenByTokenValue(tokenValue);
 			}
 		}
@@ -194,12 +207,7 @@ public class TokenBusiness {
 
 			if (token == null) {
 
-				try {
-					updateTokensCache();
-				} catch (SQLException e) {
-					e.printStackTrace();
-				}
-
+				updateTokensCache();
 				token = tokenCacheDao.getTokenByOrganization(userOrganizationId);
 			}
 		}
