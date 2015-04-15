@@ -56,23 +56,31 @@ public class TokenFactory {
 
 		String generatedToken = "";
 		
-		String username = user.getUsername();
-		String password = user.getPassword();
-		
-		if ((user != null) && StringValidator.isValidString(username) && StringValidator.isValidString(password)) {
+		if (user != null) {
 			
-			long currentMillis = DateTime.now().getMillis();
-			String baseForToken = currentMillis + username + password;
+			String username = user.getUsername();
+			String password = user.getPassword();
 			
-			try {
+			if (StringValidator.isValidString(username) && StringValidator.isValidString(password)) {
 				
-				generatedToken = getHashFromString(baseForToken).substring(0, TOKEN_CHARACTER_LIMIT);
+				long currentMillis = DateTime.now().getMillis();
+				String baseForToken = currentMillis + username + password;
 				
-			} catch (NoSuchAlgorithmException | InvalidKeySpecException e) {
+				try {
+					
+					generatedToken = getHashFromString(baseForToken).substring(0, TOKEN_CHARACTER_LIMIT);
+					
+				} catch (NoSuchAlgorithmException | InvalidKeySpecException e) {
+					
+					LOGGER.error("getToken", e);
+					String errorMessage = "There was an error generating the authentication token.";
+					throw new TokenGenerationException(errorMessage);
+				}
 				
-				LOGGER.error("getToken", e);
-				String errorMessage = "There was an error generating the authentication token.";
-				throw new TokenGenerationException(errorMessage);
+			} else {
+				
+				String errorMessage = "The user given as argument is not valid.";
+				throw new IllegalArgumentException(errorMessage);
 			}
 			
 		} else {
