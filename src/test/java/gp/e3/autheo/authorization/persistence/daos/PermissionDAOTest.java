@@ -4,10 +4,9 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
-import static org.junit.Assert.fail;
-import gp.e3.autheo.authentication.infrastructure.utils.SqlUtils;
 import gp.e3.autheo.authorization.domain.entities.Permission;
 import gp.e3.autheo.authorization.domain.entities.Role;
+import gp.e3.autheo.util.ExceptionUtilsForTests;
 import gp.e3.autheo.util.PermissionFactoryForTests;
 import gp.e3.autheo.util.RoleFactoryForTests;
 
@@ -18,6 +17,7 @@ import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.apache.commons.dbutils.DbUtils;
 import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Before;
@@ -54,7 +54,7 @@ public class PermissionDAOTest {
 
 		roleDAO = null;
 		permissionDAO = null;
-		SqlUtils.closeDbConnection(dbConnection);
+		DbUtils.closeQuietly(dbConnection);
 	}
 
 	@Before
@@ -102,9 +102,9 @@ public class PermissionDAOTest {
 			Permission retrievedPermission = permissionDAO.getPermissionById(dbConnection, generatedId);
 			assertEquals(0, permission.compareTo(retrievedPermission));
 
-		} catch (Exception e) {
+		} catch (SQLException e) {
 
-			showDefaultFailMessage();
+			ExceptionUtilsForTests.logAndFailOnUnexpectedException(e);
 		}
 	}
 
@@ -137,10 +137,17 @@ public class PermissionDAOTest {
 
 		List<Permission> permissions = PermissionFactoryForTests.getPermissionList(5);
 		List<Long> permissionsIds = getPermissionsIdsAsList(permissions);
-
-		assertEquals(0, permissionDAO.countRolePermissionsTable(dbConnection));
-		permissionDAO.associateAllPermissionsToRole(dbConnection, role.getName(), permissionsIds);
-		assertEquals(permissionsIds.size(), permissionDAO.countRolePermissionsTable(dbConnection));
+		
+		try {
+			
+			assertEquals(0, permissionDAO.countRolePermissionsTable(dbConnection));
+			permissionDAO.associateAllPermissionsToRole(dbConnection, role.getName(), permissionsIds);
+			assertEquals(permissionsIds.size(), permissionDAO.countRolePermissionsTable(dbConnection));
+			
+		} catch (SQLException e) {
+			
+			ExceptionUtilsForTests.logAndFailOnUnexpectedException(e);
+		}
 	}
 
 	@Test
@@ -148,10 +155,17 @@ public class PermissionDAOTest {
 
 		Role role = RoleFactoryForTests.getDefaultTestRole();
 		List<Long> permissionsIds = new ArrayList<Long>();
-
-		assertEquals(0, permissionDAO.countRolePermissionsTable(dbConnection));
-		permissionDAO.associateAllPermissionsToRole(dbConnection, role.getName(), permissionsIds);
-		assertEquals(permissionsIds.size(), permissionDAO.countRolePermissionsTable(dbConnection));
+		
+		try {
+			
+			assertEquals(0, permissionDAO.countRolePermissionsTable(dbConnection));
+			permissionDAO.associateAllPermissionsToRole(dbConnection, role.getName(), permissionsIds);
+			assertEquals(permissionsIds.size(), permissionDAO.countRolePermissionsTable(dbConnection));
+			
+		} catch (SQLException e) {
+			
+			ExceptionUtilsForTests.logAndFailOnUnexpectedException(e);
+		}
 	}
 
 	@Test
@@ -161,13 +175,20 @@ public class PermissionDAOTest {
 
 		List<Permission> permissions = PermissionFactoryForTests.getPermissionList(5);
 		List<Long> permissionsIds = getPermissionsIdsAsList(permissions);
+		
+		try {
+			
+			assertEquals(0, permissionDAO.countRolePermissionsTable(dbConnection));
+			permissionDAO.associateAllPermissionsToRole(dbConnection, role.getName(), permissionsIds);
+			assertEquals(permissionsIds.size(), permissionDAO.countRolePermissionsTable(dbConnection));
 
-		assertEquals(0, permissionDAO.countRolePermissionsTable(dbConnection));
-		permissionDAO.associateAllPermissionsToRole(dbConnection, role.getName(), permissionsIds);
-		assertEquals(permissionsIds.size(), permissionDAO.countRolePermissionsTable(dbConnection));
-
-		permissionDAO.disassociateAllPermissionsFromRole(dbConnection, role.getName());
-		assertEquals(0, permissionDAO.countRolePermissionsTable(dbConnection));
+			permissionDAO.disassociateAllPermissionsFromRole(dbConnection, role.getName());
+			assertEquals(0, permissionDAO.countRolePermissionsTable(dbConnection));
+			
+		} catch (SQLException e) {
+			
+			ExceptionUtilsForTests.logAndFailOnUnexpectedException(e);
+		}
 	}
 
 	@Test
@@ -175,13 +196,20 @@ public class PermissionDAOTest {
 
 		Role role = RoleFactoryForTests.getDefaultTestRole();
 		List<Long> permissionsIds = new ArrayList<Long>();
+		
+		try {
+			
+			assertEquals(0, permissionDAO.countRolePermissionsTable(dbConnection));
+			permissionDAO.associateAllPermissionsToRole(dbConnection, role.getName(), permissionsIds);
+			assertEquals(permissionsIds.size(), permissionDAO.countRolePermissionsTable(dbConnection));
 
-		assertEquals(0, permissionDAO.countRolePermissionsTable(dbConnection));
-		permissionDAO.associateAllPermissionsToRole(dbConnection, role.getName(), permissionsIds);
-		assertEquals(permissionsIds.size(), permissionDAO.countRolePermissionsTable(dbConnection));
-
-		permissionDAO.disassociateAllPermissionsFromRole(dbConnection, role.getName());
-		assertEquals(0, permissionDAO.countRolePermissionsTable(dbConnection));
+			permissionDAO.disassociateAllPermissionsFromRole(dbConnection, role.getName());
+			assertEquals(0, permissionDAO.countRolePermissionsTable(dbConnection));
+			
+		} catch (SQLException e) {
+			
+			ExceptionUtilsForTests.logAndFailOnUnexpectedException(e);
+		}
 	}
 
 	@Test
@@ -191,16 +219,23 @@ public class PermissionDAOTest {
 
 		List<Permission> permissions = PermissionFactoryForTests.getPermissionList(5);
 		List<Long> permissionsIds = getPermissionsIdsAsList(permissions);
+		
+		try {
+			
+			assertEquals(0, permissionDAO.countRolePermissionsTable(dbConnection));
+			permissionDAO.associateAllPermissionsToRole(dbConnection, role.getName(), permissionsIds);
+			assertEquals(permissionsIds.size(), permissionDAO.countRolePermissionsTable(dbConnection));
 
-		assertEquals(0, permissionDAO.countRolePermissionsTable(dbConnection));
-		permissionDAO.associateAllPermissionsToRole(dbConnection, role.getName(), permissionsIds);
-		assertEquals(permissionsIds.size(), permissionDAO.countRolePermissionsTable(dbConnection));
+			permissionDAO.disassociatePermissionFromAllRoles(dbConnection, permissionsIds.get(0));
+			assertEquals(permissionsIds.size() - 1, permissionDAO.countRolePermissionsTable(dbConnection));
 
-		permissionDAO.disassociatePermissionFromAllRoles(dbConnection, permissionsIds.get(0));
-		assertEquals(permissionsIds.size() - 1, permissionDAO.countRolePermissionsTable(dbConnection));
-
-		permissionDAO.disassociatePermissionFromAllRoles(dbConnection, permissionsIds.get(1));
-		assertEquals(permissionsIds.size() - 2, permissionDAO.countRolePermissionsTable(dbConnection));
+			permissionDAO.disassociatePermissionFromAllRoles(dbConnection, permissionsIds.get(1));
+			assertEquals(permissionsIds.size() - 2, permissionDAO.countRolePermissionsTable(dbConnection));
+			
+		} catch (SQLException e) {
+			
+			ExceptionUtilsForTests.logAndFailOnUnexpectedException(e);
+		}
 	}
 
 	private List<Long> getPermissionsIdsAsList(List<Permission> permissions) {
@@ -218,17 +253,24 @@ public class PermissionDAOTest {
 
 		Role role = RoleFactoryForTests.getDefaultTestRole();
 		List<Long> permissionsIds = new ArrayList<Long>();
+		
+		try {
+			
+			assertEquals(0, permissionDAO.countRolePermissionsTable(dbConnection));
+			permissionDAO.associateAllPermissionsToRole(dbConnection, role.getName(), permissionsIds);
+			assertEquals(permissionsIds.size(), permissionDAO.countRolePermissionsTable(dbConnection));
 
-		assertEquals(0, permissionDAO.countRolePermissionsTable(dbConnection));
-		permissionDAO.associateAllPermissionsToRole(dbConnection, role.getName(), permissionsIds);
-		assertEquals(permissionsIds.size(), permissionDAO.countRolePermissionsTable(dbConnection));
+			int fakePermissionId = 0;
+			permissionDAO.disassociatePermissionFromAllRoles(dbConnection, fakePermissionId);
+			assertEquals(0, permissionDAO.countRolePermissionsTable(dbConnection));
 
-		int fakePermissionId = 0;
-		permissionDAO.disassociatePermissionFromAllRoles(dbConnection, fakePermissionId);
-		assertEquals(0, permissionDAO.countRolePermissionsTable(dbConnection));
-
-		permissionDAO.disassociatePermissionFromAllRoles(dbConnection, fakePermissionId);
-		assertEquals(0, permissionDAO.countRolePermissionsTable(dbConnection));
+			permissionDAO.disassociatePermissionFromAllRoles(dbConnection, fakePermissionId);
+			assertEquals(0, permissionDAO.countRolePermissionsTable(dbConnection));
+			
+		} catch (SQLException e) {
+			
+			ExceptionUtilsForTests.logAndFailOnUnexpectedException(e);
+		}
 	}
 
 	@Test
@@ -242,9 +284,9 @@ public class PermissionDAOTest {
 			Permission retrievedPermission = permissionDAO.getPermissionById(dbConnection, generatedId);
 			assertEquals(0, permission.compareTo(retrievedPermission));
 
-		} catch (Exception e) {
+		} catch (SQLException e) {
 
-			showDefaultFailMessage();
+			ExceptionUtilsForTests.logAndFailOnUnexpectedException(e);
 		}
 	}
 
@@ -257,14 +299,10 @@ public class PermissionDAOTest {
 			Permission retrievedPermission = permissionDAO.getPermissionById(dbConnection, fakePermissionId);
 			assertNull(retrievedPermission);
 
-		} catch (Exception e) {
+		} catch (SQLException e) {
 
-			showDefaultFailMessage();
+			ExceptionUtilsForTests.logAndFailOnUnexpectedException(e);
 		}
-	}
-
-	private void showDefaultFailMessage() {
-		fail("The method sould not throw an exception.");
 	}
 
 	@Test
@@ -280,20 +318,27 @@ public class PermissionDAOTest {
 			assertEquals(generatedId, retrievedPermission.getId());
 			assertEquals(0, permission.compareTo(retrievedPermission));
 
-		} catch (Exception e) {
+		} catch (SQLException e) {
 
-			showDefaultFailMessage();
+			ExceptionUtilsForTests.logAndFailOnUnexpectedException(e);
 		}
 	}
 
 	@Test
 	public void testGetPermissionByHttpVerbAndUrl_NOK() {
-
-		String fakeHttpVerb = "FAKE";
-		String fakeUrl = "www.fake.com";
-		Permission retrievedPermission = permissionDAO.getPermissionByHttpVerbAndUrl(dbConnection, fakeHttpVerb, fakeUrl);
-
-		assertNull(retrievedPermission);
+		
+		try {
+			
+			String fakeHttpVerb = "FAKE";
+			String fakeUrl = "www.fake.com";
+			
+			Permission retrievedPermission = permissionDAO.getPermissionByHttpVerbAndUrl(dbConnection, fakeHttpVerb, fakeUrl);
+			assertNull(retrievedPermission);
+			
+		} catch (SQLException e) {
+			
+			ExceptionUtilsForTests.logAndFailOnUnexpectedException(e);
+		}
 	}
 
 	@Test
@@ -313,14 +358,13 @@ public class PermissionDAOTest {
 			List<Permission> allPermissions = permissionDAO.getAllPermissions(dbConnection);
 			assertEquals(permissionDAO.countPermissionsTable(dbConnection), allPermissions.size());
 
-		} catch (Exception e) {
+		} catch (SQLException e) {
 
-			showDefaultFailMessage();
+			ExceptionUtilsForTests.logAndFailOnUnexpectedException(e);
 		}
 	}
 
-	private void createMultiplePermissions(List<Permission> permissionList)
-			throws Exception {
+	private void createMultiplePermissions(List<Permission> permissionList) throws SQLException {
 
 		for (int i = 0; i < permissionList.size(); i++) {
 
@@ -331,11 +375,18 @@ public class PermissionDAOTest {
 
 	@Test
 	public void testGetAllPermissions_NOK() {
+		
+		try {
+			
+			assertEquals(0, permissionDAO.countPermissionsTable(dbConnection));
 
-		assertEquals(0, permissionDAO.countPermissionsTable(dbConnection));
-
-		List<Permission> allPermissions = permissionDAO.getAllPermissions(dbConnection);
-		assertEquals(permissionDAO.countPermissionsTable(dbConnection), allPermissions.size());
+			List<Permission> allPermissions = permissionDAO.getAllPermissions(dbConnection);
+			assertEquals(permissionDAO.countPermissionsTable(dbConnection), allPermissions.size());
+			
+		} catch (SQLException e) {
+			
+			ExceptionUtilsForTests.logAndFailOnUnexpectedException(e);
+		}
 	}
 
 	@Test
@@ -348,18 +399,17 @@ public class PermissionDAOTest {
 		try {
 
 			createMultiplePermissions(adminRole.getPermissions());
+			permissionDAO.associateAllPermissionsToRole(dbConnection, adminRole.getName(), adminPermissionsIds);
 
-		} catch (Exception e) {
+			assertEquals(adminNumberOfPermissions, permissionDAO.countRolePermissionsTable(dbConnection));
 
-			showDefaultFailMessage();
+			List<Permission> retrievedAdminPermissions = permissionDAO.getAllPermissionsOfAGivenRole(dbConnection, adminRole.getName());
+			assertEquals(adminNumberOfPermissions, retrievedAdminPermissions.size());
+
+		} catch (SQLException e) {
+
+			ExceptionUtilsForTests.logAndFailOnUnexpectedException(e);
 		}
-
-		permissionDAO.associateAllPermissionsToRole(dbConnection, adminRole.getName(), adminPermissionsIds);
-
-		assertEquals(adminNumberOfPermissions, permissionDAO.countRolePermissionsTable(dbConnection));
-
-		List<Permission> retrievedAdminPermissions = permissionDAO.getAllPermissionsOfAGivenRole(dbConnection, adminRole.getName());
-		assertEquals(adminNumberOfPermissions, retrievedAdminPermissions.size());
 	}
 
 	@Test
@@ -379,21 +429,22 @@ public class PermissionDAOTest {
 		List<Long> adminPermissionsIds = getPermissionsIdsAsList(adminRole.getPermissions());
 		
 		try {
+			
 			createMultiplePermissions(adminRole.getPermissions());
 			createMultiplePermissions(nullPermissions);
+			
+			permissionDAO.associateAllPermissionsToRole(dbConnection, adminRole.getName(), adminPermissionsIds);
 
-		} catch (Exception e) {
+			assertEquals(adminNumberOfPermissions, permissionDAO.countRolePermissionsTable(dbConnection));
+			assertEquals(nullNumberOfPermissions, permissionDAO.countPermissionsTable(dbConnection));
 
-			showDefaultFailMessage();
+			List<Permission> retrievedAdminPermissions = permissionDAO.getAllPermissionsOfAGivenRole(dbConnection, adminRole.getName());
+			assertEquals(adminNumberOfPermissions, retrievedAdminPermissions.size());
+
+		} catch (SQLException e) {
+
+			ExceptionUtilsForTests.logAndFailOnUnexpectedException(e);
 		}
-
-		permissionDAO.associateAllPermissionsToRole(dbConnection, adminRole.getName(), adminPermissionsIds);
-
-		assertEquals(adminNumberOfPermissions, permissionDAO.countRolePermissionsTable(dbConnection));
-		assertEquals(nullNumberOfPermissions, permissionDAO.countPermissionsTable(dbConnection));
-
-		List<Permission> retrievedAdminPermissions = permissionDAO.getAllPermissionsOfAGivenRole(dbConnection, adminRole.getName());
-		assertEquals(adminNumberOfPermissions, retrievedAdminPermissions.size());
 	}
 
 	@Test
@@ -402,15 +453,21 @@ public class PermissionDAOTest {
 		int adminNumberOfPermissions = 5;
 		Role adminRole = RoleFactoryForTests.getDefaultTestRole(adminNumberOfPermissions);
 		List<Long> adminPermissionsIds = getPermissionsIdsAsList(adminRole.getPermissions());
+		
+		try {
+			
+			permissionDAO.associateAllPermissionsToRole(dbConnection, adminRole.getName(), adminPermissionsIds);
+			assertEquals(adminNumberOfPermissions, permissionDAO.countRolePermissionsTable(dbConnection));
 
-		permissionDAO.associateAllPermissionsToRole(dbConnection, adminRole.getName(), adminPermissionsIds);
+			List<Permission> retrievedAdminPermissions = permissionDAO.getAllPermissionsOfAGivenRole(dbConnection, adminRole.getName());
 
-		assertEquals(adminNumberOfPermissions, permissionDAO.countRolePermissionsTable(dbConnection));
-
-		List<Permission> retrievedAdminPermissions = permissionDAO.getAllPermissionsOfAGivenRole(dbConnection, adminRole.getName());
-
-		// Should return an empty list because the roles are not created into the db.
-		assertEquals(0, retrievedAdminPermissions.size());
+			// Should return an empty list because the roles are not created into the db.
+			assertEquals(0, retrievedAdminPermissions.size());
+			
+		} catch (SQLException e) {
+			
+			ExceptionUtilsForTests.logAndFailOnUnexpectedException(e);
+		}
 	}
 
 	@Test
@@ -436,9 +493,9 @@ public class PermissionDAOTest {
 			assertEquals(0, permissionDAO.countPermissionsTable(dbConnection));
 			assertNull(permissionDAO.getPermissionById(dbConnection, secondPermissionId));
 
-		} catch (Exception e) {
+		} catch (SQLException e) {
 
-			showDefaultFailMessage();
+			ExceptionUtilsForTests.logAndFailOnUnexpectedException(e);
 		}
 	}
 
@@ -462,9 +519,9 @@ public class PermissionDAOTest {
 			assertEquals(0, permissionDAO.countPermissionsTable(dbConnection));
 			assertNull(permissionDAO.getPermissionById(dbConnection, firstPermissionId));
 
-		} catch (Exception e) {
+		} catch (SQLException e) {
 
-			showDefaultFailMessage();
+			ExceptionUtilsForTests.logAndFailOnUnexpectedException(e);
 		}
 	}
 }
