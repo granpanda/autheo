@@ -124,7 +124,7 @@ public class PermissionDAOTest {
 			assertEquals(0, secondPermissionId);
 			assertEquals(1, permissionDAO.countPermissionsTable(dbConnection));
 
-		} catch (Exception e) {
+		} catch (SQLException e) {
 
 			assertNotNull(e);
 		}

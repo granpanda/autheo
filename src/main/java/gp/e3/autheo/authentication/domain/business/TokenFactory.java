@@ -26,7 +26,7 @@ public class TokenFactory {
 	/**
 	 * Calculate and return the hash of a given string using PBKDF2WithHmacSHA1.
 	 * 
-	 * @throws NoSuchAlgorithmException 
+	 * @throws NoSuchAlgorithmException
 	 * @throws InvalidKeySpecException 
 	 */
 	private static final String getHashFromString(String string) throws NoSuchAlgorithmException, InvalidKeySpecException {

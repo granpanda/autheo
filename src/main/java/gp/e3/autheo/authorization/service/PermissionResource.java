@@ -15,6 +15,7 @@ import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
+import javax.ws.rs.core.Response.Status;
 
 @Path("/permissions")
 @Consumes(MediaType.APPLICATION_JSON)
@@ -57,21 +58,10 @@ public class PermissionResource {
 
 	@GET
 	@Path("/{permissionId}")
-	public Response getPermissionById(@PathParam("permissionId") String permissionId) {
+	public Response getPermissionById(@PathParam("permissionId") int permissionId) {
 
-		Response response = null;
-
-		try {
-
-			int permissionIdInt = Integer.parseInt(permissionId);
-
-			Permission retrievedPermission = permissionBusiness.getPermissionById(permissionIdInt);
-			response = Response.status(200).entity(retrievedPermission).build();
-
-		} catch (Exception e) {
-
-			response = HttpCommonResponses.getInvalidSyntaxResponse();
-		}
+		Permission retrievedPermission = permissionBusiness.getPermissionById(permissionId);
+		Response response = Response.status(200).entity(retrievedPermission).build();
 
 		return response;
 	}
@@ -85,23 +75,19 @@ public class PermissionResource {
 
 	@DELETE
 	@Path("/{permissionId}")
-	public Response deletePermission(@PathParam("permissionId") String permissionId) {
+	public Response deletePermission(@PathParam("permissionId") int permissionId) {
 
 		Response response = null;
-
-		try {
-
-			int permissionIdInt = Integer.parseInt(permissionId);
-
-			/*
-			 * Disassociate the permission from all roles and delete it from the system.
-			 */
-			permissionBusiness.deletePermission(permissionIdInt);
+		// Disassociate the permission from all roles and delete it from the system.
+		boolean permissionWasDeleted = permissionBusiness.deletePermission(permissionId);
+		
+		if (permissionWasDeleted) {
+			
 			response = Response.status(200).build();
-
-		} catch (Exception e) {
-
-			response = HttpCommonResponses.getInvalidSyntaxResponse();
+			
+		} else {
+			
+			response = Response.status(Status.INTERNAL_SERVER_ERROR).build();
 		}
 
 		return response;

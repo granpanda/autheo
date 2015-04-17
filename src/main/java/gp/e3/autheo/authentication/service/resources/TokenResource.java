@@ -35,18 +35,23 @@ public class TokenResource {
 	public Response removeUserAccessTokenFromCache(@PathParam("tokenValue") String tokenValue) {
 		
 		Response response = null;
-		String msj = "";
 		
 		try {
-			if(tokenBusiness.removeUserAccessToken(tokenValue)){
-				msj = getStringInJsonFormat("Access token : " + tokenValue + " was successfully removed from the cache");
-				response = Response.status(200).entity(msj).build();			
+			
+			if(tokenBusiness.removeUserAccessToken(tokenValue)) {
+				
+				String msj = getStringInJsonFormat("Access token : " + tokenValue + " was successfully removed from the cache");
+				response = Response.status(200).entity(msj).build();
+				
 			} else {
-				msj = getStringInJsonFormat("Access token : " + tokenValue + " was NOT removed from the cache because it was not found");
+				
+				String msj = getStringInJsonFormat("Access token : " + tokenValue + " was NOT removed from the cache because it was not found");
 				response = Response.status(409).entity(msj).build();
 			}
+			
 		} catch (ValidDataException e) {
-			msj = getStringInJsonFormat("Access token : " + tokenValue + " was NOT removed. The error was: " + e.getMessage());
+			
+			String msj = getStringInJsonFormat("Access token : " + tokenValue + " was NOT removed. The error was: " + e.getMessage());
 			response = Response.status(409).entity(msj).build();
 		}
 		

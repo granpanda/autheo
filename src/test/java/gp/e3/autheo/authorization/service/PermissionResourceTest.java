@@ -109,17 +109,6 @@ public class PermissionResourceTest extends ResourceTest {
 	}
 	
 	@Test
-	public void testGetPermissionById_NOK_2() {
-		
-		String invalidPermissionId = "qwe123";
-		
-		String url = "/permissions/" + invalidPermissionId;
-		ClientResponse response = getDefaultHttpRequest(url).get(ClientResponse.class);
-		
-		assertEquals(400, response.getStatus());
-	}
-	
-	@Test
 	public void testGetAllPermissions_OK() {
 		
 		int listSize = 5;
@@ -133,8 +122,8 @@ public class PermissionResourceTest extends ResourceTest {
 		assertEquals(200, response.getStatus());
 		assertEquals(listSize, permissionList.size());
 		
-		List<Permission> retrievedPermissions = response.getEntity(List.class);
-		assertEquals(permissionList.size(), retrievedPermissions.size());
+		Permission[] retrievedPermissions = response.getEntity(Permission[].class);
+		assertEquals(permissionList.size(), retrievedPermissions.length);
 	}
 	
 	@Test
@@ -151,8 +140,8 @@ public class PermissionResourceTest extends ResourceTest {
 		assertEquals(200, response.getStatus());
 		assertEquals(listSize, permissionList.size());
 		
-		List<Permission> retrievedPermissions = response.getEntity(List.class);
-		assertEquals(permissionList.size(), retrievedPermissions.size());
+		Permission[] retrievedPermissions = response.getEntity(Permission[].class);
+		assertEquals(permissionList.size(), retrievedPermissions.length);
 	}
 	
 	@Test
@@ -173,6 +162,7 @@ public class PermissionResourceTest extends ResourceTest {
 		String url = "/permissions/" + invalidPermissionId;
 		ClientResponse response = getDefaultHttpRequest(url).get(ClientResponse.class);
 		
-		assertEquals(400, response.getStatus());
+		// It answers 404 because did find the route to match.
+		assertEquals(404, response.getStatus());
 	}
 }
