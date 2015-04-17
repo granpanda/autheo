@@ -87,19 +87,6 @@ public class TicketBusinessTest {
 		retrievedToken = ticketBusiness.tokenWasIssuedByUs(null);
 		assertNull(retrievedToken);
 	}
-	
-	@Test
-	public void testTokenWasIssuedByUs_NOK_2() {
-
-		Ticket ticket = TicketFactoryForTests.getDefaultTestTicket();
-
-		String errorMessage = "The parameter is null or empty.";
-		IllegalArgumentException illegalArgumentException = new IllegalArgumentException(errorMessage);
-		Mockito.when(tokenBusinessMock.getAPIToken(ticket.getTokenValue())).thenThrow(illegalArgumentException);
-
-		Token retrievedToken = ticketBusiness.tokenWasIssuedByUs(ticket);
-		assertFalse(retrievedToken != null);
-	}
 
 	@Test
 	public void testUserIsAuthorized_OK_1() {

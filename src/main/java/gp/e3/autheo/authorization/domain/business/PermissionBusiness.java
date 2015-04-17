@@ -10,7 +10,6 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.apache.commons.dbcp2.BasicDataSource;
-import org.apache.commons.dbutils.DbUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -30,21 +29,15 @@ public class PermissionBusiness {
 	public long createPermission(Permission permission) {
 
 		long permissionId = 0;
-		Connection dbConnection = null;
 
-		try {
+		try (Connection dbConnection = dataSource.getConnection()) {
 
-			dbConnection = dataSource.getConnection();
 			permissionId = permissionDao.createPermission(dbConnection, permission);
 
 		} catch (SQLException e) {
 
 			LOGGER.error("createPermission: check the permission was not already created.", e);
 			ExceptionUtils.throwIllegalStateException(e);
-
-		} finally {
-
-			DbUtils.closeQuietly(dbConnection);
 		}
 
 		return permissionId;
@@ -53,11 +46,8 @@ public class PermissionBusiness {
 	public boolean overwritePermissionsToRole(String roleName, List<Permission> permissions) {
 
 		boolean permissionsWereOverwritten = false;
-		Connection dbConnection = null;
 
-		try {
-
-			dbConnection = dataSource.getConnection();
+		try (Connection dbConnection = dataSource.getConnection()) {
 
 			List<Long> permissionsIds = new ArrayList<Long>();
 
@@ -80,10 +70,6 @@ public class PermissionBusiness {
 
 			LOGGER.error("overwritePermissionsToRole", e);
 			ExceptionUtils.throwIllegalStateException(e);
-
-		} finally {
-
-			DbUtils.closeQuietly(dbConnection);
 		}
 
 		return permissionsWereOverwritten;
@@ -92,11 +78,9 @@ public class PermissionBusiness {
 	public boolean disassociatePermissionFromAllRoles(int permissionId) {
 
 		boolean permissionWasDisassociated = false;
-		Connection dbConnection = null;
 
-		try {
+		try (Connection dbConnection = dataSource.getConnection()) {
 
-			dbConnection = dataSource.getConnection();
 			int result = permissionDao.disassociatePermissionFromAllRoles(dbConnection, permissionId);
 			permissionWasDisassociated = (result != 0);
 
@@ -104,10 +88,6 @@ public class PermissionBusiness {
 
 			LOGGER.error("disassociatePermissionFromAllRoles", e);
 			ExceptionUtils.throwIllegalStateException(e);
-
-		} finally {
-
-			DbUtils.closeQuietly(dbConnection);
 		}
 
 		return permissionWasDisassociated;
@@ -116,11 +96,9 @@ public class PermissionBusiness {
 	public boolean disassociateAllPermissionsFromRole(String roleName) {
 
 		boolean permissionsWereDisassociatedFromRole = false;
-		Connection dbConnection = null;
 
-		try {
+		try (Connection dbConnection = dataSource.getConnection()) {
 
-			dbConnection = dataSource.getConnection();
 			int result = permissionDao.disassociateAllPermissionsFromRole(dbConnection, roleName);
 			permissionsWereDisassociatedFromRole = (result != 0);
 
@@ -128,10 +106,6 @@ public class PermissionBusiness {
 
 			LOGGER.error("disassociateAllPermissionsFromRole", e);
 			ExceptionUtils.throwIllegalStateException(e);
-
-		} finally {
-
-			DbUtils.closeQuietly(dbConnection);
 		}
 
 		return permissionsWereDisassociatedFromRole;
@@ -140,21 +114,15 @@ public class PermissionBusiness {
 	public Permission getPermissionById(long permissionId) {
 
 		Permission permission = null;
-		Connection dbConnection = null;
 
-		try {
+		try (Connection dbConnection = dataSource.getConnection()) {
 
-			dbConnection = dataSource.getConnection();
 			permission = permissionDao.getPermissionById(dbConnection, permissionId);
 
 		} catch (SQLException e) {
 
 			LOGGER.error("getPermissionById", e);
 			ExceptionUtils.throwIllegalStateException(e);
-
-		} finally {
-
-			DbUtils.closeQuietly(dbConnection);
 		}
 
 		return permission;
@@ -163,21 +131,15 @@ public class PermissionBusiness {
 	public Permission getPermissionByHttpVerbAndUrl(String httpVerb, String url) {
 
 		Permission permission = null;
-		Connection dbConnection = null;
 
-		try {
+		try (Connection dbConnection = dataSource.getConnection()) {
 
-			dbConnection = dataSource.getConnection();
 			permission = permissionDao.getPermissionByHttpVerbAndUrl(dbConnection, httpVerb, url);
 
 		} catch (SQLException e) {
 
 			LOGGER.error("getPermissionByHttpVerbAndUrl", e);
 			ExceptionUtils.throwIllegalStateException(e);
-
-		} finally {
-
-			DbUtils.closeQuietly(dbConnection);
 		}
 
 		return permission;
@@ -186,21 +148,15 @@ public class PermissionBusiness {
 	public List<Permission> getAllPermissions() {
 
 		List<Permission> permissions = new ArrayList<Permission>();
-		Connection dbConnection = null;
 
-		try {
+		try (Connection dbConnection = dataSource.getConnection()) {
 
-			dbConnection = dataSource.getConnection();
 			permissions = permissionDao.getAllPermissions(dbConnection);
 
 		} catch (SQLException e) {
 
 			LOGGER.error("getAllPermissions", e);
 			ExceptionUtils.throwIllegalStateException(e);
-
-		} finally {
-
-			DbUtils.closeQuietly(dbConnection);
 		}
 
 		return permissions;
@@ -210,21 +166,14 @@ public class PermissionBusiness {
 
 		List<Permission> allPermissions = new ArrayList<Permission>();
 
-		Connection dbConnection = null;
+		try (Connection dbConnection = dataSource.getConnection()) {
 
-		try {
-
-			dbConnection = dataSource.getConnection();
 			allPermissions = permissionDao.getAllPermissionsOfAGivenRole(dbConnection, roleName);
 
 		} catch (SQLException e) {
 
 			LOGGER.error("getAllPermissionsOfAGivenRole", e);
 			ExceptionUtils.throwIllegalStateException(e);
-
-		} finally {
-
-			DbUtils.closeQuietly(dbConnection);
 		}
 
 		return allPermissions;
@@ -233,11 +182,9 @@ public class PermissionBusiness {
 	public boolean deletePermission(long permissionId) {
 
 		boolean permissionWasDeleted = false;
-		Connection dbConnection = null;
 
-		try {
+		try (Connection dbConnection = dataSource.getConnection()) {
 
-			dbConnection = dataSource.getConnection();
 			permissionDao.disassociatePermissionFromAllRoles(dbConnection, permissionId);
 			int affectedRows = permissionDao.deletePermission(dbConnection, permissionId);
 
@@ -247,10 +194,6 @@ public class PermissionBusiness {
 
 			LOGGER.error("deletePermission", e);
 			ExceptionUtils.throwIllegalStateException(e);
-
-		} finally {
-
-			DbUtils.closeQuietly(dbConnection);
 		}
 
 		return permissionWasDeleted;

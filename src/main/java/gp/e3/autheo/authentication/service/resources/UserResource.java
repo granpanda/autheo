@@ -100,7 +100,7 @@ public class UserResource {
 					response = Response.status(401).entity(errorMessage).build();
 				}
 
-			} catch (TokenGenerationException | IllegalArgumentException e) {
+			} catch (TokenGenerationException e) {
 
 				String message = getStringInJsonFormat(e.getMessage());
 				response = Response.status(401).entity(message).build();

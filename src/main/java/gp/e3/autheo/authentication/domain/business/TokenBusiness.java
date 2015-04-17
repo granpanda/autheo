@@ -14,7 +14,6 @@ import java.sql.SQLException;
 import java.util.List;
 
 import org.apache.commons.dbcp2.BasicDataSource;
-import org.apache.commons.dbutils.DbUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -30,9 +29,7 @@ public class TokenBusiness {
 
 	public void updateTokensCache() {
 
-		try {
-			
-			Connection dbConnection = dataSource.getConnection();
+		try (Connection dbConnection = dataSource.getConnection()) {
 
 			List<Token> tokens = tokenDAO.getAllTokens(dbConnection);
 
@@ -44,8 +41,6 @@ public class TokenBusiness {
 					tokenCacheDao.addTokenUsingOrganizationAsKey(tokenFromDb);
 				}
 			}
-
-			dbConnection.close();
 			
 		} catch (SQLException e) {
 			
@@ -60,11 +55,8 @@ public class TokenBusiness {
 		this.tokenDAO = tokenDAO;
 		this.tokenCacheDao = tokenCacheDao;
 
-		Connection dbConnection = null;
-
-		try {
+		try (Connection dbConnection = dataSource.getConnection()) {
 			
-			dbConnection = dataSource.getConnection();
 			this.tokenDAO.createTokensTableIfNotExists(dbConnection);
 			updateTokensCache();
 
@@ -72,10 +64,6 @@ public class TokenBusiness {
 			
 			LOGGER.error("TokenBusiness constructor", e);
 			throw new IllegalStateException(e);
-			
-		} finally {
-
-			DbUtils.closeQuietly(dbConnection);
 		}
 	}
 
@@ -98,11 +86,9 @@ public class TokenBusiness {
 	private Token generateSaveAndGetAPIToken(BasicDataSource dataSource, User user) {
 
 		Token apiToken = null;
-		Connection dbConnection = null;
 
-		try {
+		try (Connection dbConnection = dataSource.getConnection()) {
 
-			dbConnection = dataSource.getConnection();
 			apiToken = generateRandomTokenFromUserInfo(user, TokenTypes.API_KEY_TOKEN_TYPE.getTypeNumber());
 			tokenDAO.createToken(dbConnection, apiToken);
 			tokenCacheDao.addTokenUsingTokenValueAsKey(apiToken);
@@ -112,9 +98,6 @@ public class TokenBusiness {
 			LOGGER.error("generateSaveAndGetAPIToken", e);
 			throw new IllegalStateException(e);
 
-		} finally {
-
-			DbUtils.closeQuietly(dbConnection);
 		}
 
 		return apiToken;
@@ -123,11 +106,9 @@ public class TokenBusiness {
 	private Token generateSaveAndGetInternalAPIToken(BasicDataSource dataSource, User user) {
 
 		Token internalAPIToken = null;
-		Connection dbConnection = null;
 
-		try {
+		try (Connection dbConnection = dataSource.getConnection()) {
 
-			dbConnection = dataSource.getConnection();
 			internalAPIToken = generateRandomTokenFromUserInfo(user, INTERNAL_API_CLIENT_ROLE, TokenTypes.INTERNAL_API_TOKEN_TYPE.getTypeNumber());
 			tokenDAO.createToken(dbConnection, internalAPIToken);
 			tokenCacheDao.addTokenUsingTokenValueAsKey(internalAPIToken);
@@ -138,9 +119,6 @@ public class TokenBusiness {
 			LOGGER.error("generateSaveAndGetInternalAPIToken", e);
 			throw new IllegalStateException(e);
 
-		} finally {
-
-			DbUtils.closeQuietly(dbConnection);
 		}
 
 		return internalAPIToken;
@@ -215,7 +193,8 @@ public class TokenBusiness {
 		return token;
 	}
 
-	public boolean removeUserAccessToken(String tokenValue) throws ValidDataException{
+	public boolean removeUserAccessToken(String tokenValue) throws ValidDataException {
+		
 		boolean tokenWasRemoved = false;
 
 		if(StringValidator.isValidString(tokenValue)){

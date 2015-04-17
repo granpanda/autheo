@@ -81,12 +81,9 @@ public class PermissionDAO {
 
 	public void createPermissionsTable(Connection dbConnection) {
 
-		try {
+		try (PreparedStatement prepareStatement = dbConnection.prepareStatement(CREATE_PERMISSIONS_TABLE_IF_NOT_EXISTS)) {
 
-			PreparedStatement prepareStatement = dbConnection.prepareStatement(CREATE_PERMISSIONS_TABLE_IF_NOT_EXISTS);
 			prepareStatement.executeUpdate();
-			prepareStatement.close();
-
 			createPermissionsUniqueIndex(dbConnection);
 
 		} catch (SQLException e) {

@@ -12,7 +12,6 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.apache.commons.dbcp2.BasicDataSource;
-import org.apache.commons.dbutils.DbUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -32,11 +31,8 @@ public class UserBusiness {
 	public User createUser(User newUser) {
 
 		User createdUser = null;
-		Connection dbConnection = null;
 
-		try {
-
-			dbConnection = dataSource.getConnection();
+		try (Connection dbConnection = dataSource.getConnection()) {
 
 			String originalPassword = newUser.getPassword();
 			String passwordHash = PasswordHandler.getPasswordHash(originalPassword);
@@ -54,9 +50,6 @@ public class UserBusiness {
 			LOGGER.error("createUser", e);
 			ExceptionUtils.throwIllegalStateException(e);
 			
-		} finally {
-
-			DbUtils.closeQuietly(dbConnection);
 		}
 
 		return createdUser;
@@ -65,11 +58,9 @@ public class UserBusiness {
 	public boolean authenticateUser(String username, String password) {
 
 		boolean isAuthenticated = false;
-		Connection dbConnection = null;
 
-		try {
+		try (Connection dbConnection = dataSource.getConnection()) {
 
-			dbConnection = dataSource.getConnection();
 			String passwordHashFromDb = userDao.getPasswordByUsername(dbConnection, username);
 			isAuthenticated = PasswordHandler.validatePassword(password, passwordHashFromDb);				
 
@@ -77,10 +68,6 @@ public class UserBusiness {
 
 			LOGGER.error("authenticateUser", e);
 			ExceptionUtils.throwIllegalStateException(e);
-
-		} finally {
-
-			DbUtils.closeQuietly(dbConnection);
 		}
 
 		return isAuthenticated;
@@ -89,21 +76,15 @@ public class UserBusiness {
 	public User getUserByUsername(String username) {
 		
 		User user = null;
-		Connection dbConnection = null;
 		
-		try {
+		try (Connection dbConnection = dataSource.getConnection()) {
 			
-			dbConnection = dataSource.getConnection();
 			user = userDao.getUserByUsername(dbConnection, username);
 			
 		} catch (SQLException e) {
 			
 			LOGGER.error("getUserByUsername", e);
 			ExceptionUtils.throwIllegalStateException(e);
-			
-		} finally {
-			
-			DbUtils.closeQuietly(dbConnection);
 		}
 
 		return user;
@@ -112,21 +93,15 @@ public class UserBusiness {
 	public List<User> getAllUsers() {
 
 		List<User> usersList = new ArrayList<User>();
-		Connection dbConnection = null;
 		
-		try {
+		try (Connection dbConnection = dataSource.getConnection()) {
 			
-			dbConnection = dataSource.getConnection();
 			usersList = userDao.getAllUsers(dbConnection);
 			
 		} catch (SQLException e) {
 			
 			LOGGER.error("getAllUsers", e);
 			ExceptionUtils.throwIllegalStateException(e);
-			
-		} finally {
-			
-			DbUtils.closeQuietly(dbConnection);
 		}
 		
 		return usersList;
@@ -135,21 +110,15 @@ public class UserBusiness {
 	public boolean updateUser(String username, User updatedUser) {
 
 		boolean userWasUpdated = false;
-		Connection dbConnection = null;
 		
-		try {
+		try (Connection dbConnection = dataSource.getConnection()) {
 			
-			dbConnection = dataSource.getConnection();
 			userWasUpdated = userDao.updateUser(dbConnection, username, updatedUser.getName(), updatedUser.getPassword());
 			
 		} catch (SQLException e) {
 			
 			LOGGER.error("updateUser", e);
 			ExceptionUtils.throwIllegalStateException(e);
-			
-		} finally {
-			
-			DbUtils.closeQuietly(dbConnection);
 		}
 		
 		return userWasUpdated;
@@ -158,21 +127,15 @@ public class UserBusiness {
 	public boolean deleteUser(String username) {
 
 		boolean userWasDeleted = false;
-		Connection dbConnection = null;
 		
-		try {
+		try (Connection dbConnection = dataSource.getConnection()) {
 			
-			dbConnection = dataSource.getConnection();
 			userWasDeleted = userDao.deleteUser(dbConnection, username);
 			
 		} catch (SQLException e) {
 			
 			LOGGER.error("deleteUser", e);
 			ExceptionUtils.throwIllegalStateException(e);
-			
-		} finally {
-			
-			DbUtils.closeQuietly(dbConnection);
 		}
 		
 		return userWasDeleted;

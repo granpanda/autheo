@@ -40,9 +40,6 @@ public class OrganizationResource {
 
 		Response response = null;
 
-		System.out.println("********************* 1");
-		System.out.println(organizationId);
-
 		if (!StringUtils.isBlank(organizationId)) {
 
 			Token moduleToken = tokenBusiness.getModuleToken(organizationId);

@@ -13,7 +13,6 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.apache.commons.dbcp2.BasicDataSource;
-import org.apache.commons.dbutils.DbUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -45,20 +44,15 @@ public class RoleBusiness {
 		return redisPool.getResource();
 	}
 
-	private void returnResource(Jedis jedis){
-		redisPool.returnResource(jedis);
-	}
-
 	public Role createRole(Role role) {
 
 		Role createdRole = null;
 		String roleName = role.getName();
 		List<Permission> rolePermissions = role.getPermissions();
-		Connection dbConnection = null;
 
-		try {
+		try (Connection dbConnection = dataSource.getConnection()) {
 
-			dbConnection = dataSource.getConnection();
+			
 			int affectedRows = roleDAO.createRole(dbConnection, roleName);
 			boolean roleWasCreated = (affectedRows == 1);
 			
@@ -76,10 +70,6 @@ public class RoleBusiness {
 
 			LOGGER.error("createRole: check the role was not already created.", e);
 			ExceptionUtils.throwIllegalStateException(e);
-			
-		} finally {
-			
-			DbUtils.closeQuietly(dbConnection);
 		}
 
 		return createdRole;
@@ -93,22 +83,16 @@ public class RoleBusiness {
 
 	public List<String> getAllRolesNames() {
 
-		Connection dbConnection = null;
 		List<String> rolesNames = new ArrayList<String>();
 		
-		try {
+		try (Connection dbConnection = dataSource.getConnection()) {
 			
-			dbConnection = dataSource.getConnection();
 			rolesNames = roleDAO.getAllRolesNames(dbConnection);
 			
 		} catch (SQLException e) {
 			
 			LOGGER.error("getAllRolesNames", e);
 			ExceptionUtils.throwIllegalStateException(e);
-			
-		} finally {
-			
-			DbUtils.closeQuietly(dbConnection);
 		}
 		
 		return rolesNames;
@@ -123,37 +107,30 @@ public class RoleBusiness {
 	public boolean deleteRole(String roleName) {
 		
 		boolean roleWasDeleted = false;
-		Connection dbConnection = null;
-		Jedis redisClient = null;
+		Jedis redisClient = getRedisClient();
 		
-		try {
-			
-			dbConnection = dataSource.getConnection();
+		try (Connection dbConnection = dataSource.getConnection()) {
 			
 			permissionBusiness.disassociateAllPermissionsFromRole(roleName);
 			roleDAO.removeAllUsersFromRole(dbConnection, roleName);
 			roleDAO.deleteRole(dbConnection, roleName);
 			
-			redisClient = getRedisClient();
 			long keysRemoved = redisClient.del(roleName);
 			roleWasDeleted = (keysRemoved > 0);
-			returnResource(redisClient);
 			
 		} catch (JedisConnectionException e) {
 			
 			LOGGER.error("deleteRole", e);
 			ExceptionUtils.throwIllegalStateException(e);
-			redisPool.returnBrokenResource(redisClient);
 			
 		} catch (SQLException e) {
 			
 			LOGGER.error("deleteRole", e);
 			ExceptionUtils.throwIllegalStateException(e);
-			returnResource(redisClient);
 		
 		} finally {
 			
-			DbUtils.closeQuietly(dbConnection);
+			redisClient.close();
 		}
 		
 		return roleWasDeleted;
@@ -162,11 +139,9 @@ public class RoleBusiness {
 	public boolean addUserToRole(String username, String roleName) {
 
 		boolean userWasAddedToRole = false;
-		Connection dbConnection = null;
 		
-		try {
+		try (Connection dbConnection = dataSource.getConnection()) {
 			
-			dbConnection = dataSource.getConnection();
 			int affectedRows = roleDAO.addUserToRole(dbConnection, username, roleName);
 			userWasAddedToRole = (affectedRows == 1);
 			
@@ -174,10 +149,6 @@ public class RoleBusiness {
 			
 			LOGGER.error("addUserToRole", e);
 			ExceptionUtils.throwIllegalStateException(e);
-			
-		} finally {
-			
-			DbUtils.closeQuietly(dbConnection);
 		}
 		
 		return userWasAddedToRole;
@@ -186,11 +157,9 @@ public class RoleBusiness {
 	public boolean removeUserFromRole(String username, String roleName) {
 
 		boolean userWasRemovedFromRole = false;
-		Connection dbConnection = null;
 		
-		try {
+		try (Connection dbConnection = dataSource.getConnection()) {
 			
-			dbConnection = dataSource.getConnection();
 			int affectedRows = roleDAO.removeUserFromRole(dbConnection, username);
 			userWasRemovedFromRole = (affectedRows > 0);
 			
@@ -198,10 +167,6 @@ public class RoleBusiness {
 			
 			LOGGER.error("removeUserFromRole", e);
 			ExceptionUtils.throwIllegalStateException(e);
-			
-		} finally {
-			
-			DbUtils.closeQuietly(dbConnection);
 		}
 		
 		return userWasRemovedFromRole;
@@ -216,7 +181,7 @@ public class RoleBusiness {
 
 		Jedis redisClient = getRedisClient();
 		String getResult = redisClient.get(roleName);
-		returnResource(redisClient);
+		redisClient.close();
 
 		return StringValidator.isValidString(getResult);
 	}
@@ -233,7 +198,7 @@ public class RoleBusiness {
 			
 			Jedis redisClient = getRedisClient();
 			String setResult = redisClient.set(roleName, rolePermissionsAsJson);
-			returnResource(redisClient);
+			redisClient.close();
 
 			// See: http://redis.io/commands/SET
 			answer = (setResult.equals("OK"));
@@ -248,7 +213,7 @@ public class RoleBusiness {
 		
 		Jedis redisClient = getRedisClient();
 		String rolePermissionsString = redisClient.get(roleName);
-		returnResource(redisClient);
+		redisClient.close();
 
 		if (StringValidator.isValidString(rolePermissionsString)) {
 
