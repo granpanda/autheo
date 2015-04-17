@@ -64,12 +64,10 @@ public class RoleDAO {
 
 		boolean rolesTableWasCreated = false;
 
-		try {
+		try (PreparedStatement prepareStatement = dbConnection.prepareStatement(CREATE_ROLES_TABLE_IF_NOT_EXISTS)) {
 
-			PreparedStatement prepareStatement = dbConnection.prepareStatement(CREATE_ROLES_TABLE_IF_NOT_EXISTS);
 			int result = prepareStatement.executeUpdate();
 			rolesTableWasCreated = (result != 0);
-			prepareStatement.close();
 
 		} catch (SQLException e) {
 
@@ -84,12 +82,10 @@ public class RoleDAO {
 
 		boolean rolesAndPermissionsTableWasCreated = false;
 
-		try {
+		try (PreparedStatement prepareStatement = dbConnection.prepareStatement(CREATE_ROLES_AND_PERMISSIONS_TABLE_IF_NOT_EXISTS)) {
 
-			PreparedStatement prepareStatement = dbConnection.prepareStatement(CREATE_ROLES_AND_PERMISSIONS_TABLE_IF_NOT_EXISTS);
 			int result = prepareStatement.executeUpdate();
 			rolesAndPermissionsTableWasCreated = (result != 0);
-			prepareStatement.close();
 
 		} catch (SQLException e) {
 
@@ -104,12 +100,10 @@ public class RoleDAO {
 
 		boolean rolesAndUsersTableWasCreated = false;
 
-		try {
+		try (PreparedStatement prepareStatement = dbConnection.prepareStatement(CREATE_ROLES_AND_USERS_TABLE_IF_NOT_EXISTS)) {
 
-			PreparedStatement prepareStatement = dbConnection.prepareStatement(CREATE_ROLES_AND_USERS_TABLE_IF_NOT_EXISTS);
 			int result = prepareStatement.executeUpdate();
 			rolesAndUsersTableWasCreated = (result != 0);
-			prepareStatement.close();
 
 		} catch (SQLException e) {
 

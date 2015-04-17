@@ -41,11 +41,9 @@ public class UserDAO {
 
 	public void createUsersTableIfNotExists(Connection dbConnection) {
 
-		try {
+		try (PreparedStatement prepareStatement = dbConnection.prepareStatement(CREATE_USERS_TABLE_IF_NOT_EXISTS)) {
 
-			PreparedStatement prepareStatement = dbConnection.prepareStatement(CREATE_USERS_TABLE_IF_NOT_EXISTS);
 			prepareStatement.executeUpdate();
-			prepareStatement.close();
 
 		} catch (SQLException e) {
 

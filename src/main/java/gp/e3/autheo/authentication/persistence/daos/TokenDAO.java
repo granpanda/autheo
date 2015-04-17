@@ -31,11 +31,9 @@ public class TokenDAO {
 
 	public void createTokensTableIfNotExists(Connection dbConnection) {
 
-		try {
+		try (PreparedStatement prepareStatement = dbConnection.prepareStatement(CREATE_TOKENS_TABLE_IF_NOT_EXISTS)) {
 
-			PreparedStatement prepareStatement = dbConnection.prepareStatement(CREATE_TOKENS_TABLE_IF_NOT_EXISTS);
 			prepareStatement.executeUpdate();
-			prepareStatement.close();
 
 		} catch (SQLException e) {
 
