@@ -54,17 +54,17 @@ public class UserResource {
 
 		if (User.isAValidUser(user)) {
 
-			User createUser = userBusiness.createUser(user);
+			User createdUser = userBusiness.createUser(user);
 			
-			if (Objects.nonNull(createUser)) {
+			if (createdUser != null) {
 				
 				tokenBusiness.generateAndSaveTokensForAnAPIUser(user);
 				roleBusiness.addUserToRole(user.getUsername(), user.getRoleId());
-				response = Response.status(201).entity(createUser).build();
+				response = Response.status(201).entity(createdUser).build();
 				
 			} else {
 				
-				response = Response.status(500).entity(createUser).build();
+				response = Response.status(500).entity(createdUser).build();
 			}
 
 		} else {
