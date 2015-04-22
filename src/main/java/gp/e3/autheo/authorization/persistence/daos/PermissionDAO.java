@@ -72,11 +72,18 @@ public class PermissionDAO {
 	// Database operations
 	//------------------------------------------------------------------------------------------------------
 
-	private void createPermissionsUniqueIndex(Connection dbConnection) throws SQLException {
+	private void createPermissionsUniqueIndex(Connection dbConnection) {
 
-		PreparedStatement prepareStatement = dbConnection.prepareStatement(CREATE_PERMISSIONS_UNIQUE_INDEX);
-		prepareStatement.executeUpdate();
-		prepareStatement.close();
+	    try {
+	        
+	        PreparedStatement prepareStatement = dbConnection.prepareStatement(CREATE_PERMISSIONS_UNIQUE_INDEX);
+	        prepareStatement.executeUpdate();
+	        prepareStatement.close();
+            
+        } catch (SQLException e) {
+            
+            LOGGER.info("createPermissionsUniqueIndex: " + e.getMessage());
+        }		
 	}
 
 	public void createPermissionsTable(Connection dbConnection) {
