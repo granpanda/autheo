@@ -24,8 +24,12 @@ public class TokenCacheDAO {
 		return redisPool.getResource();
 	}
 
-	private void returnResource(Jedis jedis){
-		redisPool.returnResource(jedis);
+	private void returnResource(Jedis jedis) {
+	    
+	    if (jedis != null) {
+	        
+	        jedis.close();
+	    }
 	}
 
 	public boolean addTokenUsingTokenValueAsKey(Token token) {

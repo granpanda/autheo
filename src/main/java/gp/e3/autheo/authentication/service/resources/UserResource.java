@@ -10,7 +10,6 @@ import gp.e3.autheo.authentication.service.resources.commons.HttpCommonResponses
 import gp.e3.autheo.authorization.domain.business.RoleBusiness;
 
 import java.util.List;
-import java.util.Objects;
 
 import javax.ws.rs.Consumes;
 import javax.ws.rs.DELETE;

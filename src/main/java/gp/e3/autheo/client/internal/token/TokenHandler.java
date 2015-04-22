@@ -58,7 +58,7 @@ public class TokenHandler {
 
 				Jedis redisClient = redisPool.getResource();
 				String tokenToString = redisClient.get(sellerId);
-				redisPool.returnResource(redisClient);
+				redisClient.close();
 
 				if (!StringUtils.isBlank(tokenToString) && !tokenToString.equalsIgnoreCase(NIL)) {
 					tokenDTO = TokenDTO.buildTokenDTOFromTokenToString(tokenToString);
