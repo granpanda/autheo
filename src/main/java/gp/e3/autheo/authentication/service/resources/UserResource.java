@@ -9,7 +9,9 @@ import gp.e3.autheo.authentication.infrastructure.validators.StringValidator;
 import gp.e3.autheo.authentication.service.resources.commons.HttpCommonResponses;
 import gp.e3.autheo.authorization.domain.business.RoleBusiness;
 
+import java.util.Hashtable;
 import java.util.List;
+import java.util.Map;
 
 import javax.ws.rs.Consumes;
 import javax.ws.rs.DELETE;
@@ -40,10 +42,12 @@ public class UserResource {
 		this.tokenBusiness = tokenBusiness;
 	}
 
-	public static String getStringInJsonFormat(String message) {
+	public static Map<String, String> getStringInJsonFormat(String key, String value) {
 
-		Gson gson = new Gson();
-		return gson.toJson(message);
+        Map<String, String> stringMessage = new Hashtable<String, String>();
+        stringMessage.put(key, value);
+
+        return stringMessage;
 	}
 	
 	@POST
@@ -95,14 +99,14 @@ public class UserResource {
 
 				} else {
 
-					String errorMessage = getStringInJsonFormat("The user credentials are not valid.");
+                    Map<String, String> errorMessage = getStringInJsonFormat("error", "The user credentials are not valid.");
 					response = Response.status(401).entity(errorMessage).build();
 				}
 
-			} catch (TokenGenerationException e) {
+			} catch (Exception e) {
 
-				String message = getStringInJsonFormat(e.getMessage());
-				response = Response.status(401).entity(message).build();
+                Map<String, String> errorMessage = getStringInJsonFormat("error", e.getMessage());
+				response = Response.status(401).entity(errorMessage).build();
 			}
 
 		} else {
