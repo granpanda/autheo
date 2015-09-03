@@ -25,7 +25,7 @@ public class TokenDAO {
 	public static final String TOKEN_TYPE = "token_type";
 
 	public static final String CREATE_TOKENS_TABLE_IF_NOT_EXISTS = "CREATE TABLE IF NOT EXISTS tokens (token_value varchar(128), username varchar(32), "
-			+ "organization_id varchar(32), role_id varchar(32), token_type TINYINT(10), PRIMARY KEY (organization_id, token_type));";
+			+ "organization_id varchar(32), role_id varchar(32), token_type TINYINT(10), PRIMARY KEY (username, organization_id, token_type));";
 
 	public static final String COUNT_TOKENS_TABLE = "SELECT COUNT(*) FROM tokens;";
 

@@ -27,6 +27,7 @@ import org.apache.commons.dbcp2.BasicDataSource;
 import org.apache.commons.dbutils.DbUtils;
 import org.eclipse.jetty.servlets.CrossOriginFilter;
 
+import org.flywaydb.core.Flyway;
 import redis.clients.jedis.Jedis;
 import redis.clients.jedis.JedisPool;
 import redis.clients.jedis.JedisPoolConfig;
@@ -100,36 +101,12 @@ public class Autheo extends Service<AutheoConfig> {
 		return basicDataSource;
 	}
 
-	private void initializeTablesIfNeeded(BasicDataSource dataSource) {
+	private void migrateDatabaseIfNeeded(BasicDataSource dataSource) {
 
-		Connection dbConnection = null;
-
-		try {
-
-			dbConnection = dataSource.getConnection();
-
-			TokenDAO tokenDAO = new TokenDAO();
-			tokenDAO.createTokensTableIfNotExists(dbConnection);
-
-			UserDAO userDAO = new UserDAO();
-			userDAO.createUsersTableIfNotExists(dbConnection);
-
-			PermissionDAO permissionDAO = new PermissionDAO();
-			permissionDAO.createPermissionsTable(dbConnection);
-
-			RoleDAO roleDAO = new RoleDAO();
-			roleDAO.createRolesTableIfNotExists(dbConnection);
-			roleDAO.createRolesAndPermissionsTableIfNotExists(dbConnection);
-			roleDAO.createRolesAndUsersTableIfNotExists(dbConnection);
-
-		} catch (SQLException e) {
-
-			e.printStackTrace();
-
-		} finally {
-
-			DbUtils.closeQuietly(dbConnection);
-		}
+		Flyway flyway = new Flyway();
+		flyway.setDataSource(dataSource);
+		flyway.setBaselineOnMigrate(true);
+		flyway.migrate();
 	}
 
 	private TokenResource getTokenResource(BasicDataSource dataSource, JedisPool jedisPool) {
@@ -204,7 +181,7 @@ public class Autheo extends Service<AutheoConfig> {
 
 		// Initialize data source.
 		BasicDataSource dataSource = getInitializedDataSource(mySqlConfig);
-		initializeTablesIfNeeded(dataSource);
+		migrateDatabaseIfNeeded(dataSource);
 
 		// Initialize Redis
 		JedisPool jedisPool = getRedisPoolInstance(redisConfig);
