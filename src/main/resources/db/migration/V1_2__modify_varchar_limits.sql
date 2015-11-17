@@ -1,0 +1,1 @@
+ALTER TABLE users MODIFY COLUMN name varchar(64), MODIFY COLUMN username varchar(64), MODIFY COLUMN organization_id varchar(64);
