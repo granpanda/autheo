@@ -39,14 +39,14 @@ public class TokenHandler {
 		public void initializeSingleton(Gson gson, JedisPool jedisPool) {
 
 			if (!singletonHasBeenInitialized()) {
-				
+
 				this.gson = gson;
 				redisPool = jedisPool;
 			}
 		}
-		
+
 		public TokenDTO getTokenDTOFromStringAsJSON(String stringAsJSON) {
-			
+
 			return gson.fromJson(stringAsJSON, TokenDTO.class);
 		}
 
@@ -75,75 +75,130 @@ public class TokenHandler {
 	}
 
 	public TokenHandler(Gson gson, JedisPool jedisPool) {
-		
+
 		TokenHandlerSingleton.INSTANCE.initializeSingleton(gson, jedisPool);
 	}
 
 	private TokenDTO getOrganizationModuleTokenFromAutheo(String organizationId) {
-		
+
 		TokenDTO moduleTokenDTO = null;
-		
+
 		CloseableHttpClient httpClient = null;
 		CloseableHttpResponse httpResponse = null;
-		
+
 		try {
-			
+
 			String uri = "http://localhost:9002/api/organizations/" + organizationId + "/module-token";
 			HttpGet getRequest = new HttpGet(uri);
-			
+
 			String appJson = ContentType.APPLICATION_JSON.toString();
 			getRequest.addHeader("Accept", appJson);
 			getRequest.addHeader("Content-Type", appJson + "; charset=UTF-8");
-			
+
 			httpClient = HttpClientBuilder.create().build();
 			httpResponse = httpClient.execute(getRequest);
-			
+
 			if (httpResponse.getStatusLine().getStatusCode() == 200) {
-				
+
 				String httpEntityAsString = HttpUtils.getHttpEntityAsString(httpResponse.getEntity());
 				moduleTokenDTO = TokenHandlerSingleton.INSTANCE.getTokenDTOFromStringAsJSON(httpEntityAsString);
 			}
-			
+
 		} catch (IOException e) {
-			
+
 			e.printStackTrace();
-			
+
 		} finally {
-			
+
 			try {
 				httpClient.close();
 				httpResponse.close();
 			} catch (IOException e) {
-				
+
 				e.printStackTrace();
 			}
 		}
-		
+
 		return moduleTokenDTO;
 	}
-	
+
 	public TokenDTO getModuleTokenFromRedis(String sellerId) throws InvalidStateException {
-		
+
 		TokenDTO moduleToken = TokenHandlerSingleton.INSTANCE.getModuleTokenFromRedis(sellerId);
-		
+
 		if (moduleToken == null) {
-			
+
 			moduleToken = getOrganizationModuleTokenFromAutheo(sellerId);
 		}
-		
+
 		return moduleToken;
 	}
-	
+
 	public TokenDTO getSuperUserTokenFromRedis() throws InvalidStateException {
-		
+
 		String superUserValue = TokenHandlerSingleton.SUPER_USER;
 		TokenDTO superUserToken = TokenHandlerSingleton.INSTANCE.getModuleTokenFromRedis(superUserValue);
-		
+
 		if (superUserToken == null) {
-			
+
 			superUserToken = getOrganizationModuleTokenFromAutheo(superUserValue);
 		}
-		
+
 		return superUserToken;
+	}
+
+	// Methods added on 2016-01-20
+
+	private TokenDTO getOrganizationModuleTokenFromAutheo(String autheoHost, String organizationId) {
+
+		TokenDTO moduleTokenDTO = null;
+
+		CloseableHttpClient httpClient = null;
+		CloseableHttpResponse httpResponse = null;
+
+		try {
+
+			String uri = "http://" + autheoHost + ":9002/api/organizations/" + organizationId + "/module-token";
+			HttpGet getRequest = new HttpGet(uri);
+
+			String appJson = ContentType.APPLICATION_JSON.toString();
+			getRequest.addHeader("Accept", appJson);
+			getRequest.addHeader("Content-Type", appJson + "; charset=UTF-8");
+
+			httpClient = HttpClientBuilder.create().build();
+			httpResponse = httpClient.execute(getRequest);
+
+			if (httpResponse.getStatusLine().getStatusCode() == 200) {
+
+				String httpEntityAsString = HttpUtils.getHttpEntityAsString(httpResponse.getEntity());
+				moduleTokenDTO = TokenHandlerSingleton.INSTANCE.getTokenDTOFromStringAsJSON(httpEntityAsString);
+			}
+
+		} catch (IOException e) {
+
+			e.printStackTrace();
+
+		} finally {
+
+			try {
+				httpClient.close();
+				httpResponse.close();
+			} catch (IOException e) {
+				e.printStackTrace();
+			}
+		}
+
+		return moduleTokenDTO;
+	}
+
+	public TokenDTO getModuleTokenFromRedis(String autheoHost, String sellerId) throws InvalidStateException {
+
+		TokenDTO moduleToken = TokenHandlerSingleton.INSTANCE.getModuleTokenFromRedis(sellerId);
+
+		if (moduleToken == null) {
+			moduleToken = getOrganizationModuleTokenFromAutheo(autheoHost, sellerId);
+		}
+
+		return moduleToken;
 	}
 }
