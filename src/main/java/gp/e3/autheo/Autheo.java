@@ -9,6 +9,7 @@ import gp.e3.autheo.authentication.infrastructure.healthchecks.RedisHealthCheck;
 import gp.e3.autheo.authentication.persistence.daos.TokenCacheDAO;
 import gp.e3.autheo.authentication.persistence.daos.TokenDAO;
 import gp.e3.autheo.authentication.persistence.daos.UserDAO;
+import gp.e3.autheo.authentication.service.resources.OrganizationResource;
 import gp.e3.autheo.authentication.service.resources.TokenResource;
 import gp.e3.autheo.authentication.service.resources.UserResource;
 import gp.e3.autheo.authorization.domain.business.PermissionBusiness;
@@ -102,22 +103,22 @@ public class Autheo extends Service<AutheoConfig> {
 	}
 
 	private void migrateDatabaseIfNeeded(BasicDataSource dataSource) {
-
 		Flyway flyway = new Flyway();
 		flyway.setDataSource(dataSource);
 		flyway.setBaselineOnMigrate(true);
 		flyway.migrate();
 	}
 
-	private TokenResource getTokenResource(BasicDataSource dataSource, JedisPool jedisPool) {
-
+	private TokenBusiness getTokenBusiness(BasicDataSource dataSource, JedisPool jedisPool) {
 		TokenDAO tokenDAO = new TokenDAO();
 		TokenCacheDAO tokenCacheDao = new TokenCacheDAO(jedisPool);
-		TokenBusiness tokenBusiness = new TokenBusiness(dataSource, tokenDAO, tokenCacheDao);
+		return new TokenBusiness(dataSource, tokenDAO, tokenCacheDao);
+	}
 
+	private TokenResource getTokenResource(BasicDataSource dataSource, JedisPool jedisPool, TokenBusiness tokenBusiness) {
 		return new TokenResource(tokenBusiness);
 	}
-	
+
 	private RoleBusiness getRoleBusiness(BasicDataSource dataSource, JedisPool jedisPool) {
 		
 		RoleDAO roleDao = new RoleDAO();
@@ -126,29 +127,17 @@ public class Autheo extends Service<AutheoConfig> {
 		return new RoleBusiness(dataSource, jedisPool, roleDao, permissionBusiness);
 	}
 
-	private UserResource getUserResource(BasicDataSource dataSource, JedisPool jedisPool) 
-			throws ClassNotFoundException {
-
+	private UserResource getUserResource(BasicDataSource dataSource, JedisPool jedisPool, TokenBusiness tokenBusiness) throws ClassNotFoundException {
 		final UserDAO userDAO = new UserDAO();
 		final UserBusiness userBusiness = new UserBusiness(dataSource, userDAO);
-		
 		RoleBusiness roleBusiness = getRoleBusiness(dataSource, jedisPool);
-
-		TokenDAO tokenDAO = new TokenDAO();
-		TokenCacheDAO tokenCacheDao = new TokenCacheDAO(jedisPool);
-		TokenBusiness tokenBusiness = new TokenBusiness(dataSource, tokenDAO, tokenCacheDao);
-
 		return new UserResource(userBusiness, roleBusiness, tokenBusiness);
 	}
 
 	private TicketResource getTicketResource(BasicDataSource dataSource, JedisPool jedisPool) {
 
-		TokenDAO tokenDAO = new TokenDAO();
-		TokenCacheDAO tokenCacheDao = new TokenCacheDAO(jedisPool);
-		TokenBusiness tokenBusiness = new TokenBusiness(dataSource, tokenDAO, tokenCacheDao);
-
+		TokenBusiness tokenBusiness = getTokenBusiness(dataSource, jedisPool);
 		RoleBusiness roleBusiness = getRoleBusiness(dataSource, jedisPool);
-
 		TicketBusiness ticketBusiness = new TicketBusiness(tokenBusiness, roleBusiness);
 
 		return new TicketResource(ticketBusiness);
@@ -199,11 +188,16 @@ public class Autheo extends Service<AutheoConfig> {
 		environment.addResource(roleResource);
 
 		// Add token resource to the environment.
-		TokenResource tokenResource = getTokenResource(dataSource, jedisPool);
+		TokenBusiness tokenBusiness = getTokenBusiness(dataSource, jedisPool);
+		TokenResource tokenResource = new TokenResource(tokenBusiness);
 		environment.addResource(tokenResource);
 
+		// Add organization resource.
+		OrganizationResource organizationResource = new OrganizationResource(tokenBusiness);
+		environment.addResource(organizationResource);
+
 		// Add user resource to the environment.
-		UserResource userResource = getUserResource(dataSource, jedisPool);
+		UserResource userResource = getUserResource(dataSource, jedisPool, tokenBusiness);
 		environment.addResource(userResource);
 
 		// Add ticket resource to the environment.
